@@ -1,0 +1,26 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Configurações do Sistema
+*.db
+*.sqlite3
+*.log
+*.env
+*.json
+
+# Arquivos de Mídia
+media/
+*.jpg
+*.png
+
+# Arquivos de migração
+migrations/
+
