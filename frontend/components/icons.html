@@ -1,0 +1,102 @@
+<!-- ============================================================
+     ACADÊMICO — App Layout Component
+     Include this in every page that uses the dashboard shell.
+     Usage: copy the <div class="app"> structure and fill .page
+     ============================================================ -->
+
+<!-- SVG icon sprite — embedded once, referenced everywhere -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <!-- dashboard -->
+  <symbol id="icon-dashboard" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="1.5" y="1.5" width="5" height="5" rx="1"/>
+    <rect x="9.5" y="1.5" width="5" height="5" rx="1"/>
+    <rect x="1.5" y="9.5" width="5" height="5" rx="1"/>
+    <rect x="9.5" y="9.5" width="5" height="5" rx="1"/>
+  </symbol>
+  <!-- students -->
+  <symbol id="icon-students" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+    <path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5"/>
+  </symbol>
+  <!-- trainers -->
+  <symbol id="icon-trainers" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M11 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+    <path d="M5.5 14c0-2.761 2.462-4 5.5-4s5.5 1.239 5.5 4"/>
+    <path d="M1 14c0-2 1.5-3.5 3.5-3.5"/>
+    <path d="M5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+  </symbol>
+  <!-- courses -->
+  <symbol id="icon-courses" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 2h8a1 1 0 0 1 1 1v9l-2-1-2 1-2-1-2 1V3a1 1 0 0 1 1-1Z"/>
+    <path d="M5 5.5h6M5 8h4"/>
+  </symbol>
+  <!-- classes -->
+  <symbol id="icon-classes" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/>
+    <path d="M5.5 3.5V2M10.5 3.5V2"/>
+    <path d="M1.5 7h13"/>
+  </symbol>
+  <!-- grades -->
+  <symbol id="icon-grades" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 1.5 10 6h4.5L11 9l1.5 4.5L8 11l-4.5 2.5L5 9 1.5 6H6L8 1.5Z"/>
+  </symbol>
+  <!-- institutions -->
+  <symbol id="icon-institution" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 14V7M6 14V7M10 14V7M14 14V7M8 1.5l7 5H1l7-5Z"/>
+  </symbol>
+  <!-- search -->
+  <symbol id="icon-search" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="7" cy="7" r="4.5"/>
+    <path d="M10.5 10.5 14 14"/>
+  </symbol>
+  <!-- bell -->
+  <symbol id="icon-bell" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 1.5a5 5 0 0 1 5 5v2.5l1 2H2l1-2V6.5a5 5 0 0 1 5-5Z"/>
+    <path d="M6.5 13.5a1.5 1.5 0 0 0 3 0"/>
+  </symbol>
+  <!-- chevron right -->
+  <symbol id="icon-chevron-right" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 4l4 4-4 4"/>
+  </symbol>
+  <!-- chevron left -->
+  <symbol id="icon-chevron-left" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 4L6 8l4 4"/>
+  </symbol>
+  <!-- plus -->
+  <symbol id="icon-plus" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+    <path d="M8 3v10M3 8h10"/>
+  </symbol>
+  <!-- edit -->
+  <symbol id="icon-edit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M11 2.5a1.5 1.5 0 0 1 2 2L5.5 12 2 13l1-3.5L11 2.5Z"/>
+  </symbol>
+  <!-- trash -->
+  <symbol id="icon-trash" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2.5 4.5h11M6 4.5V3h4v1.5M5.5 4.5v8a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-8"/>
+  </symbol>
+  <!-- logout -->
+  <symbol id="icon-logout" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3M11 11l3-3-3-3M14 8H6"/>
+  </symbol>
+  <!-- menu (hamburger) -->
+  <symbol id="icon-menu" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+    <path d="M2 4h12M2 8h12M2 12h12"/>
+  </symbol>
+  <!-- close -->
+  <symbol id="icon-close" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+    <path d="M3 3l10 10M13 3L3 13"/>
+  </symbol>
+  <!-- check -->
+  <symbol id="icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 8l3.5 3.5L13 5"/>
+  </symbol>
+  <!-- eye -->
+  <symbol id="icon-eye" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5Z"/>
+    <circle cx="8" cy="8" r="2"/>
+  </symbol>
+  <!-- filter -->
+  <symbol id="icon-filter" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 4h12M5 8h6M7.5 12h1"/>
+  </symbol>
+</svg>
