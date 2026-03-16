@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Acadêmico — Dashboard</title>
+  <link rel="stylesheet" href="css/global.css"/>
+  <link rel="stylesheet" href="css/layout.css"/>
+  <style>
+    /* ── Page-specific: dashboard preview styles ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4); margin-bottom: var(--sp-8); }
+    @media (max-width: 1000px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px)  { .stats-grid { grid-template-columns: 1fr; } }
+
+    .stat-accent-green .stat-card__icon { background: var(--color-green-bg); color: var(--color-green); }
+    .stat-accent-blue  .stat-card__icon { background: var(--color-blue-bg);  color: var(--color-blue); }
+    .stat-accent-gray  .stat-card__icon { background: var(--bg-raised);      color: var(--text-secondary); }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: var(--sp-4);
+    }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-6); }
+    @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+
+    .activity-list { display: flex; flex-direction: column; }
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--sp-3);
+      padding: var(--sp-3) var(--sp-5);
+      border-bottom: 1px solid var(--border-default);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .activity-dot.green { background: var(--color-green); }
+    .activity-dot.amber { background: var(--color-amber); }
+    .activity-dot.blue  { background: var(--color-blue); }
+    .activity-text { font-size: 13px; color: var(--text-primary); line-height: 1.5; }
+    .activity-time { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+
+    .quick-links {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-1);
+      padding: var(--sp-2) 0;
+    }
+    .quick-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--sp-3) var(--sp-5);
+      font-size: 13.5px;
+      color: var(--text-primary);
+      cursor: pointer;
+      border-radius: 0;
+      transition: background var(--transition-fast);
+      text-decoration: none;
+    }
+    .quick-link:hover { background: var(--bg-canvas); }
+    .quick-link__right {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      color: var(--text-tertiary);
+    }
+    .quick-link__right svg { width: 12px; height: 12px; }
+
+    /* skeleton loader demo */
+    .skel-line { height: 14px; border-radius: var(--radius-sm); margin-bottom: var(--sp-2); }
+  </style>
+</head>
+<body>
+
+<!-- Icon sprite (loaded inline for demo) -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-dashboard" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="1.5" y="1.5" width="5" height="5" rx="1"/>
+    <rect x="9.5" y="1.5" width="5" height="5" rx="1"/>
+    <rect x="1.5" y="9.5" width="5" height="5" rx="1"/>
+    <rect x="9.5" y="9.5" width="5" height="5" rx="1"/>
+  </symbol>
+  <symbol id="icon-students" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5"/>
+  </symbol>
+  <symbol id="icon-trainers" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M11 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M5.5 14c0-2.761 2.462-4 5.5-4s5.5 1.239 5.5 4"/>
+    <path d="M1 14c0-2 1.5-3.5 3.5-3.5"/><path d="M5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+  </symbol>
+  <symbol id="icon-courses" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 2h8a1 1 0 0 1 1 1v9l-2-1-2 1-2-1-2 1V3a1 1 0 0 1 1-1Z"/><path d="M5 5.5h6M5 8h4"/>
+  </symbol>
+  <symbol id="icon-classes" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M5.5 3.5V2M10.5 3.5V2"/><path d="M1.5 7h13"/>
+  </symbol>
+  <symbol id="icon-grades" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 1.5 10 6h4.5L11 9l1.5 4.5L8 11l-4.5 2.5L5 9 1.5 6H6L8 1.5Z"/>
+  </symbol>
+  <symbol id="icon-search" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/>
+  </symbol>
+  <symbol id="icon-bell" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 1.5a5 5 0 0 1 5 5v2.5l1 2H2l1-2V6.5a5 5 0 0 1 5-5Z"/><path d="M6.5 13.5a1.5 1.5 0 0 0 3 0"/>
+  </symbol>
+  <symbol id="icon-logout" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3M11 11l3-3-3-3M14 8H6"/>
+  </symbol>
+  <symbol id="icon-menu" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+    <path d="M2 4h12M2 8h12M2 12h12"/>
+  </symbol>
+  <symbol id="icon-chevron-right" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 4l4 4-4 4"/>
+  </symbol>
+  <symbol id="icon-plus" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+    <path d="M8 3v10M3 8h10"/>
+  </symbol>
+</svg>
+
+<div class="app">
+
+  <!-- ── Sidebar ───────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar__brand">
+      <div class="sidebar__logo">
+        <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
+          <path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="sidebar__name">Acadêmico</span>
+      <span class="sidebar__edition">Beta</span>
+    </div>
+
+    <nav class="sidebar__nav" id="sidebar-nav" aria-label="Main navigation"></nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__avatar" id="sidebar-avatar">AD</div>
+        <div class="sidebar__user-info">
+          <div class="sidebar__user-name" id="sidebar-user-name">Administrator</div>
+          <div class="sidebar__user-role"  id="sidebar-user-role">Admin</div>
+        </div>
+        <button class="sidebar__logout" id="logout-btn" title="Sign out">
+          <svg width="16" height="16"><use href="#icon-logout"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ──────────────────────────────────────────── -->
+  <div class="main">
+
+    <header class="topbar">
+      <button class="topbar__icon-btn" id="menu-toggle" aria-label="Menu"
+              style="display:none">
+        <svg width="16" height="16"><use href="#icon-menu"/></svg>
+      </button>
+
+      <nav class="topbar__breadcrumb" id="topbar-breadcrumb">
+        <span class="topbar__breadcrumb-item current">Dashboard</span>
+      </nav>
+
+      <label class="topbar__search">
+        <svg width="14" height="14"><use href="#icon-search"/></svg>
+        <input type="search" placeholder="Search anything…" autocomplete="off"/>
+      </label>
+
+      <div class="topbar__actions">
+        <button class="topbar__icon-btn" aria-label="Notifications">
+          <svg width="16" height="16"><use href="#icon-bell"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Page content ────────────────────────────────── -->
+    <main class="page">
+
+      <!-- Header -->
+      <div class="page-header">
+        <div class="page-header__left">
+          <h1 class="page-header__title">Good morning, Administrator</h1>
+          <p class="page-header__subtitle">Here's what's happening at CINFOTEC Huambo today.</p>
+        </div>
+        <div class="page-header__actions">
+          <button class="btn btn-secondary">
+            <svg width="14" height="14"><use href="#icon-bell"/></svg>
+            Reports
+          </button>
+          <button class="btn btn-primary">
+            <svg width="14" height="14"><use href="#icon-plus"/></svg>
+            New student
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card stat-accent-blue">
+          <div class="stat-card__icon">
+            <svg width="16" height="16"><use href="#icon-students"/></svg>
+          </div>
+          <div class="stat-card__label">Total Students</div>
+          <div class="stat-card__value">248</div>
+          <div class="stat-card__delta">+12 this month</div>
+        </div>
+        <div class="stat-card stat-accent-amber">
+          <div class="stat-card__icon">
+            <svg width="16" height="16"><use href="#icon-trainers"/></svg>
+          </div>
+          <div class="stat-card__label">Trainers</div>
+          <div class="stat-card__value">18</div>
+          <div class="stat-card__delta">3 part-time</div>
+        </div>
+        <div class="stat-card stat-accent-green">
+          <div class="stat-card__icon">
+            <svg width="16" height="16"><use href="#icon-classes"/></svg>
+          </div>
+          <div class="stat-card__label">Active Classes</div>
+          <div class="stat-card__value">34</div>
+          <div class="stat-card__delta">6 starting this week</div>
+        </div>
+        <div class="stat-card stat-accent-gray">
+          <div class="stat-card__icon">
+            <svg width="16" height="16"><use href="#icon-courses"/></svg>
+          </div>
+          <div class="stat-card__label">Courses</div>
+          <div class="stat-card__value">21</div>
+          <div class="stat-card__delta">All active</div>
+        </div>
+      </div>
+
+      <!-- Two-column section -->
+      <div class="two-col">
+
+        <!-- Recent activity -->
+        <div>
+          <div class="section-title">Recent Activity</div>
+          <div class="card" style="overflow:hidden">
+            <div class="activity-list">
+              <div class="activity-item">
+                <div class="activity-dot green"></div>
+                <div>
+                  <div class="activity-text">Ana Luísa was enrolled in <strong>Web Development II</strong></div>
+                  <div class="activity-time">2 minutes ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot amber"></div>
+                <div>
+                  <div class="activity-text">Grade submitted for <strong>Database Design</strong> · Exam</div>
+                  <div class="activity-time">18 minutes ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot blue"></div>
+                <div>
+                  <div class="activity-text">New course <strong>Cloud Computing</strong> created</div>
+                  <div class="activity-time">1 hour ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot green"></div>
+                <div>
+                  <div class="activity-text">Class <strong>Python Basics — Turma A</strong> started</div>
+                  <div class="activity-time">3 hours ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot amber"></div>
+                <div>
+                  <div class="activity-text">Trainer <strong>Carlos Mendes</strong> profile updated</div>
+                  <div class="activity-time">Yesterday, 16:40</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick links -->
+        <div>
+          <div class="section-title">Quick Access</div>
+          <div class="card" style="overflow:hidden">
+            <div class="quick-links">
+              <a class="quick-link" href="pages/students.html">
+                <span style="display:flex;align-items:center;gap:10px">
+                  <svg width="15" height="15" style="color:var(--text-tertiary)"><use href="#icon-students"/></svg>
+                  Manage students
+                </span>
+                <span class="quick-link__right">
+                  <span class="badge badge-blue">248</span>
+                  <svg><use href="#icon-chevron-right"/></svg>
+                </span>
+              </a>
+              <a class="quick-link" href="pages/trainers.html">
+                <span style="display:flex;align-items:center;gap:10px">
+                  <svg width="15" height="15" style="color:var(--text-tertiary)"><use href="#icon-trainers"/></svg>
+                  Manage trainers
+                </span>
+                <span class="quick-link__right">
+                  <span class="badge badge-amber">18</span>
+                  <svg><use href="#icon-chevron-right"/></svg>
+                </span>
+              </a>
+              <a class="quick-link" href="pages/classes.html">
+                <span style="display:flex;align-items:center;gap:10px">
+                  <svg width="15" height="15" style="color:var(--text-tertiary)"><use href="#icon-classes"/></svg>
+                  View active classes
+                </span>
+                <span class="quick-link__right">
+                  <span class="badge badge-green">34</span>
+                  <svg><use href="#icon-chevron-right"/></svg>
+                </span>
+              </a>
+              <a class="quick-link" href="pages/grades.html">
+                <span style="display:flex;align-items:center;gap:10px">
+                  <svg width="15" height="15" style="color:var(--text-tertiary)"><use href="#icon-grades"/></svg>
+                  Grade reports
+                </span>
+                <span class="quick-link__right">
+                  <svg><use href="#icon-chevron-right"/></svg>
+                </span>
+              </a>
+              <a class="quick-link" href="pages/courses.html">
+                <span style="display:flex;align-items:center;gap:10px">
+                  <svg width="15" height="15" style="color:var(--text-tertiary)"><use href="#icon-courses"/></svg>
+                  Browse courses
+                </span>
+                <span class="quick-link__right">
+                  <span class="badge badge-gray">21</span>
+                  <svg><use href="#icon-chevron-right"/></svg>
+                </span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Component samples -->
+          <div style="margin-top: var(--sp-6)">
+            <div class="section-title">Design System Samples</div>
+            <div class="card card-body" style="display:flex;flex-direction:column;gap:var(--sp-4)">
+
+              <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap">
+                <button class="btn btn-primary">Primary</button>
+                <button class="btn btn-secondary">Secondary</button>
+                <button class="btn btn-ghost">Ghost</button>
+                <button class="btn btn-danger">Danger</button>
+                <button class="btn btn-primary btn-sm">Small</button>
+              </div>
+
+              <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;align-items:center">
+                <span class="badge badge-green">Active</span>
+                <span class="badge badge-amber">In Progress</span>
+                <span class="badge badge-red">Dropped</span>
+                <span class="badge badge-blue">Open</span>
+                <span class="badge badge-gray">Draft</span>
+              </div>
+
+              <div style="display:flex;gap:var(--sp-3);flex-direction:column">
+                <div class="alert alert-success">Grades submitted successfully for all students.</div>
+                <div class="alert alert-warning">3 students have missing grades for Exam assessment.</div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div><!-- /.main -->
+</div><!-- /.app -->
+
+<script>
+  // Nav rendering — inline for the preview (no module import needed)
+  const NAV = [
+    { section: 'Overview',    items: [{ id:'dashboard', label:'Dashboard', icon:'dashboard', href:'index.html' }] },
+    { section: 'Management', items: [
+      { id:'students',  label:'Students',  icon:'students',  href:'pages/students.html' },
+      { id:'trainers',  label:'Trainers',  icon:'trainers',  href:'pages/trainers.html' },
+      { id:'courses',   label:'Courses',   icon:'courses',   href:'pages/courses.html' },
+      { id:'classes',   label:'Classes',   icon:'classes',   href:'pages/classes.html' },
+    ]},
+    { section: 'Academic', items: [
+      { id:'grades', label:'Grades', icon:'grades', href:'pages/grades.html' },
+    ]},
+  ];
+
+  const navEl = document.getElementById('sidebar-nav');
+  navEl.innerHTML = NAV.map(s => `
+    <div class="sidebar__section">
+      <div class="sidebar__section-label">${s.section}</div>
+      ${s.items.map(item => `
+        <a href="${item.href}" class="nav-item ${item.id === 'dashboard' ? 'active' : ''}">
+          <svg class="nav-item__icon" width="16" height="16" aria-hidden="true">
+            <use href="#icon-${item.icon}"/>
+          </svg>
+          ${item.label}
+        </a>
+      `).join('')}
+    </div>
+  `).join('');
+
+  // Mobile toggle
+  const menuBtn = document.getElementById('menu-toggle');
+  const sidebar  = document.getElementById('sidebar');
+  menuBtn?.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+  // Show menu button on mobile via JS
+  if (window.innerWidth <= 900) {
+    menuBtn.style.display = 'flex';
+  }
+  window.addEventListener('resize', () => {
+    menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
+  });
+</script>
+
+</body>
+</html>
