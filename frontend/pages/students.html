@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Students — Acadêmico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <style>
+    /* ── Avatar initial ──────────────────────────────── */
+    .student-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--color-blue-bg);
+      color: var(--color-blue);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+
+    /* ── Table action buttons ──────────────────────── */
+    .row-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-1);
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+    tbody tr:hover .row-actions { opacity: 1; }
+
+    /* ── Confirm deactivate state ──────────────────── */
+    .deactivate-confirm {
+      display: none;
+      align-items: center;
+      gap: var(--sp-2);
+      font-size: 12px;
+      color: var(--color-red);
+    }
+    .deactivate-confirm.visible { display: flex; }
+
+    /* ── Detail panel (slide-in from right) ────────── */
+    .detail-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      width: 380px;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-default);
+      box-shadow: var(--shadow-lg);
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform var(--transition-base);
+    }
+    .detail-panel.open { transform: translateX(0); }
+
+    .detail-panel__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--sp-5) var(--sp-6);
+      border-bottom: 1px solid var(--border-default);
+      flex-shrink: 0;
+    }
+
+    .detail-panel__body {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--sp-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-5);
+    }
+
+    .detail-field {}
+    .detail-field__label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: var(--sp-1);
+    }
+    .detail-field__value {
+      font-size: 14px;
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+    .detail-field__value.mono {
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .detail-field__empty {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
+    .detail-panel__footer {
+      padding: var(--sp-4) var(--sp-6);
+      border-top: 1px solid var(--border-default);
+      display: flex;
+      gap: var(--sp-2);
+      flex-shrink: 0;
+    }
+
+    /* Panel backdrop */
+    .panel-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 299;
+      display: none;
+    }
+    .panel-backdrop.open { display: block; }
+
+    /* ── Filter bar pill ───────────────────────────── */
+    .filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-1);
+      height: 26px;
+      padding: 0 var(--sp-2) 0 var(--sp-3);
+      background: var(--text-primary);
+      color: var(--text-inverse);
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .filter-pill button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-inverse);
+      opacity: 0.7;
+      display: flex;
+      padding: 2px;
+      border-radius: 50%;
+    }
+    .filter-pill button:hover { opacity: 1; }
+
+    /* ── Modal form two-col ───────────────────────── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-4);
+    }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* ── Inline toast ─────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      background: var(--text-primary);
+      color: var(--text-inverse);
+      padding: 10px 16px;
+      border-radius: var(--radius-lg);
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      transform: translateY(8px);
+      opacity: 0;
+      transition: opacity var(--transition-base), transform var(--transition-base);
+      pointer-events: none;
+    }
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .toast.error { background: var(--color-red); }
+    .toast svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ── Skeleton rows ────────────────────────────── */
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position:  600px 0; }
+    }
+    .skel {
+      display: inline-block;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(
+        90deg, var(--bg-raised) 25%, var(--border-default) 50%, var(--bg-raised) 75%
+      );
+      background-size: 600px 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Icon sprite -->
+<div id="icon-sprite" style="display:none"></div>
+
+<!-- Mobile backdrop -->
+<div id="sidebar-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:199;"
+     onclick="document.getElementById('sidebar').classList.remove('open')"></div>
+
+<div class="app">
+
+  <!-- ── Sidebar ──────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__logo">
+        <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
+          <path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="sidebar__name">Acadêmico</span>
+      <span class="sidebar__edition">Beta</span>
+    </div>
+    <nav class="sidebar__nav" id="sidebar-nav"></nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__avatar" id="sidebar-avatar">--</div>
+        <div class="sidebar__user-info">
+          <div class="sidebar__user-name" id="sidebar-user-name">Loading…</div>
+          <div class="sidebar__user-role"  id="sidebar-user-role">—</div>
+        </div>
+        <button class="sidebar__logout" id="logout-btn" title="Sign out">
+          <svg width="16" height="16"><use href="#icon-logout"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────── -->
+  <div class="main">
+    <header class="topbar">
+      <button class="topbar__icon-btn" id="menu-toggle" aria-label="Menu" style="display:none">
+        <svg width="16" height="16"><use href="#icon-menu"/></svg>
+      </button>
+      <nav class="topbar__breadcrumb" id="topbar-breadcrumb"></nav>
+      <label class="topbar__search">
+        <svg width="14" height="14"><use href="#icon-search"/></svg>
+        <input type="search" placeholder="Search anything…" autocomplete="off"/>
+      </label>
+      <div class="topbar__actions">
+        <button class="topbar__icon-btn" aria-label="Notifications">
+          <svg width="16" height="16"><use href="#icon-bell"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="page">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div class="page-header__left">
+          <h1 class="page-header__title">Students</h1>
+          <p class="page-header__subtitle" id="subtitle">Loading…</p>
+        </div>
+        <div class="page-header__actions" id="header-actions">
+          <!-- injected based on role -->
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <label class="toolbar__search">
+          <svg width="14" height="14"><use href="#icon-search"/></svg>
+          <input type="text" placeholder="Search by name or code…"
+                 id="search-input" autocomplete="off"/>
+        </label>
+
+        <select class="form-select" id="filter-status"
+                style="width:140px;height:34px;box-shadow:var(--shadow-sm)">
+          <option value="">All students</option>
+          <option value="true">Active only</option>
+          <option value="false">Inactive only</option>
+        </select>
+
+        <div class="toolbar__spacer"></div>
+
+        <span id="filter-pills" style="display:flex;gap:var(--sp-2)"></span>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrapper" id="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px"></th>
+              <th>Full name</th>
+              <th>Student code</th>
+              <th>Phone</th>
+              <th>Status</th>
+              <th>Enrolled</th>
+              <th style="width:80px"></th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- skeleton rows -->
+            <tr><td colspan="7" style="padding:0">
+              <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+                ${[1,2,3,4,5,6,7].map(() => `
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div class="skel" style="width:28px;height:28px;border-radius:50%"></div>
+                    <div class="skel" style="height:13px;width:160px"></div>
+                    <div class="skel" style="height:13px;width:90px;margin-left:auto"></div>
+                    <div class="skel" style="height:13px;width:80px"></div>
+                    <div class="skel" style="height:18px;width:52px;border-radius:99px"></div>
+                  </div>`).join('')}
+              </div>
+            </td></tr>
+          </tbody>
+        </table>
+        <div class="pagination" id="pagination" style="display:none">
+          <span class="pagination__info" id="pagination-info"></span>
+          <div class="pagination__controls" id="pagination-controls"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ── Detail slide panel ─────────────────────────── -->
+<div class="panel-backdrop" id="panel-backdrop"></div>
+<aside class="detail-panel" id="detail-panel">
+  <div class="detail-panel__header">
+    <div>
+      <div class="t-heading" id="panel-name">—</div>
+      <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px"
+           id="panel-code">—</div>
+    </div>
+    <button class="btn btn-ghost btn-icon" id="panel-close" aria-label="Close">
+      <svg width="14" height="14"><use href="#icon-close"/></svg>
+    </button>
+  </div>
+  <div class="detail-panel__body" id="panel-body">
+    <!-- injected by JS -->
+  </div>
+  <div class="detail-panel__footer" id="panel-footer">
+    <!-- injected based on role -->
+  </div>
+</aside>
+
+<!-- ── Create / Edit modal ───────────────────────── -->
+<div class="modal-backdrop" id="modal" role="dialog" aria-modal="true"
+     aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="t-heading" id="modal-title">New student</h2>
+      <button class="btn btn-ghost btn-icon" id="modal-close" aria-label="Close modal">
+        <svg width="14" height="14"><use href="#icon-close"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="f-name">Full name <span style="color:var(--color-red)">*</span></label>
+          <input class="form-input" type="text" id="f-name" placeholder="Ana Luísa Silva" autocomplete="off"/>
+          <span class="form-error" id="e-name"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-code">Student code <span style="color:var(--color-red)">*</span></label>
+          <input class="form-input" type="text" id="f-code" placeholder="EST-2024-001" autocomplete="off"
+                 style="font-family:var(--font-mono)"/>
+          <span class="form-error" id="e-code"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="f-phone">Phone</label>
+          <input class="form-input" type="tel" id="f-phone" placeholder="+244 9xx xxx xxx" autocomplete="off"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-birth">Date of birth</label>
+          <input class="form-input" type="date" id="f-birth"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="f-address">Address</label>
+        <textarea class="form-textarea" id="f-address" rows="2"
+                  placeholder="Street, city…" style="min-height:64px"></textarea>
+      </div>
+      <!-- Error alert -->
+      <div class="alert alert-error" id="modal-error" style="display:none"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+      <button class="btn btn-primary"   id="modal-save">
+        <span id="modal-save-label">Create student</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ─────────────────────────────────────── -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <use href="#icon-check"/>
+  </svg>
+  <span id="toast-text"></span>
+</div>
+
+<script type="module">
+import { initLayout, setBreadcrumb } from '../js/layout.js';
+import { students } from '../js/api.js';
+
+// ── Bootstrap ──────────────────────────────────────
+const user = initLayout('students');
+if (!user) throw new Error('unauthenticated');
+
+setBreadcrumb([
+  { label: 'Students', current: true }
+]);
+
+fetch('../components/icons.html')
+  .then(r => r.text())
+  .then(h => { document.getElementById('icon-sprite').innerHTML = h; });
+
+const menuBtn = document.getElementById('menu-toggle');
+const sidebar  = document.getElementById('sidebar');
+menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
+window.addEventListener('resize', () => {
+  menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
+});
+menuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+// ── Role-based UI ──────────────────────────────────
+const isAdmin   = user.role === 'admin';
+const isTrainer = user.role === 'trainer';
+const canWrite  = isAdmin;
+
+// Only admins see the "New student" button
+if (canWrite) {
+  document.getElementById('header-actions').innerHTML = `
+    <button class="btn btn-primary" id="new-student-btn">
+      <svg width="14" height="14"><use href="#icon-plus"/></svg>
+      New student
+    </button>`;
+  document.getElementById('new-student-btn')
+    .addEventListener('click', () => openModal());
+}
+
+// ── State ──────────────────────────────────────────
+let currentPage   = 1;
+let totalPages    = 1;
+let totalCount    = 0;
+let searchQuery   = '';
+let filterActive  = '';        // '' | 'true' | 'false'
+let editingId     = null;      // null = create, string = edit
+let activeRow     = null;      // currently highlighted <tr>
+
+// ── Toast ──────────────────────────────────────────
+let toastTimer;
+function showToast(msg, isError = false) {
+  const el   = document.getElementById('toast');
+  const text = document.getElementById('toast-text');
+  clearTimeout(toastTimer);
+  text.textContent = msg;
+  el.classList.toggle('error', isError);
+  el.classList.add('visible');
+  toastTimer = setTimeout(() => el.classList.remove('visible'), 3200);
+}
+
+// ── Helpers ────────────────────────────────────────
+function initials(name = '') {
+  return name.split(' ').map(w => w[0] ?? '').slice(0, 2).join('').toUpperCase();
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleDateString('en-GB',
+      { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch { return iso; }
+}
+
+function fmtDateShort(iso) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch { return iso; }
+}
+
+// ── Fetch + render table ───────────────────────────
+async function loadStudents(page = 1) {
+  currentPage = page;
+  const params = { page, page_size: 20 };
+  if (searchQuery) params.search    = searchQuery;
+  if (filterActive !== '') params.is_active = filterActive;
+
+  try {
+    const data = await students.list(params);
+    totalPages = data.pages ?? 1;
+    totalCount = data.count ?? 0;
+    renderTable(data.results ?? []);
+    renderPagination();
+    document.getElementById('subtitle').textContent =
+      `${totalCount} student${totalCount !== 1 ? 's' : ''} in your institution`;
+  } catch (err) {
+    renderError(err.message);
+  }
+}
+
+function renderTable(rows) {
+  const tbody = document.getElementById('table-body');
+
+  if (!rows.length) {
+    tbody.innerHTML = `
+      <tr><td colspan="7">
+        <div class="empty-state" style="padding:var(--sp-12) var(--sp-6)">
+          <svg class="empty-state__icon" viewBox="0 0 16 16" fill="none"
+               stroke="currentColor" stroke-width="1.5">
+            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+            <path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5"/>
+          </svg>
+          <div class="empty-state__title">No students found</div>
+          <p class="empty-state__desc">
+            ${searchQuery
+              ? `No results for "${searchQuery}". Try a different search.`
+              : 'No students have been added yet.'}
+          </p>
+          ${canWrite && !searchQuery
+            ? `<button class="btn btn-primary mt-4" onclick="document.getElementById('new-student-btn').click()">
+                 Add first student
+               </button>`
+            : ''}
+        </div>
+      </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(s => `
+    <tr data-id="${s.id}" class="student-row" style="cursor:pointer">
+      <td>
+        <div class="student-avatar">${initials(s.full_name)}</div>
+      </td>
+      <td>
+        <span style="font-weight:500">${s.full_name}</span>
+      </td>
+      <td>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-secondary)">
+          ${s.student_code}
+        </span>
+      </td>
+      <td style="color:var(--text-secondary);font-size:13px">
+        ${s.phone || '<span style="color:var(--text-tertiary)">—</span>'}
+      </td>
+      <td>
+        <span class="badge ${s.is_active ? 'badge-green' : 'badge-red'}">
+          ${s.is_active ? 'Active' : 'Inactive'}
+        </span>
+      </td>
+      <td style="color:var(--text-tertiary);font-size:12px">${fmtDate(s.enrolled_at)}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-ghost btn-sm btn-icon view-btn" title="View details"
+                  data-id="${s.id}">
+            <svg width="13" height="13"><use href="#icon-eye"/></svg>
+          </button>
+          ${canWrite ? `
+          <button class="btn btn-ghost btn-sm btn-icon edit-btn" title="Edit student"
+                  data-id="${s.id}">
+            <svg width="13" height="13"><use href="#icon-edit"/></svg>
+          </button>` : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+
+  // Row click → open detail panel
+  document.querySelectorAll('.student-row').forEach(tr => {
+    tr.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return; // let button handle itself
+      openDetailPanel(tr.dataset.id);
+    });
+  });
+
+  document.querySelectorAll('.view-btn').forEach(btn =>
+    btn.addEventListener('click', () => openDetailPanel(btn.dataset.id)));
+
+  if (canWrite) {
+    document.querySelectorAll('.edit-btn').forEach(btn =>
+      btn.addEventListener('click', () => openModal(btn.dataset.id)));
+  }
+}
+
+function renderError(msg) {
+  document.getElementById('table-body').innerHTML = `
+    <tr><td colspan="7">
+      <div class="empty-state" style="padding:var(--sp-12) var(--sp-6)">
+        <svg class="empty-state__icon" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="6.5"/>
+          <path d="M8 5v3.5M8 11v.5"/>
+        </svg>
+        <div class="empty-state__title">Could not load students</div>
+        <p class="empty-state__desc">${msg}</p>
+        <button class="btn btn-secondary mt-4" onclick="loadStudents()">Try again</button>
+      </div>
+    </td></tr>`;
+}
+
+// ── Pagination ─────────────────────────────────────
+function renderPagination() {
+  const wrap  = document.getElementById('pagination');
+  const info  = document.getElementById('pagination-info');
+  const ctrls = document.getElementById('pagination-controls');
+
+  if (totalPages <= 1 && totalCount <= 20) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  wrap.style.display = 'flex';
+
+  const start = (currentPage - 1) * 20 + 1;
+  const end   = Math.min(currentPage * 20, totalCount);
+  info.textContent = `${start}–${end} of ${totalCount}`;
+
+  // Build page buttons — show max 5 around current
+  const pages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (currentPage > 3) pages.push('…');
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      pages.push(i);
+    }
+    if (currentPage < totalPages - 2) pages.push('…');
+    pages.push(totalPages);
+  }
+
+  ctrls.innerHTML = `
+    <button class="pagination__btn" ${currentPage === 1 ? 'disabled' : ''}
+            onclick="changePage(${currentPage - 1})">
+      <svg width="12" height="12"><use href="#icon-chevron-left"/></svg>
+    </button>
+    ${pages.map(p =>
+      p === '…'
+        ? `<span style="padding:0 4px;color:var(--text-tertiary);font-size:12px">…</span>`
+        : `<button class="pagination__btn ${p === currentPage ? 'active' : ''}"
+                   onclick="changePage(${p})">${p}</button>`
+    ).join('')}
+    <button class="pagination__btn" ${currentPage === totalPages ? 'disabled' : ''}
+            onclick="changePage(${currentPage + 1})">
+      <svg width="12" height="12"><use href="#icon-chevron-right"/></svg>
+    </button>`;
+}
+
+window.changePage = (p) => {
+  if (p < 1 || p > totalPages) return;
+  loadStudents(p);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// ── Search + filter ────────────────────────────────
+let searchTimer;
+document.getElementById('search-input').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchQuery = e.target.value.trim();
+    currentPage = 1;
+    updateFilterPills();
+    loadStudents(1);
+  }, 320);
+});
+
+document.getElementById('filter-status').addEventListener('change', e => {
+  filterActive = e.target.value;
+  currentPage  = 1;
+  updateFilterPills();
+  loadStudents(1);
+});
+
+function updateFilterPills() {
+  const container = document.getElementById('filter-pills');
+  const pills = [];
+  if (filterActive === 'true')
+    pills.push({ label: 'Active only', clear: () => { filterActive = ''; document.getElementById('filter-status').value = ''; } });
+  if (filterActive === 'false')
+    pills.push({ label: 'Inactive only', clear: () => { filterActive = ''; document.getElementById('filter-status').value = ''; } });
+
+  container.innerHTML = pills.map((p, i) => `
+    <span class="filter-pill">
+      ${p.label}
+      <button onclick="clearPill(${i})" aria-label="Remove filter">
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M3 3l10 10M13 3L3 13"/>
+        </svg>
+      </button>
+    </span>`).join('');
+
+  window._pillClears = pills.map(p => p.clear);
+}
+
+window.clearPill = (i) => {
+  window._pillClears[i]?.();
+  loadStudents(1);
+};
+
+// ── Detail panel ───────────────────────────────────
+const detailPanel    = document.getElementById('detail-panel');
+const panelBackdrop  = document.getElementById('panel-backdrop');
+const panelClose     = document.getElementById('panel-close');
+
+function openDetailPanel(id) {
+  // Highlight row
+  activeRow?.classList.remove('active');
+  activeRow = document.querySelector(`tr[data-id="${id}"]`);
+  activeRow?.classList.add('active');
+
+  // Skeleton while loading
+  document.getElementById('panel-name').textContent = '—';
+  document.getElementById('panel-code').textContent  = '—';
+  document.getElementById('panel-body').innerHTML    = `
+    <div style="display:flex;flex-direction:column;gap:var(--sp-4)">
+      ${[80, 60, 100, 50].map(w => `
+        <div>
+          <div class="skel" style="height:11px;width:60px;margin-bottom:6px"></div>
+          <div class="skel" style="height:14px;width:${w}%"></div>
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('panel-footer').innerHTML = '';
+
+  detailPanel.classList.add('open');
+  panelBackdrop.classList.add('open');
+
+  students.get(id).then(s => {
+    document.getElementById('panel-name').textContent = s.full_name;
+    document.getElementById('panel-code').textContent  = s.student_code;
+
+    document.getElementById('panel-body').innerHTML = `
+      <div class="detail-field">
+        <div class="detail-field__label">Status</div>
+        <div class="detail-field__value">
+          <span class="badge ${s.is_active ? 'badge-green' : 'badge-red'}">
+            ${s.is_active ? 'Active' : 'Inactive'}
+          </span>
+        </div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field__label">Student code</div>
+        <div class="detail-field__value mono">${s.student_code}</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field__label">Phone</div>
+        <div class="detail-field__value">
+          ${s.phone
+            ? `<a href="tel:${s.phone}" style="color:var(--color-blue)">${s.phone}</a>`
+            : '<span class="detail-field__empty">Not provided</span>'}
+        </div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field__label">Date of birth</div>
+        <div class="detail-field__value">
+          ${s.birth_date
+            ? fmtDateShort(s.birth_date)
+            : '<span class="detail-field__empty">Not provided</span>'}
+        </div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field__label">Address</div>
+        <div class="detail-field__value">
+          ${s.address || '<span class="detail-field__empty">Not provided</span>'}
+        </div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field__label">Enrolled on</div>
+        <div class="detail-field__value">${fmtDate(s.enrolled_at)}</div>
+      </div>`;
+
+    // Footer actions — admin only
+    if (canWrite) {
+      const footerEl = document.getElementById('panel-footer');
+      footerEl.innerHTML = `
+        <button class="btn btn-secondary flex-1" id="panel-edit-btn">
+          <svg width="13" height="13"><use href="#icon-edit"/></svg>
+          Edit
+        </button>
+        ${s.is_active ? `
+        <button class="btn btn-danger" id="panel-deactivate-btn">
+          Deactivate
+        </button>` : `
+        <span class="badge badge-red" style="margin:auto 0">Inactive</span>`}`;
+
+      document.getElementById('panel-edit-btn')
+        ?.addEventListener('click', () => openModal(s.id));
+
+      document.getElementById('panel-deactivate-btn')
+        ?.addEventListener('click', () => handleDeactivate(s.id, s.full_name));
+    }
+  }).catch(() => {
+    document.getElementById('panel-body').innerHTML =
+      `<p class="t-body-sm">Could not load student details.</p>`;
+  });
+}
+
+function closeDetailPanel() {
+  detailPanel.classList.remove('open');
+  panelBackdrop.classList.remove('open');
+  activeRow?.classList.remove('active');
+  activeRow = null;
+}
+
+panelClose.addEventListener('click', closeDetailPanel);
+panelBackdrop.addEventListener('click', closeDetailPanel);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeDetailPanel(); closeModal(); }
+});
+
+// ── Deactivate ─────────────────────────────────────
+async function handleDeactivate(id, name) {
+  if (!confirm(`Deactivate "${name}"?\nThey will no longer appear as active.`)) return;
+  try {
+    await students.deactivate(id);
+    showToast(`${name} has been deactivated.`);
+    closeDetailPanel();
+    loadStudents(currentPage);
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+// ── Create / Edit modal ────────────────────────────
+const modal      = document.getElementById('modal');
+const modalTitle = document.getElementById('modal-title');
+const saveLabel  = document.getElementById('modal-save-label');
+const saveBtn    = document.getElementById('modal-save');
+const modalError = document.getElementById('modal-error');
+
+function openModal(id = null) {
+  editingId = id;
+  clearModalErrors();
+  modalError.style.display = 'none';
+
+  if (id) {
+    modalTitle.textContent  = 'Edit student';
+    saveLabel.textContent   = 'Save changes';
+
+    // Pre-fill from current table data or fetch
+    students.get(id).then(s => {
+      document.getElementById('f-name').value    = s.full_name ?? '';
+      document.getElementById('f-code').value    = s.student_code ?? '';
+      document.getElementById('f-phone').value   = s.phone ?? '';
+      document.getElementById('f-birth').value   = s.birth_date ?? '';
+      document.getElementById('f-address').value = s.address ?? '';
+    });
+  } else {
+    modalTitle.textContent  = 'New student';
+    saveLabel.textContent   = 'Create student';
+    document.getElementById('f-name').value    = '';
+    document.getElementById('f-code').value    = '';
+    document.getElementById('f-phone').value   = '';
+    document.getElementById('f-birth').value   = '';
+    document.getElementById('f-address').value = '';
+  }
+
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('f-name').focus(), 80);
+}
+
+function closeModal() {
+  modal.classList.remove('open');
+  editingId = null;
+}
+
+document.getElementById('modal-close').addEventListener('click',  closeModal);
+document.getElementById('modal-cancel').addEventListener('click', closeModal);
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+function clearModalErrors() {
+  ['f-name', 'f-code'].forEach(id => {
+    document.getElementById(id).classList.remove('error');
+  });
+  ['e-name', 'e-code'].forEach(id => {
+    const el = document.getElementById(id);
+    el.textContent = ''; el.style.display = 'none';
+  });
+}
+
+function showFieldError(fieldId, errId, msg) {
+  document.getElementById(fieldId).classList.add('error');
+  const el = document.getElementById(errId);
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+saveBtn.addEventListener('click', async () => {
+  clearModalErrors();
+  modalError.style.display = 'none';
+
+  const name    = document.getElementById('f-name').value.trim();
+  const code    = document.getElementById('f-code').value.trim();
+  const phone   = document.getElementById('f-phone').value.trim();
+  const birth   = document.getElementById('f-birth').value;
+  const address = document.getElementById('f-address').value.trim();
+
+  let valid = true;
+  if (!name) { showFieldError('f-name', 'e-name', 'Full name is required.'); valid = false; }
+  if (!code && !editingId) { showFieldError('f-code', 'e-code', 'Student code is required.'); valid = false; }
+  if (!valid) return;
+
+  const payload = { full_name: name, phone, address };
+  if (birth) payload.birth_date = birth;
+  if (!editingId) payload.student_code = code;
+
+  saveBtn.disabled = true;
+  saveLabel.textContent = editingId ? 'Saving…' : 'Creating…';
+
+  try {
+    if (editingId) {
+      await students.update(editingId, payload);
+      showToast('Student updated successfully.');
+    } else {
+      await students.create(payload);
+      showToast('Student created successfully.');
+    }
+    closeModal();
+    loadStudents(currentPage);
+  } catch (err) {
+    modalError.textContent = err.message ?? 'Something went wrong.';
+    modalError.style.display = 'flex';
+  } finally {
+    saveBtn.disabled = false;
+    saveLabel.textContent = editingId ? 'Save changes' : 'Create student';
+  }
+});
+
+// ── Initial load ───────────────────────────────────
+loadStudents(1);
+</script>
+
+</body>
+</html>
