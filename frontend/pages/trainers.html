@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trainers — Acadêmico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <style>
+    /* ── Trainer avatar ────────────────────────────── */
+    .trainer-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--color-amber-bg);
+      color: #8A5E10;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+
+    /* ── Table row actions ─────────────────────────── */
+    .row-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-1);
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+    tbody tr:hover .row-actions { opacity: 1; }
+
+    /* ── Detail panel ──────────────────────────────── */
+    .detail-panel {
+      position: fixed;
+      top: 0; right: 0;
+      height: 100vh;
+      width: 400px;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-default);
+      box-shadow: var(--shadow-lg);
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform var(--transition-base);
+    }
+    .detail-panel.open { transform: translateX(0); }
+
+    .detail-panel__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: var(--sp-5) var(--sp-6);
+      border-bottom: 1px solid var(--border-default);
+      flex-shrink: 0;
+    }
+    .detail-panel__body {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .detail-panel__footer {
+      padding: var(--sp-4) var(--sp-6);
+      border-top: 1px solid var(--border-default);
+      display: flex;
+      gap: var(--sp-2);
+      flex-shrink: 0;
+    }
+
+    /* Panel tabs */
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-default);
+      padding: 0 var(--sp-6);
+      flex-shrink: 0;
+    }
+    .panel-tab {
+      height: 40px;
+      padding: 0 var(--sp-1);
+      margin-right: var(--sp-5);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      transition: color var(--transition-fast), border-color var(--transition-fast);
+    }
+    .panel-tab:hover   { color: var(--text-primary); }
+    .panel-tab.active  {
+      color: var(--text-primary);
+      border-bottom-color: var(--text-primary);
+    }
+
+    .panel-tab-content {
+      display: none;
+      padding: var(--sp-6);
+      flex-direction: column;
+      gap: var(--sp-5);
+      flex: 1;
+    }
+    .panel-tab-content.active { display: flex; }
+
+    /* Detail fields */
+    .detail-field__label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: var(--sp-1);
+    }
+    .detail-field__value {
+      font-size: 14px;
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    .detail-field__empty {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
+    /* Class mini-list inside panel */
+    .class-mini-list { display: flex; flex-direction: column; gap: var(--sp-2); }
+    .class-mini-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--sp-3) var(--sp-4);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+    }
+    .class-mini-item__name { font-weight: 500; color: var(--text-primary); }
+    .class-mini-item__sub  { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+
+    /* ── Panel backdrop ────────────────────────────── */
+    .panel-backdrop {
+      position: fixed; inset: 0;
+      z-index: 299; display: none;
+    }
+    .panel-backdrop.open { display: block; }
+
+    /* ── Filter pill ───────────────────────────────── */
+    .filter-pill {
+      display: inline-flex; align-items: center; gap: var(--sp-1);
+      height: 26px; padding: 0 var(--sp-2) 0 var(--sp-3);
+      background: var(--text-primary); color: var(--text-inverse);
+      border-radius: 99px; font-size: 12px; font-weight: 500;
+    }
+    .filter-pill button {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-inverse); opacity: 0.7;
+      display: flex; padding: 2px; border-radius: 50%;
+    }
+    .filter-pill button:hover { opacity: 1; }
+
+    /* ── Modal form ────────────────────────────────── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-4);
+    }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* ── Toast ─────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 999;
+      background: var(--text-primary); color: var(--text-inverse);
+      padding: 10px 16px; border-radius: var(--radius-lg);
+      font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg);
+      display: flex; align-items: center; gap: var(--sp-2);
+      transform: translateY(8px); opacity: 0;
+      transition: opacity var(--transition-base), transform var(--transition-base);
+      pointer-events: none;
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); }
+    .toast.error   { background: var(--color-red); }
+    .toast svg     { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ── Skeleton ──────────────────────────────────── */
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position:  600px 0; }
+    }
+    .skel {
+      display: inline-block; border-radius: var(--radius-sm);
+      background: linear-gradient(
+        90deg, var(--bg-raised) 25%, var(--border-default) 50%, var(--bg-raised) 75%
+      );
+      background-size: 600px 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+
+    /* Specialization tag */
+    .spec-tag {
+      display: inline-flex; align-items: center;
+      height: 20px; padding: 0 var(--sp-2);
+      background: var(--color-amber-bg); color: #8A5E10;
+      border-radius: var(--radius-sm);
+      font-size: 11px; font-weight: 500;
+      max-width: 180px; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Icon sprite -->
+<div id="icon-sprite" style="display:none"></div>
+
+<!-- Mobile backdrop -->
+<div id="sidebar-backdrop"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:199;"
+     onclick="document.getElementById('sidebar').classList.remove('open')"></div>
+
+<div class="app">
+
+  <!-- ── Sidebar ──────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__logo">
+        <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
+          <path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="sidebar__name">Acadêmico</span>
+      <span class="sidebar__edition">Beta</span>
+    </div>
+    <nav class="sidebar__nav" id="sidebar-nav"></nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__avatar" id="sidebar-avatar">--</div>
+        <div class="sidebar__user-info">
+          <div class="sidebar__user-name" id="sidebar-user-name">Loading…</div>
+          <div class="sidebar__user-role"  id="sidebar-user-role">—</div>
+        </div>
+        <button class="sidebar__logout" id="logout-btn" title="Sign out">
+          <svg width="16" height="16"><use href="#icon-logout"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────── -->
+  <div class="main">
+    <header class="topbar">
+      <button class="topbar__icon-btn" id="menu-toggle" aria-label="Menu" style="display:none">
+        <svg width="16" height="16"><use href="#icon-menu"/></svg>
+      </button>
+      <nav class="topbar__breadcrumb" id="topbar-breadcrumb"></nav>
+      <label class="topbar__search">
+        <svg width="14" height="14"><use href="#icon-search"/></svg>
+        <input type="search" placeholder="Search anything…" autocomplete="off"/>
+      </label>
+      <div class="topbar__actions">
+        <button class="topbar__icon-btn" aria-label="Notifications">
+          <svg width="16" height="16"><use href="#icon-bell"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="page">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div class="page-header__left">
+          <h1 class="page-header__title">Trainers</h1>
+          <p class="page-header__subtitle" id="subtitle">Loading…</p>
+        </div>
+        <div class="page-header__actions">
+          <button class="btn btn-primary" id="new-trainer-btn">
+            <svg width="14" height="14"><use href="#icon-plus"/></svg>
+            New trainer
+          </button>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <label class="toolbar__search">
+          <svg width="14" height="14"><use href="#icon-search"/></svg>
+          <input type="text" id="search-input"
+                 placeholder="Search by name or specialization…" autocomplete="off"/>
+        </label>
+
+        <select class="form-select" id="filter-status"
+                style="width:140px;height:34px;box-shadow:var(--shadow-sm)">
+          <option value="">All trainers</option>
+          <option value="true">Active only</option>
+          <option value="false">Inactive only</option>
+        </select>
+
+        <div class="toolbar__spacer"></div>
+        <span id="filter-pills" style="display:flex;gap:var(--sp-2)"></span>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrapper" id="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px"></th>
+              <th>Full name</th>
+              <th>Specialization</th>
+              <th>Phone</th>
+              <th>Status</th>
+              <th>Hired</th>
+              <th style="width:80px"></th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr><td colspan="7" style="padding:0">
+              <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+                ${[1,2,3,4,5].map(() => `
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div class="skel" style="width:28px;height:28px;border-radius:50%;flex-shrink:0"></div>
+                    <div class="skel" style="height:13px;width:140px"></div>
+                    <div class="skel" style="height:18px;width:110px"></div>
+                    <div class="skel" style="height:13px;width:80px;margin-left:auto"></div>
+                    <div class="skel" style="height:18px;width:52px;border-radius:99px"></div>
+                  </div>`).join('')}
+              </div>
+            </td></tr>
+          </tbody>
+        </table>
+        <div class="pagination" id="pagination" style="display:none">
+          <span class="pagination__info" id="pagination-info"></span>
+          <div class="pagination__controls" id="pagination-controls"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ── Detail panel ───────────────────────────────── -->
+<div class="panel-backdrop" id="panel-backdrop"></div>
+<aside class="detail-panel" id="detail-panel" aria-label="Trainer details">
+  <div class="detail-panel__header">
+    <div style="display:flex;align-items:center;gap:var(--sp-3)">
+      <div class="trainer-avatar" id="panel-avatar" style="width:36px;height:36px;font-size:13px">—</div>
+      <div>
+        <div class="t-heading" id="panel-name">—</div>
+        <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px" id="panel-spec">—</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-icon" id="panel-close" aria-label="Close">
+      <svg width="14" height="14"><use href="#icon-close"/></svg>
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="panel-tabs">
+    <button class="panel-tab active" data-tab="info">Profile</button>
+    <button class="panel-tab"        data-tab="classes">Classes</button>
+  </div>
+
+  <!-- Tab: Profile -->
+  <div class="panel-tab-content active" id="tab-info">
+    <!-- filled by JS -->
+  </div>
+
+  <!-- Tab: Classes -->
+  <div class="panel-tab-content" id="tab-classes">
+    <!-- filled by JS -->
+  </div>
+
+  <div class="detail-panel__footer" id="panel-footer"></div>
+</aside>
+
+<!-- ── Create / Edit modal ───────────────────────── -->
+<div class="modal-backdrop" id="modal" role="dialog" aria-modal="true"
+     aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="t-heading" id="modal-title">New trainer</h2>
+      <button class="btn btn-ghost btn-icon" id="modal-close" aria-label="Close modal">
+        <svg width="14" height="14"><use href="#icon-close"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label" for="f-name">
+            Full name <span style="color:var(--color-red)">*</span>
+          </label>
+          <input class="form-input" type="text" id="f-name"
+                 placeholder="Carlos Mendes" autocomplete="off"/>
+          <span class="form-error" id="e-name"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-spec">Specialization</label>
+          <input class="form-input" type="text" id="f-spec"
+                 placeholder="Web Development" autocomplete="off"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-phone">Phone</label>
+          <input class="form-input" type="tel" id="f-phone"
+                 placeholder="+244 9xx xxx xxx" autocomplete="off"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="f-bio">Bio</label>
+        <textarea class="form-textarea" id="f-bio" rows="3"
+                  placeholder="Brief professional background…"></textarea>
+        <span class="form-hint">Optional. Shown on trainer profile.</span>
+      </div>
+      <!-- Edit-only: active toggle -->
+      <div class="form-group" id="active-group" style="display:none">
+        <label class="form-label">Status</label>
+        <div style="display:flex;align-items:center;gap:var(--sp-3);margin-top:var(--sp-1)">
+          <label style="display:flex;align-items:center;gap:var(--sp-2);cursor:pointer;font-size:13px">
+            <input type="radio" name="f-active" id="f-active-yes" value="true"/>
+            Active
+          </label>
+          <label style="display:flex;align-items:center;gap:var(--sp-2);cursor:pointer;font-size:13px">
+            <input type="radio" name="f-active" id="f-active-no" value="false"/>
+            Inactive
+          </label>
+        </div>
+      </div>
+      <div class="alert alert-error" id="modal-error" style="display:none"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+      <button class="btn btn-primary"   id="modal-save">
+        <span id="modal-save-label">Create trainer</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ─────────────────────────────────────── -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <use href="#icon-check"/>
+  </svg>
+  <span id="toast-text"></span>
+</div>
+
+<script type="module">
+import { initLayout, setBreadcrumb } from '../js/layout.js';
+import { trainers } from '../js/api.js';
+
+// ── Bootstrap ──────────────────────────────────────
+const user = initLayout('trainers');
+if (!user) throw new Error('unauthenticated');
+
+// Trainers page is admin-only — redirect others
+if (user.role !== 'admin') {
+  window.location.href = 'dashboard.html';
+}
+
+setBreadcrumb([{ label: 'Trainers', current: true }]);
+
+fetch('../components/icons.html')
+  .then(r => r.text())
+  .then(h => { document.getElementById('icon-sprite').innerHTML = h; });
+
+const menuBtn = document.getElementById('menu-toggle');
+const sidebar  = document.getElementById('sidebar');
+menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
+window.addEventListener('resize', () => {
+  menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
+});
+menuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+// ── State ──────────────────────────────────────────
+let currentPage  = 1;
+let totalPages   = 1;
+let totalCount   = 0;
+let searchQuery  = '';
+let filterActive = '';
+let editingId    = null;
+let activeRow    = null;
+let panelTrainerId = null;
+
+// ── Toast ──────────────────────────────────────────
+let toastTimer;
+function showToast(msg, isError = false) {
+  const el = document.getElementById('toast');
+  clearTimeout(toastTimer);
+  document.getElementById('toast-text').textContent = msg;
+  el.classList.toggle('error', isError);
+  el.classList.add('visible');
+  toastTimer = setTimeout(() => el.classList.remove('visible'), 3200);
+}
+
+// ── Helpers ────────────────────────────────────────
+function initials(name = '') {
+  return name.split(' ').map(w => w[0] ?? '').slice(0, 2).join('').toUpperCase();
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleDateString('en-GB',
+    { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch { return iso; }
+}
+function classBadge(status) {
+  const map = {
+    open:        ['badge-blue',  'Open'],
+    in_progress: ['badge-amber', 'In Progress'],
+    closed:      ['badge-gray',  'Closed'],
+  };
+  const [cls, label] = map[status] ?? ['badge-gray', status];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+// ── Load + render table ────────────────────────────
+async function loadTrainers(page = 1) {
+  currentPage = page;
+  const params = { page, page_size: 20 };
+  if (searchQuery)    params.search    = searchQuery;
+  if (filterActive !== '') params.is_active = filterActive;
+
+  try {
+    const data = await trainers.list(params);
+    totalPages = data.pages ?? 1;
+    totalCount = data.count ?? 0;
+    renderTable(data.results ?? []);
+    renderPagination();
+    document.getElementById('subtitle').textContent =
+      `${totalCount} trainer${totalCount !== 1 ? 's' : ''} in your institution`;
+  } catch (err) {
+    renderError(err.message);
+  }
+}
+
+function renderTable(rows) {
+  const tbody = document.getElementById('table-body');
+
+  if (!rows.length) {
+    tbody.innerHTML = `
+      <tr><td colspan="7">
+        <div class="empty-state" style="padding:var(--sp-12) var(--sp-6)">
+          <svg class="empty-state__icon" viewBox="0 0 16 16" fill="none"
+               stroke="currentColor" stroke-width="1.5">
+            <path d="M11 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+            <path d="M5.5 14c0-2.761 2.462-4 5.5-4s5.5 1.239 5.5 4"/>
+            <path d="M1 14c0-2 1.5-3.5 3.5-3.5"/>
+            <path d="M5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+          </svg>
+          <div class="empty-state__title">No trainers found</div>
+          <p class="empty-state__desc">
+            ${searchQuery
+              ? `No results for "${searchQuery}".`
+              : 'No trainers have been added yet.'}
+          </p>
+          ${!searchQuery ? `
+            <button class="btn btn-primary mt-4"
+                    onclick="document.getElementById('new-trainer-btn').click()">
+              Add first trainer
+            </button>` : ''}
+        </div>
+      </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(t => `
+    <tr data-id="${t.id}" class="trainer-row" style="cursor:pointer">
+      <td>
+        <div class="trainer-avatar">${initials(t.full_name)}</div>
+      </td>
+      <td><span style="font-weight:500">${t.full_name}</span></td>
+      <td>
+        ${t.specialization
+          ? `<span class="spec-tag">${t.specialization}</span>`
+          : `<span style="color:var(--text-tertiary);font-size:13px">—</span>`}
+      </td>
+      <td style="color:var(--text-secondary);font-size:13px">
+        ${t.phone || '<span style="color:var(--text-tertiary)">—</span>'}
+      </td>
+      <td>
+        <span class="badge ${t.is_active ? 'badge-green' : 'badge-red'}">
+          ${t.is_active ? 'Active' : 'Inactive'}
+        </span>
+      </td>
+      <td style="color:var(--text-tertiary);font-size:12px">${fmtDate(t.hired_at)}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-ghost btn-sm btn-icon view-btn"
+                  title="View details" data-id="${t.id}">
+            <svg width="13" height="13"><use href="#icon-eye"/></svg>
+          </button>
+          <button class="btn btn-ghost btn-sm btn-icon edit-btn"
+                  title="Edit trainer" data-id="${t.id}">
+            <svg width="13" height="13"><use href="#icon-edit"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>`).join('');
+
+  document.querySelectorAll('.trainer-row').forEach(tr =>
+    tr.addEventListener('click', e => {
+      if (e.target.closest('button')) return;
+      openDetailPanel(tr.dataset.id);
+    }));
+
+  document.querySelectorAll('.view-btn').forEach(btn =>
+    btn.addEventListener('click', () => openDetailPanel(btn.dataset.id)));
+
+  document.querySelectorAll('.edit-btn').forEach(btn =>
+    btn.addEventListener('click', () => openModal(btn.dataset.id)));
+}
+
+function renderError(msg) {
+  document.getElementById('table-body').innerHTML = `
+    <tr><td colspan="7">
+      <div class="empty-state" style="padding:var(--sp-12) var(--sp-6)">
+        <svg class="empty-state__icon" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="6.5"/>
+          <path d="M8 5v3.5M8 11v.5"/>
+        </svg>
+        <div class="empty-state__title">Could not load trainers</div>
+        <p class="empty-state__desc">${msg}</p>
+        <button class="btn btn-secondary mt-4" onclick="loadTrainers()">Try again</button>
+      </div>
+    </td></tr>`;
+}
+
+// ── Pagination ─────────────────────────────────────
+function renderPagination() {
+  const wrap  = document.getElementById('pagination');
+  const info  = document.getElementById('pagination-info');
+  const ctrls = document.getElementById('pagination-controls');
+
+  if (totalPages <= 1 && totalCount <= 20) { wrap.style.display = 'none'; return; }
+
+  wrap.style.display = 'flex';
+  const start = (currentPage - 1) * 20 + 1;
+  const end   = Math.min(currentPage * 20, totalCount);
+  info.textContent = `${start}–${end} of ${totalCount}`;
+
+  const pages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (currentPage > 3) pages.push('…');
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
+    if (currentPage < totalPages - 2) pages.push('…');
+    pages.push(totalPages);
+  }
+
+  ctrls.innerHTML = `
+    <button class="pagination__btn" ${currentPage === 1 ? 'disabled' : ''}
+            onclick="changePage(${currentPage - 1})">
+      <svg width="12" height="12"><use href="#icon-chevron-left"/></svg>
+    </button>
+    ${pages.map(p =>
+      p === '…'
+        ? `<span style="padding:0 4px;color:var(--text-tertiary);font-size:12px">…</span>`
+        : `<button class="pagination__btn ${p === currentPage ? 'active' : ''}"
+                   onclick="changePage(${p})">${p}</button>`
+    ).join('')}
+    <button class="pagination__btn" ${currentPage === totalPages ? 'disabled' : ''}
+            onclick="changePage(${currentPage + 1})">
+      <svg width="12" height="12"><use href="#icon-chevron-right"/></svg>
+    </button>`;
+}
+
+window.changePage = (p) => {
+  if (p < 1 || p > totalPages) return;
+  loadTrainers(p);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// ── Search + filter ────────────────────────────────
+let searchTimer;
+document.getElementById('search-input').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchQuery = e.target.value.trim();
+    currentPage = 1;
+    updateFilterPills();
+    loadTrainers(1);
+  }, 320);
+});
+
+document.getElementById('filter-status').addEventListener('change', e => {
+  filterActive = e.target.value;
+  currentPage  = 1;
+  updateFilterPills();
+  loadTrainers(1);
+});
+
+function updateFilterPills() {
+  const container = document.getElementById('filter-pills');
+  const pills = [];
+  if (filterActive === 'true')
+    pills.push({ label: 'Active only',   clear: () => { filterActive = ''; document.getElementById('filter-status').value = ''; } });
+  if (filterActive === 'false')
+    pills.push({ label: 'Inactive only', clear: () => { filterActive = ''; document.getElementById('filter-status').value = ''; } });
+  container.innerHTML = pills.map((p, i) => `
+    <span class="filter-pill">
+      ${p.label}
+      <button onclick="clearPill(${i})" aria-label="Remove filter">
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M3 3l10 10M13 3L3 13"/>
+        </svg>
+      </button>
+    </span>`).join('');
+  window._pillClears = pills.map(p => p.clear);
+}
+window.clearPill = (i) => { window._pillClears[i]?.(); loadTrainers(1); };
+
+// ── Detail panel ───────────────────────────────────
+const detailPanel   = document.getElementById('detail-panel');
+const panelBackdrop = document.getElementById('panel-backdrop');
+
+function openDetailPanel(id) {
+  panelTrainerId = id;
+
+  activeRow?.classList.remove('active');
+  activeRow = document.querySelector(`tr[data-id="${id}"]`);
+  activeRow?.classList.add('active');
+
+  // Reset to Profile tab
+  switchTab('info');
+
+  // Skeleton
+  document.getElementById('panel-name').textContent  = '—';
+  document.getElementById('panel-spec').textContent   = '—';
+  document.getElementById('panel-avatar').textContent = '—';
+  document.getElementById('tab-info').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:var(--sp-4)">
+      ${[70, 50, 90, 60].map(w => `
+        <div>
+          <div class="skel" style="height:11px;width:55px;margin-bottom:6px"></div>
+          <div class="skel" style="height:14px;width:${w}%"></div>
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('tab-classes').innerHTML = '';
+  document.getElementById('panel-footer').innerHTML = '';
+
+  detailPanel.classList.add('open');
+  panelBackdrop.classList.add('open');
+
+  trainers.get(id).then(t => {
+    document.getElementById('panel-name').textContent  = t.full_name;
+    document.getElementById('panel-spec').textContent  = t.specialization || 'Trainer';
+    document.getElementById('panel-avatar').textContent = initials(t.full_name);
+
+    document.getElementById('tab-info').innerHTML = `
+      <div class="detail-field">
+        <div class="detail-field__label">Status</div>
+        <div class="detail-field__value">
+          <span class="badge ${t.is_active ? 'badge-green' : 'badge-red'}">
+            ${t.is_active ? 'Active' : 'Inactive'}
+          </span>
+        </div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field__label">Specialization</div>
+        <div class="detail-field__value">
+          ${t.specialization || '<span class="detail-field__empty">Not provided</span>'}
+        </div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field__label">Phone</div>
+        <div class="detail-field__value">
+          ${t.phone
+            ? `<a href="tel:${t.phone}" style="color:var(--color-blue)">${t.phone}</a>`
+            : '<span class="detail-field__empty">Not provided</span>'}
+        </div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field__label">Bio</div>
+        <div class="detail-field__value" style="font-size:13px;line-height:1.65;color:var(--text-secondary)">
+          ${t.bio || '<span class="detail-field__empty">No bio added</span>'}
+        </div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field__label">Hired on</div>
+        <div class="detail-field__value">${fmtDate(t.hired_at)}</div>
+      </div>`;
+
+    document.getElementById('panel-footer').innerHTML = `
+      <button class="btn btn-secondary flex-1" id="panel-edit-btn">
+        <svg width="13" height="13"><use href="#icon-edit"/></svg>
+        Edit
+      </button>
+      ${t.is_active
+        ? `<button class="btn btn-danger" id="panel-deactivate-btn">Deactivate</button>`
+        : `<span class="badge badge-red" style="margin:auto 0">Inactive</span>`}`;
+
+    document.getElementById('panel-edit-btn')
+      ?.addEventListener('click', () => openModal(t.id));
+    document.getElementById('panel-deactivate-btn')
+      ?.addEventListener('click', () => handleDeactivate(t.id, t.full_name));
+
+  }).catch(() => {
+    document.getElementById('tab-info').innerHTML =
+      `<p class="t-body-sm">Could not load trainer details.</p>`;
+  });
+}
+
+// Load classes tab lazily when first clicked
+async function loadClassesTab(trainerId) {
+  const tab = document.getElementById('tab-classes');
+  tab.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:var(--sp-2)">
+      ${[1,2,3].map(() => `
+        <div class="skel" style="height:58px;border-radius:var(--radius-md)"></div>`).join('')}
+    </div>`;
+
+  try {
+    const data = await trainers.classes(trainerId);
+    const list  = Array.isArray(data) ? data : (data.results ?? []);
+
+    if (!list.length) {
+      tab.innerHTML = `
+        <div class="empty-state" style="padding:var(--sp-8) 0">
+          <svg style="width:28px;height:28px;color:var(--text-tertiary);margin-bottom:var(--sp-2)"
+               viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/>
+            <path d="M1.5 7h13"/>
+          </svg>
+          <div class="empty-state__title" style="font-size:13px">No classes assigned</div>
+        </div>`;
+      return;
+    }
+
+    tab.innerHTML = `
+      <div class="class-mini-list">
+        ${list.map(c => `
+          <div class="class-mini-item">
+            <div>
+              <div class="class-mini-item__name">${c.name}</div>
+              <div class="class-mini-item__sub">
+                ${c.course_name ?? c.course?.name ?? '—'} ·
+                ${c.start_date ?? ''} → ${c.end_date ?? ''}
+              </div>
+            </div>
+            ${classBadge(c.status)}
+          </div>`).join('')}
+      </div>`;
+  } catch {
+    tab.innerHTML = `<p class="t-body-sm" style="color:var(--color-red)">Could not load classes.</p>`;
+  }
+}
+
+// Tab switching
+function switchTab(name) {
+  document.querySelectorAll('.panel-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.panel-tab-content').forEach(c =>
+    c.classList.toggle('active', c.id === `tab-${name}`));
+}
+
+document.querySelectorAll('.panel-tab').forEach(tab =>
+  tab.addEventListener('click', () => {
+    const name = tab.dataset.tab;
+    switchTab(name);
+    if (name === 'classes' && panelTrainerId) {
+      // Only load if tab is empty (lazy load)
+      const el = document.getElementById('tab-classes');
+      if (!el.innerHTML.trim()) loadClassesTab(panelTrainerId);
+    }
+  }));
+
+function closeDetailPanel() {
+  detailPanel.classList.remove('open');
+  panelBackdrop.classList.remove('open');
+  activeRow?.classList.remove('active');
+  activeRow = null;
+  panelTrainerId = null;
+}
+
+document.getElementById('panel-close').addEventListener('click', closeDetailPanel);
+panelBackdrop.addEventListener('click', closeDetailPanel);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeDetailPanel(); closeModal(); }
+});
+
+// ── Deactivate ─────────────────────────────────────
+async function handleDeactivate(id, name) {
+  if (!confirm(`Deactivate "${name}"?\nThey will be marked as inactive.`)) return;
+  try {
+    await trainers.deactivate(id);
+    showToast(`${name} has been deactivated.`);
+    closeDetailPanel();
+    loadTrainers(currentPage);
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+// ── Create / Edit modal ────────────────────────────
+const modal      = document.getElementById('modal');
+const modalTitle = document.getElementById('modal-title');
+const saveLabel  = document.getElementById('modal-save-label');
+const saveBtn    = document.getElementById('modal-save');
+const modalError = document.getElementById('modal-error');
+
+function openModal(id = null) {
+  editingId = id;
+  clearModalErrors();
+  modalError.style.display = 'none';
+
+  const activeGroup = document.getElementById('active-group');
+
+  if (id) {
+    modalTitle.textContent = 'Edit trainer';
+    saveLabel.textContent  = 'Save changes';
+    activeGroup.style.display = 'block';
+
+    trainers.get(id).then(t => {
+      document.getElementById('f-name').value  = t.full_name      ?? '';
+      document.getElementById('f-spec').value  = t.specialization ?? '';
+      document.getElementById('f-phone').value = t.phone          ?? '';
+      document.getElementById('f-bio').value   = t.bio            ?? '';
+      document.getElementById(t.is_active ? 'f-active-yes' : 'f-active-no').checked = true;
+    });
+  } else {
+    modalTitle.textContent = 'New trainer';
+    saveLabel.textContent  = 'Create trainer';
+    activeGroup.style.display = 'none';
+    ['f-name','f-spec','f-phone','f-bio'].forEach(id =>
+      { document.getElementById(id).value = ''; });
+    document.getElementById('f-active-yes').checked = true;
+  }
+
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('f-name').focus(), 80);
+}
+
+function closeModal() {
+  modal.classList.remove('open');
+  editingId = null;
+}
+
+document.getElementById('modal-close').addEventListener('click',  closeModal);
+document.getElementById('modal-cancel').addEventListener('click', closeModal);
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+function clearModalErrors() {
+  document.getElementById('f-name').classList.remove('error');
+  const en = document.getElementById('e-name');
+  en.textContent = ''; en.style.display = 'none';
+}
+
+saveBtn.addEventListener('click', async () => {
+  clearModalErrors();
+  modalError.style.display = 'none';
+
+  const name  = document.getElementById('f-name').value.trim();
+  const spec  = document.getElementById('f-spec').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const bio   = document.getElementById('f-bio').value.trim();
+
+  if (!name) {
+    document.getElementById('f-name').classList.add('error');
+    const en = document.getElementById('e-name');
+    en.textContent = 'Full name is required.';
+    en.style.display = 'block';
+    return;
+  }
+
+  const payload = { full_name: name, specialization: spec, phone, bio };
+
+  if (editingId) {
+    const activeVal = document.querySelector('input[name="f-active"]:checked')?.value;
+    if (activeVal !== undefined) payload.is_active = activeVal === 'true';
+  }
+
+  saveBtn.disabled = true;
+  saveLabel.textContent = editingId ? 'Saving…' : 'Creating…';
+
+  try {
+    if (editingId) {
+      await trainers.update(editingId, payload);
+      showToast('Trainer updated successfully.');
+    } else {
+      await trainers.create(payload);
+      showToast('Trainer created successfully.');
+    }
+    closeModal();
+    loadTrainers(currentPage);
+  } catch (err) {
+    modalError.textContent = err.message ?? 'Something went wrong.';
+    modalError.style.display = 'flex';
+  } finally {
+    saveBtn.disabled = false;
+    saveLabel.textContent = editingId ? 'Save changes' : 'Create trainer';
+  }
+});
+
+// New trainer button
+document.getElementById('new-trainer-btn')
+  .addEventListener('click', () => openModal());
+
+// ── Initial load ───────────────────────────────────
+loadTrainers(1);
+</script>
+
+</body>
+</html>
