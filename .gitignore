@@ -1,0 +1,74 @@
+# ── Environment ───────────────────────────────────────────────────
+.env
+*.env
+.env.local
+.env.*.local
+
+# ── Python / Django ────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Django
+backend/staticfiles/
+backend/media/
+*.log
+db.sqlite3
+
+# ── Node / Frontend tooling ────────────────────────────────────────
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+
+# Build outputs (if a bundler is added later)
+frontend/dist/
+frontend/.output/
+frontend/.vercel/
+
+# ── IDE ────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.suo
+.project
+.classpath
+
+# ── OS ─────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── Testing ────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+
+# ── Docker ─────────────────────────────────────────────────────────
+# Do not ignore docker-compose files — they are version controlled.
+# Ignore only local override files.
+docker-compose.override.yml
+
+# ── Secrets / Keys ────────────────────────────────────────────────
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
