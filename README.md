@@ -88,4 +88,5 @@ For frontend development and mock mode, see `frontend/README.md`.
 
 ## License
 
-MIT — see `LICENSE`.
+Proprietary — Copyright (c) 2025 CINFOTEC Huambo. All rights reserved.
+See `LICENSE` for details.
