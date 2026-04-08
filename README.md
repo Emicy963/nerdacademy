@@ -88,5 +88,5 @@ For frontend development and mock mode, see `frontend/README.md`.
 
 ## License
 
-Proprietary — Copyright (c) 2025 CINFOTEC Huambo. All rights reserved.
+Proprietary — Copyright (c) 2025 PyNerd Development. All rights reserved.
 See `LICENSE` for details.
