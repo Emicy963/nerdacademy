@@ -117,4 +117,5 @@ versions are those that support ES2020 features natively.
 
 ## License
 
-MIT — see root `LICENSE`.
+Proprietary — Copyright (c) 2025 PyNerd Development. All rights reserved.
+See `LICENSE` for details.
