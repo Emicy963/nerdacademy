@@ -28,10 +28,9 @@ class Command(BaseCommand):
             help="URL-friendly identifier (e.g. cinfotec-huambo)",
         )
         parser.add_argument(
-            "--country",
+            "--province",
             type=str,
-            default="Angola",
-            help="Country (default: Angola)",
+            help="Province (e.g. Huambo, Luanda)",
         )
         parser.add_argument("--admin-email", type=str, help="Admin user email")
         parser.add_argument("--admin-password", type=str, help="Admin user password")
@@ -42,7 +41,7 @@ class Command(BaseCommand):
         slug = options["slug"] or self._prompt(
             "Institution slug (e.g. cinfotec-huambo)"
         )
-        country = options["country"] or self._prompt("Country", default="Angola")
+        province = options["province"] or self._prompt("Province (e.g. Huambo, Luanda)")
         admin_email = options["admin_email"] or self._prompt("Admin email")
         admin_password = options["admin_password"] or self._prompt(
             "Admin password", secret=True
@@ -63,7 +62,7 @@ class Command(BaseCommand):
                 institution, admin = self._create(
                     name=name,
                     slug=slug,
-                    country=country,
+                    province=province,
                     admin_email=admin_email,
                     admin_password=admin_password,
                 )
@@ -86,7 +85,7 @@ class Command(BaseCommand):
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
-    def _create(self, name, slug, country, admin_email, admin_password):
+    def _create(self, name, slug, province, admin_email, admin_password):
         """
         Delegates to the service layer — no direct ORM here.
         Imports are deferred so Django apps are fully loaded before use.
@@ -97,7 +96,7 @@ class Command(BaseCommand):
         institution = InstitutionService.create_institution(
             name=name,
             slug=slug,
-            country=country,
+            province=province,
         )
 
         admin = UserService.create_user(
