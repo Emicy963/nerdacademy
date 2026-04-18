@@ -8,6 +8,27 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Fixed
+
+- `core/settings/development.py`: replaced PostgreSQL with SQLite for local
+  development to avoid `psycopg2` Unicode errors on Windows paths with spaces
+  or non-ASCII characters
+- `core/settings/base.py`: added `encoding='utf-8'` to `load_dotenv()` call
+  for consistent behaviour on Windows
+- `apps/institutions/models.py`: implemented `Institution` model (was empty),
+  unblocking all FK references across the project
+- `apps/institutions/serializers.py`, `services.py`, `views.py`, `urls.py`:
+  implemented all institution app files (were empty)
+- `apps/accounts/views.py`: implemented auth views (login, logout, me,
+  change-password)
+- `apps/accounts/urls.py`: implemented URL routes for auth endpoints
+- `apps/students/urls.py`: implemented URL routes
+- `apps/trainers/urls.py`: implemented URL routes
+- `apps/students/serializers.py`: implemented all student serializers
+  including `StudentSummarySerializer` required by classes app
+- `apps/trainers/serializers.py`: implemented all trainer serializers
+  including `TrainerSummarySerializer` required by classes app
+
 ### Planned
 
 - Automated test suite (pytest + factory-boy) for all backend services
