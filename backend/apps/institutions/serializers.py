@@ -10,6 +10,7 @@ class InstitutionSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "slug",
+            "province",
             "email",
             "phone",
             "address",
@@ -24,4 +25,4 @@ class InstitutionUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Institution
-        fields = ["name", "email", "phone", "address", "is_active"]
+        fields = ["name", "province", "email", "phone", "address", "is_active"]
