@@ -19,7 +19,7 @@ class StudentService:
                 }
             )
         try:
-            student = Student.objects.create(
+            return Student.objects.create(
                 institution=institution,
                 full_name=full_name,
                 student_code=student_code,
@@ -31,7 +31,6 @@ class StudentService:
                     "student_code": "This student code is already in use for this institution."
                 }
             )
-        return student
 
     @staticmethod
     def get_student(student_id: str, institution) -> Student:
@@ -60,39 +59,61 @@ class StudentService:
 
     @staticmethod
     def list_students(institution, search: str = None, is_active: bool = None):
+        from django.db.models import Q
+
         qs = Student.objects.select_related("user").filter(institution=institution)
         if search:
-            qs = qs.filter(full_name__icontains=search) | qs.filter(
-                student_code__icontains=search
+            qs = qs.filter(
+                Q(full_name__icontains=search) | Q(student_code__icontains=search)
             )
-            qs = qs.filter(institution=institution)
         if is_active is not None:
             qs = qs.filter(is_active=is_active)
         return qs.order_by("full_name")
 
     @staticmethod
-    def get_student_by_user(user) -> Student:
+    def get_student_by_user(user, institution) -> Student:
+        """
+        Get the student profile for a user within a specific institution.
+        A user can be a student at multiple institutions.
+        """
         try:
-            return Student.objects.select_related("institution").get(user=user)
+            return Student.objects.select_related("institution").get(
+                user=user,
+                institution=institution,
+            )
         except Student.DoesNotExist:
-            raise NotFound("Student profile not found for this user.")
+            raise NotFound(
+                "Student profile not found for this user at this institution."
+            )
 
     @staticmethod
-    def link_user(student: Student, user) -> Student:
-        """Link a User account to a Student profile."""
-        if student.institution_id != user.institution_id:
+    def link_user(student: Student, user, membership) -> Student:
+        """
+        Link a User account to a Student profile.
+        Validates via Membership that the user has a student role
+        at this institution.
+        """
+        if membership.institution_id != student.institution_id:
             raise ValidationError(
-                {"user": "User must belong to the same institution as the student."}
+                {
+                    "user": "User must have a membership at the same institution as the student."
+                }
             )
-        if user.role != "student":
+        if membership.role != "student":
             raise ValidationError(
                 {
                     "user": 'Only users with role "student" can be linked to a student profile.'
                 }
             )
-        if Student.objects.filter(user=user).exclude(id=student.id).exists():
+        if (
+            Student.objects.filter(user=user, institution=student.institution)
+            .exclude(id=student.id)
+            .exists()
+        ):
             raise ValidationError(
-                {"user": "This user is already linked to another student profile."}
+                {
+                    "user": "This user is already linked to another student profile at this institution."
+                }
             )
         student.user = user
         student.save()
