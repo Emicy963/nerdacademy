@@ -8,6 +8,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- `pytest.ini` and `conftest.py` with factory-boy factories and fixtures
+- Test suite for all seven service layers (107 tests total):
+  accounts (14), institutions (10), students (15), trainers (14),
+  courses (12), classes (20), grades (22)
+- Django admin registration for all models with list display, filters,
+  search, fieldsets and inline enrollment view inside ClassAdmin
+
 ### Fixed
 
 - `core/settings/development.py`: replaced PostgreSQL with SQLite for local
@@ -39,7 +48,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
-## [0.2.0] — 2025-01-01
+## [0.2.0] — 2026-03-09
 
 ### Added — Backend
 
