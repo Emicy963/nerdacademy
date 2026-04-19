@@ -9,12 +9,12 @@ class Student(models.Model):
         on_delete=models.CASCADE,
         related_name="students",
     )
-    user = models.OneToOneField(
+    user = models.ForeignKey(
         "accounts.User",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="student_profile",
+        related_name="student_profiles",
     )
     full_name = models.CharField(max_length=255)
     student_code = models.CharField(max_length=50)
@@ -32,7 +32,12 @@ class Student(models.Model):
             models.UniqueConstraint(
                 fields=["institution", "student_code"],
                 name="unique_student_code_per_institution",
-            )
+            ),
+            models.UniqueConstraint(
+                fields=["institution", "user"],
+                condition=models.Q(user__isnull=False),
+                name="unique_student_user_per_institution",
+            ),
         ]
 
     def __str__(self):

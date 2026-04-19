@@ -9,12 +9,12 @@ class Trainer(models.Model):
         on_delete=models.CASCADE,
         related_name="trainers",
     )
-    user = models.OneToOneField(
+    user = models.ForeignKey(
         "accounts.User",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="trainer_profile",
+        related_name="trainer_profiles",
     )
     full_name = models.CharField(max_length=255)
     specialization = models.CharField(max_length=255, blank=True)
@@ -27,6 +27,13 @@ class Trainer(models.Model):
     class Meta:
         db_table = "trainers"
         ordering = ["full_name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["institution", "user"],
+                condition=models.Q(user__isnull=False),
+                name="unique_trainer_user_per_institution",
+            ),
+        ]
 
     def __str__(self):
         return f'{self.full_name} — {self.specialization or "Trainer"}'
