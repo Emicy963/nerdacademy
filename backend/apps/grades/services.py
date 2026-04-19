@@ -119,7 +119,7 @@ class GradeService:
         Update an existing grade.
         Trainer ownership re-validated on every update.
         """
-        GradeService._validate_trainer_owns_class(user, grade.enrollment)
+        GradeService._validate_trainer_owns_class(user, membership, grade.enrollment)
 
         allowed = {"value", "max_value", "assessed_at", "notes"}
         for field, value in data.items():
@@ -136,7 +136,7 @@ class GradeService:
 
     @staticmethod
     def delete_grade(user, membership, grade: Grade) -> None:
-        GradeService._validate_trainer_owns_class(user, grade.enrollment)
+        GradeService._validate_trainer_owns_class(user, membership, grade.enrollment)
         grade.delete()
 
     @staticmethod
