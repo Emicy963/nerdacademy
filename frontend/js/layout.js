@@ -1,102 +1,104 @@
 /**
  * layout.js
- * Manages the app shell: sidebar nav state, mobile toggle,
- * breadcrumb updates, and user info rendering.
- * Import this on every page that uses the dashboard shell.
+ * Manages the app shell: sidebar nav, mobile toggle,
+ * breadcrumb, user info and auth guard.
+ *
+ * Uses session.getUserWithRole() which merges the active Membership
+ * into the user object so pages can use user.role, user.institution_id
+ * and user.institution_name as before.
  */
 
-// ── Nav items config ──────────────────────────────────────
+import { session } from './api.js';
+
+// ── Nav items ─────────────────────────────────────────────────────
 const NAV_ITEMS = [
   {
     section: 'Overview',
     items: [
-      { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', href: '/pages/dashboard.html', roles: ['admin', 'trainer', 'student'] },
+      { id: 'dashboard', label: 'Dashboard', icon: 'dashboard',
+        href: '/pages/dashboard.html', roles: ['admin', 'trainer', 'student'] },
     ]
   },
   {
     section: 'Management',
     items: [
-      { id: 'students',  label: 'Students',  icon: 'students',  href: '/pages/students.html',  roles: ['admin', 'trainer'] },
-      { id: 'trainers',  label: 'Trainers',  icon: 'trainers',  href: '/pages/trainers.html',  roles: ['admin'] },
-      { id: 'courses',   label: 'Courses',   icon: 'courses',   href: '/pages/courses.html',   roles: ['admin', 'trainer', 'student'] },
-      { id: 'classes',   label: 'Classes',   icon: 'classes',   href: '/pages/classes.html',   roles: ['admin', 'trainer', 'student'] },
+      { id: 'students', label: 'Students', icon: 'students',
+        href: '/pages/students.html',  roles: ['admin', 'trainer'] },
+      { id: 'trainers', label: 'Trainers', icon: 'trainers',
+        href: '/pages/trainers.html',  roles: ['admin'] },
+      { id: 'courses',  label: 'Courses',  icon: 'courses',
+        href: '/pages/courses.html',   roles: ['admin', 'trainer', 'student'] },
+      { id: 'classes',  label: 'Classes',  icon: 'classes',
+        href: '/pages/classes.html',   roles: ['admin', 'trainer', 'student'] },
     ]
   },
   {
     section: 'Academic',
     items: [
-      { id: 'grades',    label: 'Grades',    icon: 'grades',    href: '/pages/grades.html',    roles: ['admin', 'trainer', 'student'] },
+      { id: 'grades', label: 'Grades', icon: 'grades',
+        href: '/pages/grades.html', roles: ['admin', 'trainer', 'student'] },
     ]
   },
 ];
 
-// ── Render sidebar nav ────────────────────────────────────
+// ── Render sidebar nav ────────────────────────────────────────────
 export function renderNav(activeId, userRole = 'admin') {
   const navEl = document.getElementById('sidebar-nav');
   if (!navEl) return;
 
-  const currentPath = window.location.pathname;
-
   navEl.innerHTML = NAV_ITEMS.map(section => {
-    const visibleItems = section.items.filter(item =>
-      item.roles.includes(userRole)
-    );
-    if (!visibleItems.length) return '';
-
-    const itemsHTML = visibleItems.map(item => {
-      const isActive = activeId
-        ? item.id === activeId
-        : currentPath.includes(item.id);
-
-      return `
-        <a href="${item.href}"
-           class="nav-item ${isActive ? 'active' : ''}"
-           data-nav-id="${item.id}">
-          <svg class="nav-item__icon" aria-hidden="true">
-            <use href="#icon-${item.icon}"/>
-          </svg>
-          ${item.label}
-        </a>
-      `;
-    }).join('');
+    const visible = section.items.filter(item => item.roles.includes(userRole));
+    if (!visible.length) return '';
 
     return `
       <div class="sidebar__section">
         <div class="sidebar__section-label">${section.section}</div>
-        ${itemsHTML}
-      </div>
-    `;
+        ${visible.map(item => `
+          <a href="${item.href}"
+             class="nav-item ${item.id === activeId ? 'active' : ''}"
+             data-nav-id="${item.id}">
+            <svg class="nav-item__icon" aria-hidden="true">
+              <use href="#icon-${item.icon}"/>
+            </svg>
+            ${item.label}
+          </a>`).join('')}
+      </div>`;
   }).join('');
 }
 
-// ── Render user info in sidebar footer ───────────────────
+// ── Render user info in sidebar footer ────────────────────────────
 export function renderUser(user) {
-  const nameEl  = document.getElementById('sidebar-user-name');
-  const roleEl  = document.getElementById('sidebar-user-role');
+  const nameEl   = document.getElementById('sidebar-user-name');
+  const roleEl   = document.getElementById('sidebar-user-role');
   const avatarEl = document.getElementById('sidebar-avatar');
   if (!nameEl) return;
 
-  const displayName = user?.email
-    ? user.email.split('@')[0].replace(/[._]/g, ' ')
-    : 'User';
+  // Prefer full_name, fall back to email prefix
+  const displayName = user?.full_name?.trim()
+    || (user?.email ? user.email.split('@')[0].replace(/[._]/g, ' ') : 'User');
+
   const initials = displayName.split(' ')
     .map(w => w[0]?.toUpperCase() ?? '')
     .slice(0, 2)
     .join('');
 
+  const roleLabel = {
+    admin:   'Administrator',
+    trainer: 'Trainer',
+    student: 'Student',
+  }[user?.role] ?? user?.role ?? '';
+
   nameEl.textContent  = displayName;
-  roleEl.textContent  = user?.role ?? '';
+  roleEl.textContent  = roleLabel;
   if (avatarEl) avatarEl.textContent = initials;
 }
 
-// ── Breadcrumb ────────────────────────────────────────────
+// ── Breadcrumb ────────────────────────────────────────────────────
 export function setBreadcrumb(items) {
-  // items: [{ label: 'Students' }, { label: 'Ana Silva', current: true }]
   const el = document.getElementById('topbar-breadcrumb');
   if (!el) return;
 
   el.innerHTML = items.map((item, i) => {
-    const isLast = i === items.length - 1;
     const sep = i > 0
       ? `<span class="topbar__breadcrumb-sep">
            <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
@@ -105,58 +107,101 @@ export function setBreadcrumb(items) {
            </svg>
          </span>`
       : '';
-    return `${sep}<span class="topbar__breadcrumb-item ${isLast ? 'current' : ''}">${item.label}</span>`;
+    const cls = i === items.length - 1 ? 'current' : '';
+    return `${sep}<span class="topbar__breadcrumb-item ${cls}">${item.label}</span>`;
   }).join('');
 }
 
-// ── Mobile sidebar toggle ────────────────────────────────
+// ── Mobile sidebar toggle ─────────────────────────────────────────
 export function initMobileToggle() {
-  const sidebar    = document.getElementById('sidebar');
-  const menuBtn    = document.getElementById('menu-toggle');
-  const backdrop   = document.getElementById('sidebar-backdrop');
-
+  const sidebar  = document.getElementById('sidebar');
+  const menuBtn  = document.getElementById('menu-toggle');
+  const backdrop = document.getElementById('sidebar-backdrop');
   if (!menuBtn || !sidebar) return;
 
-  const open  = () => { sidebar.classList.add('open'); backdrop?.classList.add('visible'); };
+  const open  = () => { sidebar.classList.add('open');    backdrop?.classList.add('visible');    };
   const close = () => { sidebar.classList.remove('open'); backdrop?.classList.remove('visible'); };
 
   menuBtn.addEventListener('click', open);
   backdrop?.addEventListener('click', close);
 }
 
-// ── Logout ───────────────────────────────────────────────
+// ── Logout ────────────────────────────────────────────────────────
 export function initLogout() {
   const btn = document.getElementById('logout-btn');
   if (!btn) return;
-
   btn.addEventListener('click', () => {
-    localStorage.removeItem('access');
-    localStorage.removeItem('refresh');
-    localStorage.removeItem('user');
+    session.clear();
     window.location.href = '/pages/login.html';
   });
 }
 
-// ── Guard: redirect to login if not authenticated ────────
+// ── Auth guard ────────────────────────────────────────────────────
 export function requireAuth() {
-  const token = localStorage.getItem('access');
-  if (!token) {
+  if (!session.isLoggedIn()) {
     window.location.href = '/pages/login.html';
     return null;
   }
-  try {
-    const user = JSON.parse(localStorage.getItem('user') ?? '{}');
-    return user;
-  } catch {
+  // Returns user merged with active membership role/institution
+  const user = session.getUserWithRole();
+  if (!user) {
     window.location.href = '/pages/login.html';
     return null;
   }
+  // If logged in but no active membership yet, redirect to login
+  if (!user.role) {
+    session.clear();
+    window.location.href = '/pages/login.html';
+    return null;
+  }
+  return user;
 }
 
-// ── Init everything ───────────────────────────────────────
+// ── Institution switcher (for multi-membership users) ────────────
+export function renderInstitutionSwitcher(containerId) {
+  const container  = document.getElementById(containerId);
+  if (!container) return;
+
+  const memberships = session.getMemberships();
+  if (memberships.length <= 1) { container.style.display = 'none'; return; }
+
+  const active = session.getActiveMembership();
+  container.innerHTML = `
+    <div style="padding:var(--sp-3) var(--sp-4);border-bottom:1px solid rgba(255,255,255,0.06)">
+      <div style="font-size:10px;font-weight:600;letter-spacing:0.07em;
+                  text-transform:uppercase;color:#4A4842;margin-bottom:var(--sp-2)">
+        Institution
+      </div>
+      ${memberships.map(m => `
+        <button onclick="switchMembership('${m.id}')"
+          style="width:100%;text-align:left;padding:6px 8px;border:none;
+                 border-radius:4px;cursor:pointer;font-size:12px;
+                 background:${m.id === active?.id ? 'rgba(255,255,255,0.08)' : 'transparent'};
+                 color:${m.id === active?.id ? '#F5F3EE' : '#8C8A83'};
+                 margin-bottom:2px;display:flex;align-items:center;gap:6px">
+          <span style="width:6px;height:6px;border-radius:50%;flex-shrink:0;
+                       background:${m.id === active?.id ? 'var(--color-amber)' : 'transparent'};
+                       border:1px solid ${m.id === active?.id ? 'var(--color-amber)' : '#4A4842'}">
+          </span>
+          <div>
+            <div>${m.institution_name}</div>
+            <div style="font-size:10px;opacity:0.6">${m.role}</div>
+          </div>
+        </button>`).join('')}
+    </div>`;
+
+  window.switchMembership = (membershipId) => {
+    const m = memberships.find(m => m.id === membershipId);
+    if (!m) return;
+    session.setActiveMembership(m);
+    window.location.reload();
+  };
+}
+
+// ── Init everything ───────────────────────────────────────────────
 export function initLayout(activeNavId) {
   const user = requireAuth();
-  if (!user) return;
+  if (!user) return null;
 
   renderNav(activeNavId, user.role);
   renderUser(user);
