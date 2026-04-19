@@ -1,13 +1,12 @@
+import logging
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework import status
 
+logger = logging.getLogger(__name__)
+
 
 def custom_exception_handler(exc, context):
-    """
-    Custom exception handler that returns consistent error responses.
-    All errors follow: {"error": "...", "detail": ...}
-    """
     response = exception_handler(exc, context)
 
     if response is not None:
@@ -19,7 +18,9 @@ def custom_exception_handler(exc, context):
         response.data = error_data
         return response
 
-    # Unhandled exceptions → 500
+    # Log the real error so it appears in the terminal
+    logger.exception("Unhandled exception in %s", context.get("view"))
+
     return Response(
         {
             "error": True,
