@@ -22,7 +22,7 @@ from .services import ClassService, EnrollmentService
 
 class ClassListCreateView(PaginatedListMixin, APIView):
     """
-    GET  /api/classes/ — list classes (admin + trainer + student, filtered by role)
+    GET  /api/classes/ — list classes (filtered by membership role)
     POST /api/classes/ — create class (admin only)
     """
 
@@ -32,25 +32,26 @@ class ClassListCreateView(PaginatedListMixin, APIView):
         return [IsAuthenticated()]
 
     def get(self, request):
-        user = request.user
+        membership = request.membership
+        institution = membership.institution
 
         # Students only see classes they are enrolled in
-        if user.is_student:
+        if membership.is_student:
             try:
                 from apps.students.services import StudentService
 
-                student = StudentService.get_student_by_user(user)
+                student = StudentService.get_student_by_user(request.user, institution)
                 classes = ClassService.list_classes_for_student(student)
             except Exception:
                 classes = []
             return self.paginate(request, classes, ClassSerializer)
 
         # Trainers only see their own classes
-        if user.is_trainer:
+        if membership.is_trainer:
             try:
                 from apps.trainers.services import TrainerService
 
-                trainer = TrainerService.get_trainer_by_user(user)
+                trainer = TrainerService.get_trainer_by_user(request.user, institution)
                 classes = ClassService.list_classes_for_trainer(trainer)
             except Exception:
                 classes = []
@@ -58,7 +59,7 @@ class ClassListCreateView(PaginatedListMixin, APIView):
 
         # Admins see all with optional filters
         classes = ClassService.list_classes(
-            institution=user.institution,
+            institution=institution,
             status=request.query_params.get("status"),
             course_id=request.query_params.get("course_id"),
             trainer_id=request.query_params.get("trainer_id"),
@@ -70,12 +71,10 @@ class ClassListCreateView(PaginatedListMixin, APIView):
         serializer = ClassCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        institution = request.membership.institution
 
         try:
-            course = Course.objects.get(
-                id=data["course_id"],
-                institution=request.user.institution,
-            )
+            course = Course.objects.get(id=data["course_id"], institution=institution)
         except Course.DoesNotExist:
             return Response(
                 {"course_id": "Course not found."}, status=status.HTTP_400_BAD_REQUEST
@@ -83,8 +82,7 @@ class ClassListCreateView(PaginatedListMixin, APIView):
 
         try:
             trainer = Trainer.objects.get(
-                id=data["trainer_id"],
-                institution=request.user.institution,
+                id=data["trainer_id"], institution=institution
             )
         except Trainer.DoesNotExist:
             return Response(
@@ -92,7 +90,7 @@ class ClassListCreateView(PaginatedListMixin, APIView):
             )
 
         class_instance = ClassService.create_class(
-            institution=request.user.institution,
+            institution=institution,
             course=course,
             trainer=trainer,
             name=data["name"],
@@ -106,9 +104,9 @@ class ClassListCreateView(PaginatedListMixin, APIView):
 
 class ClassDetailView(APIView):
     """
-    GET    /api/classes/{id}/ — detail with enrollments (admin + trainer)
+    GET    /api/classes/{id}/ — detail (admin + trainer)
     PATCH  /api/classes/{id}/ — update (admin only)
-    DELETE /api/classes/{id}/ — delete if empty, else error (admin only)
+    DELETE /api/classes/{id}/ — delete if empty (admin only)
     """
 
     def get_permissions(self):
@@ -119,18 +117,19 @@ class ClassDetailView(APIView):
     def _get_class(self, request, class_id):
         return ClassService.get_class(
             class_id=class_id,
-            institution=request.user.institution,
+            institution=request.membership.institution,
         )
 
     def get(self, request, class_id):
         class_instance = self._get_class(request, class_id)
 
-        # Trainers can only see their own classes
-        if request.user.is_trainer:
+        if request.membership.is_trainer:
             try:
                 from apps.trainers.services import TrainerService
 
-                trainer = TrainerService.get_trainer_by_user(request.user)
+                trainer = TrainerService.get_trainer_by_user(
+                    request.user, request.membership.institution
+                )
                 if str(class_instance.trainer_id) != str(trainer.id):
                     return Response(
                         {"detail": "You can only view your own classes."},
@@ -150,12 +149,11 @@ class ClassDetailView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        # Resolve trainer FK if trainer_id provided
         if "trainer_id" in data:
             try:
                 data["trainer"] = Trainer.objects.get(
                     id=data.pop("trainer_id"),
-                    institution=request.user.institution,
+                    institution=request.membership.institution,
                 )
             except Trainer.DoesNotExist:
                 return Response(
@@ -173,17 +171,14 @@ class ClassDetailView(APIView):
 
 
 class ClassCloseView(APIView):
-    """
-    POST /api/classes/{id}/close/ — close class and complete all active enrollments.
-    Admin only.
-    """
+    """POST /api/classes/{id}/close/ — Admin only."""
 
     permission_classes = [IsAuthenticated, IsAdminRole]
 
     def post(self, request, class_id):
         class_instance = ClassService.get_class(
             class_id=class_id,
-            institution=request.user.institution,
+            institution=request.membership.institution,
         )
         closed = ClassService.close_class(class_instance)
         return Response(ClassSerializer(closed).data)
@@ -191,8 +186,8 @@ class ClassCloseView(APIView):
 
 class EnrollmentListCreateView(PaginatedListMixin, APIView):
     """
-    GET  /api/classes/{id}/enrollments/ — list enrollments (admin + trainer)
-    POST /api/classes/{id}/enrollments/ — enroll student (admin only)
+    GET  /api/classes/{id}/enrollments/ — list (admin + trainer)
+    POST /api/classes/{id}/enrollments/ — enroll (admin only)
     """
 
     def get_permissions(self):
@@ -203,18 +198,19 @@ class EnrollmentListCreateView(PaginatedListMixin, APIView):
     def _get_class(self, request, class_id):
         return ClassService.get_class(
             class_id=class_id,
-            institution=request.user.institution,
+            institution=request.membership.institution,
         )
 
     def get(self, request, class_id):
         class_instance = self._get_class(request, class_id)
 
-        # Trainers can only see enrollments for their own classes
-        if request.user.is_trainer:
+        if request.membership.is_trainer:
             try:
                 from apps.trainers.services import TrainerService
 
-                trainer = TrainerService.get_trainer_by_user(request.user)
+                trainer = TrainerService.get_trainer_by_user(
+                    request.user, request.membership.institution
+                )
                 if str(class_instance.trainer_id) != str(trainer.id):
                     return Response(
                         {
@@ -242,11 +238,12 @@ class EnrollmentListCreateView(PaginatedListMixin, APIView):
         try:
             student = Student.objects.get(
                 id=serializer.validated_data["student_id"],
-                institution=request.user.institution,
+                institution=request.membership.institution,
             )
         except Student.DoesNotExist:
             return Response(
-                {"student_id": "Student not found."}, status=status.HTTP_400_BAD_REQUEST
+                {"student_id": "Student not found."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         enrollment = EnrollmentService.enroll_student(class_instance, student)
@@ -257,8 +254,8 @@ class EnrollmentListCreateView(PaginatedListMixin, APIView):
 
 class EnrollmentDetailView(APIView):
     """
-    GET    /api/classes/{class_id}/enrollments/{id}/ — enrollment detail
-    DELETE /api/classes/{class_id}/enrollments/{id}/ — drop enrollment (admin only)
+    GET    /api/classes/{class_id}/enrollments/{id}/ — detail
+    DELETE /api/classes/{class_id}/enrollments/{id}/ — drop (admin only)
     """
 
     def get_permissions(self):
@@ -269,30 +266,30 @@ class EnrollmentDetailView(APIView):
     def get(self, request, class_id, enrollment_id):
         enrollment = EnrollmentService.get_enrollment(
             enrollment_id=enrollment_id,
-            institution=request.user.institution,
+            institution=request.membership.institution,
         )
         return Response(EnrollmentDetailSerializer(enrollment).data)
 
     def delete(self, request, class_id, enrollment_id):
         enrollment = EnrollmentService.get_enrollment(
             enrollment_id=enrollment_id,
-            institution=request.user.institution,
+            institution=request.membership.institution,
         )
         EnrollmentService.drop_enrollment(enrollment)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class MyEnrollmentsView(PaginatedListMixin, APIView):
-    """
-    GET /api/classes/my-enrollments/ — student sees their own enrollments.
-    """
+    """GET /api/classes/my-enrollments/ — student sees their own enrollments."""
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         from apps.students.services import StudentService
 
-        student = StudentService.get_student_by_user(request.user)
+        student = StudentService.get_student_by_user(
+            request.user, request.membership.institution
+        )
         enroll_status = request.query_params.get("status")
         enrollments = EnrollmentService.list_enrollments_for_student(
             student=student,
