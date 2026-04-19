@@ -8,13 +8,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
-    /* ── Tokens (inline — no external CSS dependency on login page) ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg-canvas:    #F7F6F3;
-      --bg-surface:   #FFFFFF;
-      --bg-raised:    #F0EEE9;
+      --bg-canvas:      #F7F6F3;
+      --bg-surface:     #FFFFFF;
+      --bg-raised:      #F0EEE9;
       --text-primary:   #181714;
       --text-secondary: #6B6860;
       --text-tertiary:  #9C9A93;
@@ -35,10 +34,7 @@
       --transition-base: 200ms ease;
     }
 
-    html {
-      font-size: 14px;
-      -webkit-font-smoothing: antialiased;
-    }
+    html { font-size: 14px; -webkit-font-smoothing: antialiased; }
 
     body {
       font-family: var(--font-ui);
@@ -49,13 +45,8 @@
     }
 
     /* ── Two-panel layout ──────────────────────────────── */
-    .auth-shell {
-      display: flex;
-      width: 100%;
-      min-height: 100vh;
-    }
+    .auth-shell { display: flex; width: 100%; min-height: 100vh; }
 
-    /* Left panel — brand / illustration */
     .auth-panel {
       width: 420px;
       flex-shrink: 0;
@@ -68,7 +59,6 @@
       overflow: hidden;
     }
 
-    /* Subtle geometric background on panel */
     .auth-panel::before {
       content: '';
       position: absolute;
@@ -79,329 +69,215 @@
       pointer-events: none;
     }
 
-    /* Grid pattern overlay */
     .auth-panel::after {
       content: '';
       position: absolute;
       inset: 0;
-      background-image: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 39px,
-        rgba(255,255,255,0.025) 39px,
-        rgba(255,255,255,0.025) 40px
-      ),
-      repeating-linear-gradient(
-        90deg,
-        transparent,
-        transparent 39px,
-        rgba(255,255,255,0.025) 39px,
-        rgba(255,255,255,0.025) 40px
-      );
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 39px,
+          rgba(255,255,255,0.025) 39px, rgba(255,255,255,0.025) 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px,
+          rgba(255,255,255,0.025) 39px, rgba(255,255,255,0.025) 40px);
       pointer-events: none;
     }
 
-    .panel-top { position: relative; z-index: 1; }
-    .panel-bottom { position: relative; z-index: 1; }
+    .panel-top, .panel-bottom { position: relative; z-index: 1; }
 
-    .panel-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .panel-brand { display: flex; align-items: center; gap: 10px; }
 
     .panel-logo {
-      width: 30px;
-      height: 30px;
+      width: 30px; height: 30px;
       background: var(--color-amber);
       border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
     }
-
-    .panel-logo svg {
-      width: 16px;
-      height: 16px;
-      color: #1C1B18;
-    }
+    .panel-logo svg { width: 16px; height: 16px; color: #1C1B18; }
 
     .panel-wordmark {
-      font-size: 17px;
-      font-weight: 600;
-      color: #F5F3EE;
-      letter-spacing: -0.2px;
+      font-size: 17px; font-weight: 600;
+      color: #F5F3EE; letter-spacing: -0.2px;
     }
 
-    .panel-tagline {
-      margin-top: 64px;
-    }
-
+    .panel-tagline { margin-top: 64px; }
     .panel-tagline h2 {
-      font-size: 26px;
-      font-weight: 600;
-      color: #F5F3EE;
-      line-height: 1.25;
-      letter-spacing: -0.4px;
-      margin-bottom: 14px;
+      font-size: 26px; font-weight: 600;
+      color: #F5F3EE; line-height: 1.25;
+      letter-spacing: -0.4px; margin-bottom: 14px;
     }
-
     .panel-tagline p {
-      font-size: 14px;
-      color: #6B6860;
-      line-height: 1.65;
-      max-width: 300px;
+      font-size: 14px; color: #6B6860;
+      line-height: 1.65; max-width: 300px;
     }
 
-    /* Feature list */
-    .panel-features {
-      margin-top: 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .panel-feature {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-      color: #8C8A83;
-    }
-
+    .panel-features { margin-top: 40px; display: flex; flex-direction: column; gap: 14px; }
+    .panel-feature { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #8C8A83; }
     .panel-feature-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--color-amber);
-      flex-shrink: 0;
-      opacity: 0.7;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--color-amber); flex-shrink: 0; opacity: 0.7;
     }
 
-    .panel-footer {
-      font-size: 12px;
-      color: #4A4842;
-      line-height: 1.6;
-    }
+    .panel-footer { font-size: 12px; color: #4A4842; line-height: 1.6; }
 
-    /* Right panel — form */
+    /* ── Form panel ────────────────────────────────────── */
     .auth-form-panel {
       flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       padding: 48px 32px;
       background: var(--bg-canvas);
     }
 
-    .auth-card {
-      width: 100%;
-      max-width: 380px;
-    }
-
-    .auth-card__header {
-      margin-bottom: 32px;
-    }
-
+    .auth-card { width: 100%; max-width: 380px; }
+    .auth-card__header { margin-bottom: 32px; }
     .auth-card__title {
-      font-size: 22px;
-      font-weight: 600;
-      letter-spacing: -0.3px;
-      color: var(--text-primary);
-      line-height: 1.2;
-      margin-bottom: 6px;
+      font-size: 22px; font-weight: 600;
+      letter-spacing: -0.3px; color: var(--text-primary);
+      line-height: 1.2; margin-bottom: 6px;
     }
+    .auth-card__subtitle { font-size: 13.5px; color: var(--text-secondary); line-height: 1.5; }
 
-    .auth-card__subtitle {
-      font-size: 13.5px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
+    .auth-form { display: flex; flex-direction: column; gap: 18px; }
 
-    /* Form */
-    .auth-form {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 13px; font-weight: 500; color: var(--text-primary); }
 
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .form-label {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-primary);
-    }
-
-    .input-wrapper {
-      position: relative;
-    }
+    .input-wrapper { position: relative; }
 
     .form-input {
-      width: 100%;
-      height: 40px;
+      width: 100%; height: 40px;
       padding: 0 12px;
       border: 1px solid var(--border-default);
       border-radius: var(--radius-md);
       background: var(--bg-surface);
       color: var(--text-primary);
-      font-family: var(--font-ui);
-      font-size: 14px;
+      font-family: var(--font-ui); font-size: 14px;
       outline: none;
-      transition:
-        border-color var(--transition-fast),
-        box-shadow var(--transition-fast),
-        background var(--transition-fast);
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
     }
+    .form-input:hover  { border-color: var(--border-strong); }
+    .form-input:focus  { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(24,23,20,0.08); }
+    .form-input::placeholder { color: var(--text-tertiary); font-size: 13px; }
+    .form-input.has-right-icon { padding-right: 40px; }
+    .form-input.error { border-color: var(--color-red); background: #FFFAFA; }
+    .form-input.error:focus { box-shadow: 0 0 0 3px rgba(192,57,43,0.1); }
 
-    .form-input:hover {
-      border-color: var(--border-strong);
-    }
-
-    .form-input:focus {
-      border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px rgba(24,23,20,0.08);
-    }
-
-    .form-input::placeholder {
-      color: var(--text-tertiary);
-      font-size: 13px;
-    }
-
-    .form-input.has-right-icon {
-      padding-right: 40px;
-    }
-
-    .form-input.error {
-      border-color: var(--color-red);
-      background: #FFFAFA;
-    }
-
-    .form-input.error:focus {
-      box-shadow: 0 0 0 3px rgba(192,57,43,0.1);
-    }
-
-    /* Password toggle */
     .input-toggle {
-      position: absolute;
-      right: 10px;
-      top: 50%;
+      position: absolute; right: 10px; top: 50%;
       transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--text-tertiary);
-      padding: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: color var(--transition-fast);
-      border-radius: 4px;
+      background: none; border: none; cursor: pointer;
+      color: var(--text-tertiary); padding: 4px;
+      display: flex; align-items: center; justify-content: center;
+      transition: color var(--transition-fast); border-radius: 4px;
     }
-
     .input-toggle:hover { color: var(--text-primary); }
-
     .input-toggle svg { width: 15px; height: 15px; display: block; }
 
-    /* Error message */
-    .field-error {
-      font-size: 12px;
-      color: var(--color-red);
-      display: none;
-    }
-
+    .field-error { font-size: 12px; color: var(--color-red); display: none; }
     .field-error.visible { display: block; }
 
-    /* Submit error alert */
     .auth-alert {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
+      display: flex; align-items: flex-start; gap: 10px;
       padding: 10px 14px;
       background: var(--color-red-bg);
       border: 1px solid #F5C0BB;
       border-radius: var(--radius-md);
-      font-size: 13px;
-      color: var(--color-red);
-      line-height: 1.5;
-      opacity: 0;
-      max-height: 0;
-      overflow: hidden;
+      font-size: 13px; color: var(--color-red); line-height: 1.5;
+      opacity: 0; max-height: 0; overflow: hidden;
       transition: opacity var(--transition-base), max-height var(--transition-base);
     }
-
-    .auth-alert.visible {
-      opacity: 1;
-      max-height: 80px;
-    }
-
+    .auth-alert.visible { opacity: 1; max-height: 80px; }
     .auth-alert svg { width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px; }
 
-    /* Submit button */
     .btn-submit {
-      width: 100%;
-      height: 42px;
-      background: var(--text-primary);
-      color: var(--text-inverse);
-      border: none;
-      border-radius: var(--radius-md);
-      font-family: var(--font-ui);
-      font-size: 14px;
-      font-weight: 500;
+      width: 100%; height: 42px;
+      background: var(--text-primary); color: var(--text-inverse);
+      border: none; border-radius: var(--radius-md);
+      font-family: var(--font-ui); font-size: 14px; font-weight: 500;
       cursor: pointer;
       transition: background var(--transition-fast), opacity var(--transition-fast);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
       margin-top: 4px;
     }
-
     .btn-submit:hover:not(:disabled) { background: #2C2B27; }
     .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* Spinner */
     @keyframes spin { to { transform: rotate(360deg); } }
     .spinner {
-      width: 16px;
-      height: 16px;
+      width: 16px; height: 16px;
       border: 2px solid rgba(245,243,238,0.3);
       border-top-color: var(--text-inverse);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
-      display: none;
-      flex-shrink: 0;
+      display: none; flex-shrink: 0;
     }
-
     .btn-submit.loading .spinner { display: block; }
     .btn-submit.loading .btn-label { opacity: 0.6; }
 
-    /* Footer note */
     .auth-footer {
-      margin-top: 24px;
-      text-align: center;
-      font-size: 12px;
-      color: var(--text-tertiary);
-      line-height: 1.6;
+      margin-top: 24px; text-align: center;
+      font-size: 12px; color: var(--text-tertiary); line-height: 1.6;
     }
 
-    .auth-footer a {
-      color: var(--text-secondary);
-      text-decoration: underline;
-      text-underline-offset: 2px;
+    /* ── Institution picker (shown when user has multiple) ── */
+    .institution-picker {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .institution-picker.visible { display: flex; }
+
+    .institution-picker__label {
+      font-size: 13px; font-weight: 500; color: var(--text-primary);
+      margin-bottom: 2px;
     }
 
-    /* ── Responsive ───────────────────────────────────── */
+    .institution-picker__subtitle {
+      font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;
+    }
+
+    .membership-option {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px;
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      cursor: pointer;
+      transition: border-color var(--transition-fast), background var(--transition-fast);
+    }
+    .membership-option:hover {
+      border-color: var(--border-strong);
+      background: var(--bg-raised);
+    }
+    .membership-option.selected {
+      border-color: var(--border-focus);
+      background: var(--bg-raised);
+    }
+    .membership-option__name {
+      font-size: 14px; font-weight: 500; color: var(--text-primary);
+    }
+    .membership-option__role {
+      font-size: 12px; color: var(--text-secondary); margin-top: 2px;
+    }
+    .membership-option__check {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 1.5px solid var(--border-default);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .membership-option.selected .membership-option__check {
+      background: var(--text-primary);
+      border-color: var(--text-primary);
+    }
+    .membership-option.selected .membership-option__check::after {
+      content: '';
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--text-inverse);
+    }
+
     @media (max-width: 780px) {
       .auth-panel { display: none; }
       .auth-form-panel { background: var(--bg-surface); }
       .auth-card { max-width: 340px; }
     }
-
     @media (max-width: 420px) {
       .auth-form-panel { padding: 32px 20px; }
     }
@@ -414,10 +290,9 @@
   <!-- ── Left panel ──────────────────────────────────── -->
   <div class="auth-panel">
     <div class="panel-top">
-
       <div class="panel-brand">
         <div class="panel-logo">
-          <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="0 0 14 14" fill="none">
             <path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z" fill="currentColor"/>
           </svg>
         </div>
@@ -436,7 +311,7 @@
         </div>
         <div class="panel-feature">
           <div class="panel-feature-dot"></div>
-          Institution-level data isolation
+          One account across multiple institutions
         </div>
         <div class="panel-feature">
           <div class="panel-feature-dot"></div>
@@ -447,7 +322,6 @@
           Enrolment and class lifecycle management
         </div>
       </div>
-
     </div>
 
     <div class="panel-bottom">
@@ -463,11 +337,13 @@
     <div class="auth-card">
 
       <div class="auth-card__header">
-        <h1 class="auth-card__title">Sign in to your account</h1>
-        <p class="auth-card__subtitle">Enter your credentials to access the dashboard.</p>
+        <h1 class="auth-card__title" id="card-title">Sign in to your account</h1>
+        <p class="auth-card__subtitle" id="card-subtitle">
+          Enter your credentials to access the dashboard.
+        </p>
       </div>
 
-      <!-- Error alert (shown on failed login) -->
+      <!-- Error alert -->
       <div class="auth-alert" id="auth-alert" role="alert" aria-live="polite">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -477,40 +353,25 @@
         <span id="auth-alert-text"></span>
       </div>
 
+      <!-- Step 1: credentials -->
       <form class="auth-form" id="login-form" novalidate autocomplete="on">
-
-        <!-- Email -->
         <div class="form-group">
           <label class="form-label" for="email">Email address</label>
-          <input
-            class="form-input"
-            type="email"
-            id="email"
-            name="email"
-            placeholder="you@institution.ao"
-            autocomplete="email"
-            inputmode="email"
-            required
-          />
+          <input class="form-input" type="email" id="email" name="email"
+                 placeholder="you@institution.ao"
+                 autocomplete="email" inputmode="email" required/>
           <span class="field-error" id="email-error">Please enter a valid email address.</span>
         </div>
 
-        <!-- Password -->
         <div class="form-group">
           <label class="form-label" for="password">Password</label>
           <div class="input-wrapper">
-            <input
-              class="form-input has-right-icon"
-              type="password"
-              id="password"
-              name="password"
-              placeholder="••••••••"
-              autocomplete="current-password"
-              required
-            />
+            <input class="form-input has-right-icon" type="password"
+                   id="password" name="password"
+                   placeholder="••••••••"
+                   autocomplete="current-password" required/>
             <button type="button" class="input-toggle" id="pw-toggle"
                     aria-label="Toggle password visibility">
-              <!-- eye icon — toggled by JS -->
               <svg id="pw-icon-show" viewBox="0 0 16 16" fill="none"
                    stroke="currentColor" stroke-width="1.5"
                    stroke-linecap="round" stroke-linejoin="round">
@@ -534,8 +395,19 @@
           <div class="spinner" aria-hidden="true"></div>
           <span class="btn-label">Sign in</span>
         </button>
-
       </form>
+
+      <!-- Step 2: institution picker (hidden until needed) -->
+      <div class="institution-picker" id="institution-picker">
+        <div class="institution-picker__label">Choose your institution</div>
+        <div class="institution-picker__subtitle">
+          Your account has access to multiple institutions. Select one to continue.
+        </div>
+        <div id="membership-list"></div>
+        <button class="btn-submit" id="confirm-membership-btn" disabled>
+          <span class="btn-label">Continue</span>
+        </button>
+      </div>
 
       <p class="auth-footer">
         Having trouble? Contact your institution administrator.
@@ -543,41 +415,49 @@
 
     </div>
   </div>
-
 </div>
 
 <script type="module">
-  import { auth, token } from '../js/api.js';
+  import { auth, session } from '../js/api.js';
 
-  // ── Redirect if already logged in ────────────────────
-  if (token.isLoggedIn()) {
+  // ── Already logged in → go to dashboard ──────────────
+  if (session.isLoggedIn() && session.getInstitutionId()) {
     window.location.href = '../pages/dashboard.html';
   }
 
-  const form      = document.getElementById('login-form');
-  const emailEl   = document.getElementById('email');
-  const pwEl      = document.getElementById('password');
-  const submitBtn = document.getElementById('submit-btn');
-  const alertEl   = document.getElementById('auth-alert');
-  const alertText = document.getElementById('auth-alert-text');
-  const emailErr  = document.getElementById('email-error');
-  const pwErr     = document.getElementById('pw-error');
+  // ── Elements ──────────────────────────────────────────
+  const loginForm    = document.getElementById('login-form');
+  const picker       = document.getElementById('institution-picker');
+  const emailEl      = document.getElementById('email');
+  const pwEl         = document.getElementById('password');
+  const submitBtn    = document.getElementById('submit-btn');
+  const confirmBtn   = document.getElementById('confirm-membership-btn');
+  const membershipList = document.getElementById('membership-list');
+  const alertEl      = document.getElementById('auth-alert');
+  const alertText    = document.getElementById('auth-alert-text');
+  const emailErr     = document.getElementById('email-error');
+  const pwErr        = document.getElementById('pw-error');
+  const cardTitle    = document.getElementById('card-title');
+  const cardSubtitle = document.getElementById('card-subtitle');
 
-  // ── Password visibility toggle ────────────────────────
+  // ── State ─────────────────────────────────────────────
+  let pendingData       = null; // login response stored during membership pick
+  let selectedMembership = null;
+
+  // ── Password toggle ───────────────────────────────────
   document.getElementById('pw-toggle').addEventListener('click', () => {
     const isHidden = pwEl.type === 'password';
     pwEl.type = isHidden ? 'text' : 'password';
-    document.getElementById('pw-icon-show').style.display = isHidden ? 'none'  : '';
-    document.getElementById('pw-icon-hide').style.display = isHidden ? ''      : 'none';
+    document.getElementById('pw-icon-show').style.display = isHidden ? 'none' : '';
+    document.getElementById('pw-icon-hide').style.display = isHidden ? ''     : 'none';
   });
 
-  // ── Inline validation — clear errors on input ────────
+  // ── Inline validation ─────────────────────────────────
   emailEl.addEventListener('input', () => {
     emailEl.classList.remove('error');
     emailErr.classList.remove('visible');
     hideAlert();
   });
-
   pwEl.addEventListener('input', () => {
     pwEl.classList.remove('error');
     pwErr.classList.remove('visible');
@@ -589,70 +469,133 @@
     alertText.textContent = msg;
     alertEl.classList.add('visible');
   }
-
-  function hideAlert() {
-    alertEl.classList.remove('visible');
-  }
+  function hideAlert() { alertEl.classList.remove('visible'); }
 
   // ── Loading state ─────────────────────────────────────
-  function setLoading(on) {
-    submitBtn.disabled = on;
-    submitBtn.classList.toggle('loading', on);
+  function setLoading(btn, on) {
+    btn.disabled = on;
+    btn.classList.toggle('loading', on);
   }
 
-  // ── Validate ──────────────────────────────────────────
+  // ── Validate credentials form ─────────────────────────
   function validate() {
     let ok = true;
     const email = emailEl.value.trim();
-    const pw    = pwEl.value;
-
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       emailEl.classList.add('error');
       emailErr.classList.add('visible');
       ok = false;
     }
-
-    if (!pw) {
+    if (!pwEl.value) {
       pwEl.classList.add('error');
       pwErr.classList.add('visible');
       ok = false;
     }
-
     return ok;
   }
 
-  // ── Submit ────────────────────────────────────────────
-  form.addEventListener('submit', async (e) => {
+  // ── Render membership picker ──────────────────────────
+  function showPicker(memberships) {
+    loginForm.style.display = 'none';
+    picker.classList.add('visible');
+    cardTitle.textContent    = 'Choose your institution';
+    cardSubtitle.textContent = memberships.length > 1
+      ? 'Your account has access to multiple institutions.'
+      : 'Confirm your institution to continue.';
+
+    const roleLabels = { admin: 'Administrator', trainer: 'Trainer', student: 'Student' };
+
+    membershipList.innerHTML = memberships.map(m => `
+      <div class="membership-option" data-id="${m.id}"
+           onclick="selectMembership('${m.id}')">
+        <div>
+          <div class="membership-option__name">${m.institution_name}</div>
+          <div class="membership-option__role">${roleLabels[m.role] ?? m.role}</div>
+        </div>
+        <div class="membership-option__check"></div>
+      </div>`).join('');
+
+    // Auto-select if only one
+    if (memberships.length === 1) {
+      selectMembership(memberships[0].id);
+    }
+  }
+
+  window.selectMembership = (id) => {
+    const memberships = pendingData.memberships;
+    selectedMembership = memberships.find(m => m.id === id) ?? null;
+
+    document.querySelectorAll('.membership-option').forEach(el => {
+      el.classList.toggle('selected', el.dataset.id === id);
+    });
+
+    confirmBtn.disabled = !selectedMembership;
+  };
+
+  // ── Confirm membership and enter dashboard ────────────
+  confirmBtn.addEventListener('click', () => {
+    if (!selectedMembership || !pendingData) return;
+
+    session.set(
+      pendingData.access,
+      pendingData.refresh,
+      pendingData.user,
+      pendingData.memberships,
+      selectedMembership,
+    );
+
+    window.location.href = '../pages/dashboard.html';
+  });
+
+  // ── Submit login form ─────────────────────────────────
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     hideAlert();
-
     if (!validate()) return;
 
     const email    = emailEl.value.trim();
     const password = pwEl.value;
 
-    setLoading(true);
+    setLoading(submitBtn, true);
 
     try {
       const data = await auth.login(email, password);
+      const memberships = data.memberships ?? [];
 
-      // Redirect based on role
-      const role = data.user?.role;
-      window.location.href = '../pages/dashboard.html';
+      if (!memberships.length) {
+        setLoading(submitBtn, false);
+        showAlert('Your account has no active memberships. Contact your administrator.');
+        return;
+      }
+
+      pendingData = data;
+
+      if (memberships.length === 1) {
+        // Single membership — skip picker, go straight in
+        session.set(
+          data.access,
+          data.refresh,
+          data.user,
+          memberships,
+          memberships[0],
+        );
+        window.location.href = '../pages/dashboard.html';
+      } else {
+        // Multiple memberships — show picker
+        setLoading(submitBtn, false);
+        showPicker(memberships);
+      }
 
     } catch (err) {
-      setLoading(false);
-
+      setLoading(submitBtn, false);
       const msg = err.status === 401
         ? 'Invalid email or password. Please try again.'
         : (err.detail ?? 'Something went wrong. Please try again.');
-
       showAlert(msg);
 
-      // Shake effect on the form card
       const card = document.querySelector('.auth-card');
       card.style.animation = 'none';
-      card.offsetHeight; // reflow
+      card.offsetHeight;
       card.style.animation = '';
     }
   });
