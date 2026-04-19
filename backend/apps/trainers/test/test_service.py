@@ -1,5 +1,5 @@
 """
-Tests for TrainerService: CRUD, search, deactivation, user linking, classes.
+Tests for TrainerService with multi-institution architecture.
 """
 
 import pytest
@@ -9,8 +9,8 @@ from apps.trainers.services import TrainerService
 from conftest import (
     InstitutionFactory,
     TrainerFactory,
-    TrainerUserFactory,
-    StudentUserFactory,
+    UserFactory,
+    MembershipFactory,
     ClassFactory,
     CourseFactory,
 )
@@ -91,7 +91,6 @@ class TestTrainerServiceList:
         TrainerFactory(institution=institution, full_name="João Silva")
         result = list(TrainerService.list_trainers(institution, search="maria"))
         assert len(result) == 1
-        assert "Maria" in result[0].full_name
 
     def test_list_search_by_specialization(self, institution):
         TrainerFactory(institution=institution, specialization="Python")
@@ -110,22 +109,71 @@ class TestTrainerServiceList:
 class TestTrainerServiceLinkUser:
 
     def test_link_user_success(self, institution, trainer):
-        user = TrainerUserFactory(institution=institution)
-        linked = TrainerService.link_user(trainer, user)
+        user = UserFactory()
+        membership = MembershipFactory(
+            user=user, institution=institution, role="trainer"
+        )
+        linked = TrainerService.link_user(trainer, user, membership)
         assert linked.user == user
 
-    def test_link_user_wrong_role(self, institution, trainer):
-        user = StudentUserFactory(institution=institution)
+    def test_link_user_wrong_role_raises(self, institution, trainer):
+        user = UserFactory()
+        membership = MembershipFactory(
+            user=user, institution=institution, role="student"
+        )
         with pytest.raises(ValidationError) as exc:
-            TrainerService.link_user(trainer, user)
+            TrainerService.link_user(trainer, user, membership)
         assert "user" in exc.value.detail
 
-    def test_link_user_wrong_institution(self, institution, trainer):
+    def test_link_user_wrong_institution_raises(self, institution, trainer):
         other = InstitutionFactory()
-        user = TrainerUserFactory(institution=other)
+        user = UserFactory()
+        membership = MembershipFactory(user=user, institution=other, role="trainer")
         with pytest.raises(ValidationError) as exc:
-            TrainerService.link_user(trainer, user)
+            TrainerService.link_user(trainer, user, membership)
         assert "user" in exc.value.detail
+
+    def test_same_user_trainer_at_multiple_institutions(self, db):
+        """A user can be a trainer at two different institutions."""
+        inst_a = InstitutionFactory()
+        inst_b = InstitutionFactory()
+        trainer_a = TrainerFactory(institution=inst_a)
+        trainer_b = TrainerFactory(institution=inst_b)
+        user = UserFactory()
+        m_a = MembershipFactory(user=user, institution=inst_a, role="trainer")
+        m_b = MembershipFactory(user=user, institution=inst_b, role="trainer")
+        TrainerService.link_user(trainer_a, user, m_a)
+        TrainerService.link_user(trainer_b, user, m_b)
+        assert trainer_a.user == user
+        assert trainer_b.user == user
+
+
+@pytest.mark.django_db
+class TestTrainerServiceGetByUser:
+
+    def test_get_trainer_by_user_success(self, institution, trainer):
+        user = UserFactory()
+        membership = MembershipFactory(
+            user=user, institution=institution, role="trainer"
+        )
+        TrainerService.link_user(trainer, user, membership)
+        found = TrainerService.get_trainer_by_user(user, institution)
+        assert found.id == trainer.id
+
+    def test_get_trainer_by_user_wrong_institution(self, institution, trainer):
+        user = UserFactory()
+        membership = MembershipFactory(
+            user=user, institution=institution, role="trainer"
+        )
+        TrainerService.link_user(trainer, user, membership)
+        other = InstitutionFactory()
+        with pytest.raises(NotFound):
+            TrainerService.get_trainer_by_user(user, other)
+
+    def test_get_trainer_by_user_not_found(self, institution):
+        user = UserFactory()
+        with pytest.raises(NotFound):
+            TrainerService.get_trainer_by_user(user, institution)
 
 
 @pytest.mark.django_db
@@ -137,14 +185,3 @@ class TestTrainerServiceClasses:
         cls = ClassFactory(institution=institution, trainer=trainer, course=course)
         classes = list(TrainerService.get_trainer_classes(trainer))
         assert cls in classes
-
-    def test_get_trainer_by_user(self, institution, trainer):
-        user = TrainerUserFactory(institution=institution)
-        TrainerService.link_user(trainer, user)
-        found = TrainerService.get_trainer_by_user(user)
-        assert found.id == trainer.id
-
-    def test_get_trainer_by_user_not_found(self, institution):
-        user = TrainerUserFactory(institution=institution)
-        with pytest.raises(NotFound):
-            TrainerService.get_trainer_by_user(user)

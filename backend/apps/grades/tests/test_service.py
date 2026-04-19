@@ -1,7 +1,5 @@
 """
-tests/test_services.py — grades
-Tests for GradeService: launch, update, delete, average calculation,
-class report, trainer ownership enforcement.
+Tests for GradeService with Membership-based architecture.
 """
 
 import pytest
@@ -13,6 +11,7 @@ from rest_framework.exceptions import ValidationError, NotFound, PermissionDenie
 from apps.grades.services import GradeService
 from apps.classes.services import ClassService, EnrollmentService
 from apps.classes.models import Enrollment
+from apps.accounts.models import Membership
 from conftest import (
     InstitutionFactory,
     GradeFactory,
@@ -21,22 +20,29 @@ from conftest import (
     StudentFactory,
     TrainerFactory,
     CourseFactory,
-    AdminUserFactory,
-    TrainerUserFactory,
-    TrainerFactory,
+    UserFactory,
+    MembershipFactory,
 )
 
 # ── Helpers ────────────────────────────────────────────────────────
 
 
 def make_admin(institution):
-    return AdminUserFactory(institution=institution)
+    """Create a user + admin membership and return (user, membership)."""
+    user = UserFactory()
+    m = MembershipFactory(user=user, institution=institution, role="admin")
+    return user, m
 
 
 def make_trainer_with_profile(institution):
-    user = TrainerUserFactory(institution=institution)
-    trainer = TrainerFactory(institution=institution, user=user)
-    return user, trainer
+    """Create user + trainer membership + trainer profile."""
+    user = UserFactory()
+    membership = MembershipFactory(user=user, institution=institution, role="trainer")
+    from apps.trainers.services import TrainerService
+
+    trainer = TrainerFactory(institution=institution)
+    TrainerService.link_user(trainer, user, membership)
+    return user, membership, trainer
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -48,9 +54,10 @@ def make_trainer_with_profile(institution):
 class TestGradeServiceLaunch:
 
     def test_launch_grade_as_admin(self, institution, enrollment):
-        admin = make_admin(institution)
+        admin, membership = make_admin(institution)
         grade = GradeService.launch_grade(
             user=admin,
+            membership=membership,
             enrollment_id=str(enrollment.id),
             institution=institution,
             assessment_type="exam",
@@ -63,7 +70,7 @@ class TestGradeServiceLaunch:
         assert grade.institution == institution
 
     def test_launch_grade_as_trainer_owner(self, institution, class_instance, student):
-        user, trainer = make_trainer_with_profile(institution)
+        user, membership, trainer = make_trainer_with_profile(institution)
         class_instance.trainer = trainer
         class_instance.save()
         student.institution = institution
@@ -72,6 +79,7 @@ class TestGradeServiceLaunch:
 
         grade = GradeService.launch_grade(
             user=user,
+            membership=membership,
             enrollment_id=str(enr.id),
             institution=institution,
             assessment_type="continuous",
@@ -84,8 +92,8 @@ class TestGradeServiceLaunch:
     def test_launch_grade_trainer_not_owner_raises(
         self, institution, class_instance, student
     ):
-        """A trainer who is not assigned to the class cannot launch grades."""
-        other_user, _ = make_trainer_with_profile(institution)
+        """Trainer not assigned to the class cannot launch grades."""
+        other_user, other_membership, _ = make_trainer_with_profile(institution)
         student.institution = institution
         student.save()
         enr = EnrollmentService.enroll_student(class_instance, student)
@@ -93,6 +101,7 @@ class TestGradeServiceLaunch:
         with pytest.raises(PermissionDenied):
             GradeService.launch_grade(
                 user=other_user,
+                membership=other_membership,
                 enrollment_id=str(enr.id),
                 institution=institution,
                 assessment_type="exam",
@@ -102,10 +111,11 @@ class TestGradeServiceLaunch:
             )
 
     def test_launch_grade_value_exceeds_max_raises(self, institution, enrollment):
-        admin = make_admin(institution)
+        admin, membership = make_admin(institution)
         with pytest.raises(ValidationError) as exc:
             GradeService.launch_grade(
                 user=admin,
+                membership=membership,
                 enrollment_id=str(enrollment.id),
                 institution=institution,
                 assessment_type="exam",
@@ -116,10 +126,11 @@ class TestGradeServiceLaunch:
         assert "value" in exc.value.detail
 
     def test_launch_grade_duplicate_type_raises(self, institution, enrollment, grade):
-        admin = make_admin(institution)
+        admin, membership = make_admin(institution)
         with pytest.raises(ValidationError) as exc:
             GradeService.launch_grade(
                 user=admin,
+                membership=membership,
                 enrollment_id=str(enrollment.id),
                 institution=institution,
                 assessment_type=grade.assessment_type,
@@ -129,7 +140,7 @@ class TestGradeServiceLaunch:
             )
         assert "assessment_type" in exc.value.detail
 
-    def test_launch_grade_inactive_enrollment_raises(
+    def test_launch_grade_dropped_enrollment_raises(
         self, institution, class_instance, student
     ):
         student.institution = institution
@@ -138,10 +149,11 @@ class TestGradeServiceLaunch:
         EnrollmentService.drop_enrollment(enr)
         enr.refresh_from_db()
 
-        admin = make_admin(institution)
+        admin, membership = make_admin(institution)
         with pytest.raises(ValidationError) as exc:
             GradeService.launch_grade(
                 user=admin,
+                membership=membership,
                 enrollment_id=str(enr.id),
                 institution=institution,
                 assessment_type="exam",
@@ -161,25 +173,30 @@ class TestGradeServiceLaunch:
 class TestGradeServiceUpdate:
 
     def test_update_grade_value(self, institution, enrollment, grade):
-        admin = make_admin(institution)
-        updated = GradeService.update_grade(admin, grade, {"value": Decimal("17.50")})
+        admin, membership = make_admin(institution)
+        updated = GradeService.update_grade(
+            admin, membership, grade, {"value": Decimal("17.50")}
+        )
         assert updated.value == Decimal("17.50")
 
     def test_update_grade_value_exceeds_max_raises(
         self, institution, enrollment, grade
     ):
-        admin = make_admin(institution)
+        admin, membership = make_admin(institution)
         with pytest.raises(ValidationError) as exc:
             GradeService.update_grade(
                 admin,
+                membership,
                 grade,
                 {"value": Decimal("25.00"), "max_value": Decimal("20.00")},
             )
         assert "value" in exc.value.detail
 
     def test_update_grade_notes(self, institution, enrollment, grade):
-        admin = make_admin(institution)
-        updated = GradeService.update_grade(admin, grade, {"notes": "Boa prestação."})
+        admin, membership = make_admin(institution)
+        updated = GradeService.update_grade(
+            admin, membership, grade, {"notes": "Boa prestação."}
+        )
         assert updated.notes == "Boa prestação."
 
 
@@ -187,9 +204,9 @@ class TestGradeServiceUpdate:
 class TestGradeServiceDelete:
 
     def test_delete_grade_as_admin(self, institution, enrollment, grade):
-        admin = make_admin(institution)
+        admin, membership = make_admin(institution)
         grade_id = grade.id
-        GradeService.delete_grade(admin, grade)
+        GradeService.delete_grade(admin, membership, grade)
         from apps.grades.models import Grade
 
         assert not Grade.objects.filter(id=grade_id).exists()
@@ -207,10 +224,11 @@ class TestGradeServiceAverage:
         avg = GradeService.calculate_average(enrollment)
         assert avg == Decimal("0.00")
 
-    def test_average_single_grade_full_marks(self, institution, enrollment):
-        admin = make_admin(institution)
+    def test_average_full_marks(self, institution, enrollment):
+        admin, membership = make_admin(institution)
         GradeService.launch_grade(
             user=admin,
+            membership=membership,
             enrollment_id=str(enrollment.id),
             institution=institution,
             assessment_type="exam",
@@ -221,10 +239,11 @@ class TestGradeServiceAverage:
         avg = GradeService.calculate_average(enrollment)
         assert avg == Decimal("20.00")
 
-    def test_average_single_grade_half_marks(self, institution, enrollment):
-        admin = make_admin(institution)
+    def test_average_half_marks(self, institution, enrollment):
+        admin, membership = make_admin(institution)
         GradeService.launch_grade(
             user=admin,
+            membership=membership,
             enrollment_id=str(enrollment.id),
             institution=institution,
             assessment_type="exam",
@@ -237,15 +256,14 @@ class TestGradeServiceAverage:
 
     def test_average_multiple_grades_normalised(self, institution, enrollment):
         """
-        Two grades with different max_values should be normalised to /20
-        before averaging.
-          exam:       16/20 → 16.00 normalised
-          continuous: 80/100 → 16.00 normalised
-          average → 16.00
+        exam: 16/20 → 16.00 normalised
+        continuous: 80/100 → 16.00 normalised
+        average → 16.00
         """
-        admin = make_admin(institution)
+        admin, membership = make_admin(institution)
         GradeService.launch_grade(
             user=admin,
+            membership=membership,
             enrollment_id=str(enrollment.id),
             institution=institution,
             assessment_type="exam",
@@ -255,6 +273,7 @@ class TestGradeServiceAverage:
         )
         GradeService.launch_grade(
             user=admin,
+            membership=membership,
             enrollment_id=str(enrollment.id),
             institution=institution,
             assessment_type="continuous",
@@ -286,7 +305,7 @@ class TestGradeServiceReport:
         assert "average" in row
         assert row["student"]["full_name"] == student.full_name
 
-    def test_get_class_report_wrong_institution(self, class_instance):
+    def test_get_class_report_wrong_institution_raises(self, class_instance):
         other = InstitutionFactory()
         with pytest.raises(NotFound):
             GradeService.get_class_report(str(class_instance.id), other)
@@ -305,14 +324,14 @@ class TestGradeServiceReport:
 class TestGradeServiceList:
 
     def test_list_grades_scoped_to_institution(self, institution, grade):
-        other = InstitutionFactory()
         result = list(GradeService.list_grades(institution=institution))
         assert all(g.institution_id == institution.id for g in result)
 
     def test_list_grades_filter_by_assessment_type(self, institution, enrollment):
-        admin = make_admin(institution)
+        admin, membership = make_admin(institution)
         GradeService.launch_grade(
             user=admin,
+            membership=membership,
             enrollment_id=str(enrollment.id),
             institution=institution,
             assessment_type="exam",
@@ -322,6 +341,7 @@ class TestGradeServiceList:
         )
         GradeService.launch_grade(
             user=admin,
+            membership=membership,
             enrollment_id=str(enrollment.id),
             institution=institution,
             assessment_type="continuous",
