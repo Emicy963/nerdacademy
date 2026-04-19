@@ -15,10 +15,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        token["role"] = user.role
-        token["institution_id"] = (
-            str(user.institution_id) if user.institution_id else None
-        )
+        token["email"] = user.email
+        # role is now per-institution via Membership — not on User
         return token
 
     def validate(self, attrs):
@@ -50,19 +48,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class UserMeSerializer(serializers.ModelSerializer):
-    institution_id = serializers.UUIDField(source="institution.id", read_only=True)
-    institution_name = serializers.CharField(source="institution.name", read_only=True)
-
     class Meta:
         model = User
-        fields = [
-            "id",
-            "email",
-            "role",
-            "institution_id",
-            "institution_name",
-            "created_at",
-        ]
+        fields = ["id", "email", "full_name", "is_active", "created_at"]
         read_only_fields = fields
 
 
