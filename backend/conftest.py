@@ -1,6 +1,5 @@
 """
 Shared pytest fixtures and factory-boy factories for all test modules.
-All factories produce realistic data using Faker.
 """
 
 import pytest
@@ -14,9 +13,6 @@ from faker import Faker
 fake = Faker("pt_PT")
 
 
-# ── Factories ──────────────────────────────────────────────────────
-
-
 class InstitutionFactory(DjangoModelFactory):
     class Meta:
         model = "institutions.Institution"
@@ -25,7 +21,6 @@ class InstitutionFactory(DjangoModelFactory):
     slug = factory.Sequence(lambda n: f"institution-{n}")
     email = factory.Faker("company_email")
     phone = factory.Faker("phone_number")
-    address = factory.Faker("address")
     is_active = True
 
 
@@ -33,29 +28,36 @@ class UserFactory(DjangoModelFactory):
     class Meta:
         model = "accounts.User"
 
-    institution = factory.SubFactory(InstitutionFactory)
     email = factory.Sequence(lambda n: f"user{n}@academico.ao")
-    role = "student"
+    full_name = factory.Faker("name")
     is_active = True
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         password = kwargs.pop("password", "testpass123")
         manager = cls._get_manager(model_class)
-        user = manager.create_user(password=password, **kwargs)
-        return user
+        return manager.create_user(password=password, **kwargs)
 
 
-class AdminUserFactory(UserFactory):
+class MembershipFactory(DjangoModelFactory):
+    class Meta:
+        model = "accounts.Membership"
+
+    user = factory.SubFactory(UserFactory)
+    institution = factory.SubFactory(InstitutionFactory)
+    role = "student"
+    is_active = True
+
+
+class AdminMembershipFactory(MembershipFactory):
     role = "admin"
-    is_staff = True
 
 
-class TrainerUserFactory(UserFactory):
+class TrainerMembershipFactory(MembershipFactory):
     role = "trainer"
 
 
-class StudentUserFactory(UserFactory):
+class StudentMembershipFactory(MembershipFactory):
     role = "student"
 
 
@@ -66,8 +68,6 @@ class TrainerFactory(DjangoModelFactory):
     institution = factory.SubFactory(InstitutionFactory)
     full_name = factory.Faker("name")
     specialization = factory.Faker("job")
-    phone = factory.Faker("phone_number")
-    bio = factory.Faker("paragraph")
     is_active = True
 
 
@@ -88,7 +88,6 @@ class CourseFactory(DjangoModelFactory):
     institution = factory.SubFactory(InstitutionFactory)
     name = factory.Faker("bs")
     code = factory.Sequence(lambda n: f"CRS{n:03d}")
-    description = factory.Faker("paragraph")
     total_hours = factory.Faker("random_int", min=40, max=300)
     is_active = True
 
@@ -102,7 +101,7 @@ class ClassFactory(DjangoModelFactory):
     trainer = factory.SubFactory(TrainerFactory)
     name = factory.Sequence(lambda n: f"Turma {n}")
     status = "open"
-    start_date = factory.LazyFunction(lambda: date.today())
+    start_date = factory.LazyFunction(date.today)
     end_date = factory.LazyFunction(lambda: date.today() + timedelta(days=90))
 
 
@@ -138,17 +137,30 @@ def institution(db):
 
 @pytest.fixture
 def admin_user(db, institution):
-    return AdminUserFactory(institution=institution)
+    user = UserFactory()
+    MembershipFactory(user=user, institution=institution, role="admin")
+    return user
+
+
+@pytest.fixture
+def admin_membership(db, admin_user, institution):
+    from apps.accounts.models import Membership
+
+    return Membership.objects.get(user=admin_user, institution=institution)
 
 
 @pytest.fixture
 def trainer_user(db, institution):
-    return TrainerUserFactory(institution=institution)
+    user = UserFactory()
+    MembershipFactory(user=user, institution=institution, role="trainer")
+    return user
 
 
 @pytest.fixture
 def student_user(db, institution):
-    return StudentUserFactory(institution=institution)
+    user = UserFactory()
+    MembershipFactory(user=user, institution=institution, role="student")
+    return user
 
 
 @pytest.fixture
@@ -168,7 +180,6 @@ def course(db, institution):
 
 @pytest.fixture
 def class_instance(db, institution, course, trainer):
-    """Ensures course and trainer belong to the same institution."""
     course.institution = institution
     course.save()
     trainer.institution = institution
