@@ -10,20 +10,23 @@ from .models import Grade
 class GradeService:
 
     @staticmethod
-    def _validate_trainer_owns_class(user, enrollment: Enrollment) -> None:
+    def _validate_trainer_owns_class(user, membership, enrollment: Enrollment) -> None:
         """
         Ensures the requesting trainer is the assigned trainer
         for the class this enrollment belongs to.
         Admins bypass this check.
+        membership is a Membership instance from request.membership.
         """
-        if user.role == "admin":
+        if membership is None:
+            raise PermissionDenied("No active membership context.")
+        if membership.role == "admin":
             return
-        if user.role != "trainer":
+        if membership.role != "trainer":
             raise PermissionDenied("Only trainers or admins can manage grades.")
         try:
             from apps.trainers.services import TrainerService
 
-            trainer = TrainerService.get_trainer_by_user(user)
+            trainer = TrainerService.get_trainer_by_user(user, membership.institution)
         except NotFound:
             raise PermissionDenied("No trainer profile found for your account.")
 
@@ -33,6 +36,7 @@ class GradeService:
     @staticmethod
     def launch_grade(
         user,
+        membership,
         enrollment_id: str,
         institution,
         assessment_type: str,
@@ -64,7 +68,7 @@ class GradeService:
                 {"enrollment": f"Cannot grade a {enrollment.status} enrollment."}
             )
 
-        GradeService._validate_trainer_owns_class(user, enrollment)
+        GradeService._validate_trainer_owns_class(user, membership, enrollment)
 
         if value > max_value:
             raise ValidationError({"value": "Grade value cannot exceed max_value."})
@@ -110,7 +114,7 @@ class GradeService:
             raise NotFound("Grade not found.")
 
     @staticmethod
-    def update_grade(user, grade: Grade, data: dict) -> Grade:
+    def update_grade(user, membership, grade: Grade, data: dict) -> Grade:
         """
         Update an existing grade.
         Trainer ownership re-validated on every update.
@@ -131,7 +135,7 @@ class GradeService:
         return grade
 
     @staticmethod
-    def delete_grade(user, grade: Grade) -> None:
+    def delete_grade(user, membership, grade: Grade) -> None:
         GradeService._validate_trainer_owns_class(user, grade.enrollment)
         grade.delete()
 

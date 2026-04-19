@@ -25,7 +25,7 @@ class GradeListCreateView(PaginatedListMixin, APIView):
 
     def get(self, request):
         grades = GradeService.list_grades(
-            institution=request.user.institution,
+            institution=request.membership.institution,
             enrollment_id=request.query_params.get("enrollment_id"),
             class_id=request.query_params.get("class_id"),
             student_id=request.query_params.get("student_id"),
@@ -40,8 +40,9 @@ class GradeListCreateView(PaginatedListMixin, APIView):
 
         grade = GradeService.launch_grade(
             user=request.user,
+            membership=request.membership,
             enrollment_id=str(data["enrollment_id"]),
-            institution=request.user.institution,
+            institution=request.membership.institution,
             assessment_type=data["assessment_type"],
             value=data["value"],
             max_value=data["max_value"],
@@ -63,7 +64,7 @@ class GradeDetailView(APIView):
     def _get_grade(self, request, grade_id):
         return GradeService.get_grade(
             grade_id=grade_id,
-            institution=request.user.institution,
+            institution=request.membership.institution,
         )
 
     def get(self, request, grade_id):
@@ -76,6 +77,7 @@ class GradeDetailView(APIView):
         serializer.is_valid(raise_exception=True)
         updated = GradeService.update_grade(
             user=request.user,
+            membership=request.membership,
             grade=grade,
             data=serializer.validated_data,
         )
@@ -83,7 +85,9 @@ class GradeDetailView(APIView):
 
     def delete(self, request, grade_id):
         grade = self._get_grade(request, grade_id)
-        GradeService.delete_grade(user=request.user, grade=grade)
+        GradeService.delete_grade(
+            user=request.user, membership=request.membership, grade=grade
+        )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -105,14 +109,16 @@ class GradeReportView(APIView):
             )
 
         # Trainers can only report on their own classes
-        if request.user.is_trainer:
+        if request.membership.is_trainer:
             from apps.classes.services import ClassService
             from apps.trainers.services import TrainerService
 
             try:
-                trainer = TrainerService.get_trainer_by_user(request.user)
+                trainer = TrainerService.get_trainer_by_user(
+                    request.user, request.membership.institution
+                )
                 class_instance = ClassService.get_class(
-                    class_id, request.user.institution
+                    class_id, request.membership.institution
                 )
                 if str(class_instance.trainer_id) != str(trainer.id):
                     return Response(
@@ -122,7 +128,7 @@ class GradeReportView(APIView):
             except Exception as e:
                 return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
 
-        report = GradeService.get_class_report(class_id, request.user.institution)
+        report = GradeService.get_class_report(class_id, request.membership.institution)
         serializer = GradeReportEntrySerializer(report, many=True)
         return Response(serializer.data)
 
@@ -137,7 +143,9 @@ class MyGradesView(APIView):
     def get(self, request):
         from apps.students.services import StudentService
 
-        student = StudentService.get_student_by_user(request.user)
+        student = StudentService.get_student_by_user(
+            request.user, request.membership.institution
+        )
         grades = GradeService.get_grades_for_student(student)
 
         # Group by class for a richer response
@@ -184,7 +192,7 @@ class EnrollmentGradesView(PaginatedListMixin, APIView):
 
     def get(self, request, enrollment_id):
         grades = GradeService.list_grades(
-            institution=request.user.institution,
+            institution=request.membership.institution,
             enrollment_id=str(enrollment_id),
         )
         return self.paginate(request, grades, GradeSerializer)
