@@ -7,12 +7,11 @@ class TrainerService:
 
     @staticmethod
     def create_trainer(institution, full_name: str, **kwargs) -> Trainer:
-        trainer = Trainer.objects.create(
+        return Trainer.objects.create(
             institution=institution,
             full_name=full_name,
             **kwargs,
         )
-        return trainer
 
     @staticmethod
     def get_trainer(trainer_id: str, institution) -> Trainer:
@@ -41,39 +40,61 @@ class TrainerService:
 
     @staticmethod
     def list_trainers(institution, search: str = None, is_active: bool = None):
+        from django.db.models import Q
+
         qs = Trainer.objects.select_related("user").filter(institution=institution)
         if search:
-            qs = qs.filter(full_name__icontains=search) | qs.filter(
-                specialization__icontains=search
+            qs = qs.filter(
+                Q(full_name__icontains=search) | Q(specialization__icontains=search)
             )
-            qs = qs.filter(institution=institution)
         if is_active is not None:
             qs = qs.filter(is_active=is_active)
         return qs.order_by("full_name")
 
     @staticmethod
-    def get_trainer_by_user(user) -> Trainer:
+    def get_trainer_by_user(user, institution) -> Trainer:
+        """
+        Get the trainer profile for a user within a specific institution.
+        A user can be a trainer at multiple institutions.
+        """
         try:
-            return Trainer.objects.select_related("institution").get(user=user)
+            return Trainer.objects.select_related("institution").get(
+                user=user,
+                institution=institution,
+            )
         except Trainer.DoesNotExist:
-            raise NotFound("Trainer profile not found for this user.")
+            raise NotFound(
+                "Trainer profile not found for this user at this institution."
+            )
 
     @staticmethod
-    def link_user(trainer: Trainer, user) -> Trainer:
-        """Link a User account to a Trainer profile."""
-        if trainer.institution_id != user.institution_id:
+    def link_user(trainer: Trainer, user, membership) -> Trainer:
+        """
+        Link a User account to a Trainer profile.
+        Validates via Membership that the user has a trainer role
+        at this institution.
+        """
+        if membership.institution_id != trainer.institution_id:
             raise ValidationError(
-                {"user": "User must belong to the same institution as the trainer."}
+                {
+                    "user": "User must have a membership at the same institution as the trainer."
+                }
             )
-        if user.role != "trainer":
+        if membership.role != "trainer":
             raise ValidationError(
                 {
                     "user": 'Only users with role "trainer" can be linked to a trainer profile.'
                 }
             )
-        if Trainer.objects.filter(user=user).exclude(id=trainer.id).exists():
+        if (
+            Trainer.objects.filter(user=user, institution=trainer.institution)
+            .exclude(id=trainer.id)
+            .exists()
+        ):
             raise ValidationError(
-                {"user": "This user is already linked to another trainer profile."}
+                {
+                    "user": "This user is already linked to another trainer profile at this institution."
+                }
             )
         trainer.user = user
         trainer.save()
@@ -81,7 +102,6 @@ class TrainerService:
 
     @staticmethod
     def get_trainer_classes(trainer: Trainer):
-        """Return all classes assigned to this trainer."""
         return trainer.classes.select_related("course", "institution").order_by(
             "-start_date"
         )
