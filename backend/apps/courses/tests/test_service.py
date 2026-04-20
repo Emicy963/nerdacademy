@@ -112,8 +112,8 @@ class TestCourseServiceList:
         assert len(result) == 1
 
     def test_list_search_by_code(self, institution):
-        CourseFactory(institution=institution, code="NET-001")
-        CourseFactory(institution=institution, code="DB-001")
+        CourseFactory(institution=institution, code="NET-001", name="Redes Informáticas")
+        CourseFactory(institution=institution, code="DB-001", name="Base de Dados")
         result = list(CourseService.list_courses(institution, search="NET"))
         assert len(result) == 1
 

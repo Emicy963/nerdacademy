@@ -8,7 +8,7 @@
  * and user.institution_name as before.
  */
 
-import { session } from './api.js';
+import { session, auth } from './api.js';
 
 // ── Nav items ─────────────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -130,10 +130,7 @@ export function initMobileToggle() {
 export function initLogout() {
   const btn = document.getElementById('logout-btn');
   if (!btn) return;
-  btn.addEventListener('click', () => {
-    session.clear();
-    window.location.href = '/pages/login.html';
-  });
+  btn.addEventListener('click', () => auth.logout());
 }
 
 // ── Auth guard ────────────────────────────────────────────────────

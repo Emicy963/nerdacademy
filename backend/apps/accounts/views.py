@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import UserMeSerializer, ChangePasswordSerializer
+from .serializers import UserMeSerializer, MembershipSerializer, ChangePasswordSerializer
 from .services import UserService
 
 
@@ -34,6 +34,21 @@ class MeView(APIView):
 
     def get(self, request):
         return Response(UserMeSerializer(request.user).data)
+
+
+class MembershipsView(APIView):
+    """GET /api/auth/memberships/ — list all active memberships for the authenticated user."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        memberships = (
+            request.user.memberships
+            .filter(is_active=True)
+            .select_related("institution")
+            .order_by("institution__name")
+        )
+        return Response(MembershipSerializer(memberships, many=True).data)
 
 
 class ChangePasswordView(APIView):
