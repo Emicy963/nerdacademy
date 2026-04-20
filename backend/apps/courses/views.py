@@ -32,11 +32,11 @@ class CourseListCreateView(PaginatedListMixin, APIView):
             is_active = is_active.lower() == "true"
         else:
             # Default: only show active courses to non-admins
-            if not request.user.is_admin:
+            if not request.membership.is_admin:
                 is_active = True
 
         courses = CourseService.list_courses(
-            institution=request.user.institution,
+            institution=request.membership.institution,
             search=search,
             is_active=is_active,
         )
@@ -46,7 +46,7 @@ class CourseListCreateView(PaginatedListMixin, APIView):
         serializer = CourseCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         course = CourseService.create_course(
-            institution=request.user.institution,
+            institution=request.membership.institution,
             **serializer.validated_data,
         )
         return Response(CourseSerializer(course).data, status=status.HTTP_201_CREATED)
@@ -68,7 +68,7 @@ class CourseDetailView(APIView):
     def _get_course(self, request, course_id):
         return CourseService.get_course(
             course_id=course_id,
-            institution=request.user.institution,
+            institution=request.membership.institution,
         )
 
     def get(self, request, course_id):
@@ -106,7 +106,7 @@ class CourseClassesView(PaginatedListMixin, APIView):
     def get(self, request, course_id):
         course = CourseService.get_course(
             course_id=course_id,
-            institution=request.user.institution,
+            institution=request.membership.institution,
         )
         classes = CourseService.get_course_classes(course)
 

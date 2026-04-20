@@ -1,3 +1,5 @@
+from corsheaders.defaults import default_headers
+
 from .base import *
 
 DEBUG = True
@@ -5,6 +7,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = list(default_headers) + ["X-Institution-Id"]
 
 # Use SQLite locally to avoid PostgreSQL connection issues
 DATABASES = {

@@ -30,7 +30,7 @@ class TrainerListCreateView(PaginatedListMixin, APIView):
             is_active = is_active.lower() == "true"
 
         trainers = TrainerService.list_trainers(
-            institution=request.user.institution,
+            institution=request.membership.institution,
             search=search,
             is_active=is_active,
         )
@@ -40,7 +40,7 @@ class TrainerListCreateView(PaginatedListMixin, APIView):
         serializer = TrainerCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         trainer = TrainerService.create_trainer(
-            institution=request.user.institution,
+            institution=request.membership.institution,
             **serializer.validated_data,
         )
         return Response(TrainerSerializer(trainer).data, status=status.HTTP_201_CREATED)
@@ -58,7 +58,7 @@ class TrainerDetailView(APIView):
     def _get_trainer(self, request, trainer_id):
         return TrainerService.get_trainer(
             trainer_id=trainer_id,
-            institution=request.user.institution,
+            institution=request.membership.institution,
         )
 
     def get(self, request, trainer_id):
@@ -89,12 +89,14 @@ class TrainerClassesView(APIView):
     def get(self, request, trainer_id):
         trainer = TrainerService.get_trainer(
             trainer_id=trainer_id,
-            institution=request.user.institution,
+            institution=request.membership.institution,
         )
         # Trainers can only see their own classes
-        if request.user.is_trainer:
+        if request.membership.is_trainer:
             try:
-                own_trainer = TrainerService.get_trainer_by_user(request.user)
+                own_trainer = TrainerService.get_trainer_by_user(
+                    request.user, request.membership.institution
+                )
             except Exception:
                 return Response([], status=status.HTTP_200_OK)
             if str(own_trainer.id) != str(trainer_id):
@@ -118,5 +120,7 @@ class MyTrainerProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        trainer = TrainerService.get_trainer_by_user(request.user)
+        trainer = TrainerService.get_trainer_by_user(
+            request.user, request.membership.institution
+        )
         return Response(TrainerPublicSerializer(trainer).data)

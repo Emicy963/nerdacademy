@@ -16,14 +16,14 @@ class InstitutionDetailView(APIView):
     permission_classes = [IsAuthenticated, IsAdminRole]
 
     def get(self, request):
-        serializer = InstitutionSerializer(request.user.institution)
+        serializer = InstitutionSerializer(request.membership.institution)
         return Response(serializer.data)
 
     def patch(self, request):
         serializer = InstitutionUpdateSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         updated = InstitutionService.update_institution(
-            request.user.institution,
+            request.membership.institution,
             serializer.validated_data,
         )
         return Response(InstitutionSerializer(updated).data)

@@ -7,10 +7,12 @@ class IsAdminRole(BasePermission):
     message = "Only institution admins can perform this action."
 
     def has_permission(self, request, view):
+        membership = getattr(request, "membership", None)
         return bool(
             request.user
             and request.user.is_authenticated
-            and request.user.role == "admin"
+            and membership
+            and membership.role == "admin"
         )
 
 
@@ -20,10 +22,12 @@ class IsTrainerRole(BasePermission):
     message = "Only trainers or admins can perform this action."
 
     def has_permission(self, request, view):
+        membership = getattr(request, "membership", None)
         return bool(
             request.user
             and request.user.is_authenticated
-            and request.user.role in ("admin", "trainer")
+            and membership
+            and membership.role in ("admin", "trainer")
         )
 
 
@@ -33,17 +37,19 @@ class IsStudentRole(BasePermission):
     message = "Only students can perform this action."
 
     def has_permission(self, request, view):
+        membership = getattr(request, "membership", None)
         return bool(
             request.user
             and request.user.is_authenticated
-            and request.user.role == "student"
+            and membership
+            and membership.role == "student"
         )
 
 
 class IsInstitutionMember(BasePermission):
     """
     Object-level permission: ensures the object's institution
-    matches the authenticated user's institution.
+    matches the authenticated user's active membership institution.
     """
 
     message = "You do not have permission to access this resource."
@@ -51,8 +57,11 @@ class IsInstitutionMember(BasePermission):
     def has_object_permission(self, request, view, obj):
         if not request.user or not request.user.is_authenticated:
             return False
+        membership = getattr(request, "membership", None)
+        if not membership:
+            return False
         obj_institution = getattr(obj, "institution_id", None)
-        return obj_institution == request.user.institution_id
+        return obj_institution == membership.institution_id
 
 
 class IsOwnerTrainer(BasePermission):
@@ -64,7 +73,8 @@ class IsOwnerTrainer(BasePermission):
     message = "You can only manage grades for your own classes."
 
     def has_object_permission(self, request, view, obj):
-        if request.user.role == "admin":
+        membership = getattr(request, "membership", None)
+        if membership and membership.role == "admin":
             return True
         try:
             return obj.enrollment.class_instance.trainer.user_id == request.user.id

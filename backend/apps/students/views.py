@@ -33,7 +33,7 @@ class StudentListCreateView(PaginatedListMixin, APIView):
             is_active = is_active.lower() == "true"
 
         students = StudentService.list_students(
-            institution=request.user.institution,
+            institution=request.membership.institution,
             search=search,
             is_active=is_active,
         )
@@ -43,7 +43,7 @@ class StudentListCreateView(PaginatedListMixin, APIView):
         serializer = StudentCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         student = StudentService.create_student(
-            institution=request.user.institution,
+            institution=request.membership.institution,
             **serializer.validated_data,
         )
         return Response(StudentSerializer(student).data, status=status.HTTP_201_CREATED)
@@ -64,7 +64,7 @@ class StudentDetailView(APIView):
     def _get_student(self, request, student_id):
         return StudentService.get_student(
             student_id=student_id,
-            institution=request.user.institution,
+            institution=request.membership.institution,
         )
 
     def get(self, request, student_id):
@@ -92,5 +92,7 @@ class MyStudentProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        student = StudentService.get_student_by_user(request.user)
+        student = StudentService.get_student_by_user(
+            request.user, request.membership.institution
+        )
         return Response(StudentPublicSerializer(student).data)
