@@ -10,41 +10,69 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
-- `pytest.ini` and `conftest.py` with factory-boy factories and fixtures
-- Test suite for all seven service layers (107 tests total):
-  accounts (14), institutions (10), students (15), trainers (14),
-  courses (12), classes (20), grades (22)
-- Django admin registration for all models with list display, filters,
-  search, fieldsets and inline enrollment view inside ClassAdmin
+- Auto-generation of student and trainer codes scoped to institution
+  (`{PREFIX}{YEAR}{SEQ:04d}` — e.g. `CIN20260001`); `student_code` and
+  `trainer_code` become optional on creation
+- `institution_prefix` field on `Institution` (3-char, e.g. `CIN`)
+  used as base for all code generation
+- `must_change_password` flag on `User`; set to `True` on account creation
+  via admin; login response includes the flag so the frontend can redirect
+- Default password auto-generated with `secrets.token_urlsafe(8)` on
+  student/trainer creation; returned once in the creation response
+- `POST /api/students/{id}/reset-password/` — admin resets any student
+  password and triggers `must_change_password`
+- `POST /api/trainers/{id}/reset-password/` — same for trainers
+- Welcome email sent on student/trainer creation (Django email backend;
+  console in dev, SMTP/Gmail in prod)
+- Dashboard wired to real API data for all three roles (admin, trainer, student)
+
+---
+
+## [0.3.0] — 2026-04-21
+
+### Added
+
+- `apps/accounts/authentication.py`: `MembershipJWTAuthentication` extending
+  `JWTAuthentication`; reads `X-Institution-Id` header, loads the active
+  `Membership`, and attaches it to `request.membership`
+- `GET /api/auth/memberships/`: returns all active memberships for the
+  authenticated user (used by the frontend institution picker)
+- `frontend/js/config.js`: exports `API_BASE` from `window.ACADEMICO_CONFIG`
+  with fallback to `localhost:8000`; eliminates hardcoded URLs in `api.js`
+- Institution switcher (`renderInstitutionSwitcher`) wired in `initLayout()`;
+  container added to all six authenticated pages
+- `conftest.py`: `make_auth_client(user, institution)` helper for HTTP tests;
+  generates JWT and sets `X-Institution-Id` header automatically
+- HTTP view tests for all seven apps — 94 new tests covering auth gates,
+  permission gates, institution isolation, and happy paths (224 total)
 
 ### Fixed
 
-- `core/settings/development.py`: replaced PostgreSQL with SQLite for local
-  development to avoid `psycopg2` Unicode errors on Windows paths with spaces
-  or non-ASCII characters
-- `core/settings/base.py`: added `encoding='utf-8'` to `load_dotenv()` call
-  for consistent behaviour on Windows
-- `apps/institutions/models.py`: implemented `Institution` model (was empty),
-  unblocking all FK references across the project
-- `apps/institutions/serializers.py`, `services.py`, `views.py`, `urls.py`:
-  implemented all institution app files (were empty)
-- `apps/accounts/views.py`: implemented auth views (login, logout, me,
-  change-password)
-- `apps/accounts/urls.py`: implemented URL routes for auth endpoints
-- `apps/students/urls.py`: implemented URL routes
-- `apps/trainers/urls.py`: implemented URL routes
-- `apps/students/serializers.py`: implemented all student serializers
-  including `StudentSummarySerializer` required by classes app
-- `apps/trainers/serializers.py`: implemented all trainer serializers
-  including `TrainerSummarySerializer` required by classes app
+- `core/settings/base.py`: `DEFAULT_AUTHENTICATION_CLASSES` now points to
+  `MembershipJWTAuthentication` instead of plain `JWTAuthentication`
+- `core/permissions.py`: all permission classes (`IsAdminRole`, `IsTrainerRole`,
+  `IsStudentRole`) now read `request.membership.role` — previously referenced
+  the non-existent `request.user.role`
+- `core/settings/development.py` + `production.py`: added `CORS_ALLOW_HEADERS`
+  with `X-Institution-Id`; without this the browser blocked all requests after
+  the OPTIONS preflight
+- `apps/students/views.py`, `apps/trainers/views.py`, `apps/courses/views.py`,
+  `apps/institutions/views.py`: replaced `request.user.institution` with
+  `request.membership.institution` throughout; fixed `get_student_by_user` and
+  `get_trainer_by_user` calls that were missing the `institution` argument
+- `backend/create_institution.py`: rewritten to use `UserService.create_user()`
+  + `MembershipService.create_membership()` — the old call passed `institution`
+  and `role` arguments that no longer exist on `UserService`
+- `frontend/js/layout.js`: `initLogout()` now calls `auth.logout()` so the
+  refresh token is blacklisted on the backend; previously only called
+  `session.clear()` client-side
+- `apps/courses/tests/test_service.py`: `test_list_search_by_code` now uses
+  explicit course names to avoid Faker generating names that contain "net"
+  (e.g. "monetize"), which caused intermittent failures on `icontains` search
 
-### Planned
+### Changed
 
-- Automated test suite (pytest + factory-boy) for all backend services
-- End-to-end tests for critical UI flows
-- Rate limiting on authentication endpoints
-- Email notifications for enrollment and grade events
-- Export grade reports to PDF
+- `apps/accounts/urls.py`: `MembershipsView` added to URL routes
 
 ---
 
@@ -52,59 +80,80 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added — Backend
 
-- `accounts/services.py`: `UserService` with full user lifecycle management (create, update, deactivate, change password, list)
-- `institutions/management/commands/create_institution.py`: Django management command replacing the root-level bootstrap script; supports interactive and non-interactive (`--flag`) modes; wraps creation in `transaction.atomic()`
-- `core/pagination.py`: `StandardResultsPagination` with extended response envelope (`count`, `pages`, `page`, `next`, `previous`, `results`)
-- `core/mixins.py`: `PaginatedListMixin` exposing `self.paginate()` for use in `APIView` subclasses
+- `accounts/services.py`: `UserService` with full user lifecycle management
+  (create, update, deactivate, change password, list)
+- `institutions/management/commands/create_institution.py`: Django management
+  command replacing the root-level bootstrap script; supports interactive and
+  non-interactive (`--flag`) modes; wraps creation in `transaction.atomic()`
+- `core/pagination.py`: `StandardResultsPagination` with extended response
+  envelope (`count`, `pages`, `page`, `next`, `previous`, `results`)
+- `core/mixins.py`: `PaginatedListMixin` exposing `self.paginate()` for use
+  in `APIView` subclasses
 - Pagination applied to all list endpoints across all seven apps
+- `pytest.ini` and `conftest.py` with factory-boy factories and fixtures
+- Test suite for all seven service layers (130 tests):
+  accounts (23), institutions (10), students (21), trainers (19),
+  courses (15), classes (23), grades (19)
+- Django admin registration for all models with list display, filters,
+  search, fieldsets and inline enrollment view inside `ClassAdmin`
 
 ### Fixed — Backend
 
-- `accounts/models.py`: removed conflicting `unique=True` on `email` field that overrode the compound `UniqueConstraint(["institution", "email"])`, which broke multi-tenant email isolation
-- `students/services.py`, `trainers/services.py`, `courses/services.py`: replaced `|` queryset union with `Q()` objects to eliminate duplicate results on OR searches
-- `classes/services.py`: corrected inverted guard logic in `update_class` — closed classes now block all mutations unconditionally
-- `grades/services.py`: `get_grades_for_student` now includes `completed` enrollments, not only `active`, so historical grades are visible to students
-- `core/urls.py`: wrapped `debug_toolbar` import in `try/except ImportError` to prevent crash when the package is absent in production
+- `accounts/models.py`: removed conflicting `unique=True` on `email` field
+  that overrode the compound `UniqueConstraint(["institution", "email"])`,
+  which broke multi-tenant email isolation
+- `students/services.py`, `trainers/services.py`, `courses/services.py`:
+  replaced `|` queryset union with `Q()` objects to eliminate duplicate
+  results on OR searches
+- `classes/services.py`: corrected inverted guard logic in `update_class` —
+  closed classes now block all mutations unconditionally
+- `grades/services.py`: `get_grades_for_student` now includes `completed`
+  enrollments, not only `active`, so historical grades are visible
+- `core/urls.py`: wrapped `debug_toolbar` import in `try/except ImportError`
+  to prevent crash when the package is absent in production
+- `core/settings/development.py`: replaced PostgreSQL with SQLite for local
+  development to avoid `psycopg2` Unicode errors on Windows paths
+- `core/settings/base.py`: added `encoding='utf-8'` to `load_dotenv()` call
 
 ### Added — Frontend
 
 - Complete frontend application (8 pages, vanilla HTML/CSS/JS)
-- `js/api.js`: central API client with Bearer token injection, silent JWT refresh on 401, normalised error objects
-- `js/api.mock.js`: drop-in mock layer with realistic fixture data for frontend development without the backend
-- `js/layout.js`: shared layout module (nav rendering by role, breadcrumbs, auth guard, mobile sidebar)
-- `css/global.css`: full design system (tokens, reset, typography, buttons, forms, badges, cards, tables, modals, toasts, skeleton loaders)
-- `css/layout.css`: app shell layout (sidebar, topbar, content area, pagination, responsive breakpoints)
-- `pages/login.html`: two-panel authentication page with inline validation, password toggle, loading state
-- `pages/dashboard.html`: role-based dashboard with real API data, skeleton loading, `Promise.allSettled` for parallel requests
-- `pages/students.html`: full CRUD with paginated table, debounced search, filter pills, slide-in detail panel, create/edit modal
-- `pages/trainers.html`: full CRUD matching students pattern; detail panel with Profile and Classes tabs (lazy-loaded)
-- `pages/courses.html`: card grid with list-view toggle; course code immutable after creation; classes sub-resource tab
-- `pages/classes.html`: table for admin/trainer, enrollment card grid for students; class lifecycle actions (close, delete); live student enrol search with dropdown
-- `pages/grades.html`: grade report table with clickable grade pills and popover for admin/trainer; animated grade bars by class for students
+- `js/api.js`: central API client with Bearer token injection, silent JWT
+  refresh on 401, normalised error objects
+- `js/layout.js`: shared layout module (nav, breadcrumbs, auth guard, mobile sidebar)
+- `css/global.css`: full design system (tokens, reset, typography, buttons,
+  forms, badges, cards, tables, modals, toasts, skeleton loaders)
+- `pages/login.html`: two-panel auth page with institution picker for
+  multi-membership users
+- `pages/dashboard.html`: role-based dashboard (skeleton loading,
+  `Promise.allSettled` for parallel requests)
+- `pages/students.html`, `pages/trainers.html`, `pages/courses.html`,
+  `pages/classes.html`, `pages/grades.html`: full CRUD pages
 
 ---
 
-## [0.1.0] — 2024-12-01
+## [0.1.0] — 2026-02-05
 
 ### Added — Backend
 
 - Initial Django 5.0 project with modular app structure
 - Three-tier settings split: `base`, `development`, `production`
-- `core/permissions.py`: `IsAdminRole`, `IsTrainerRole`, `IsStudentRole`, `IsInstitutionMember`, `IsOwnerTrainer`
-- `core/exceptions.py`: global exception handler returning `{error, status_code, detail}` envelope
-- `apps/accounts`: custom `User` model (UUID PK, role choices, institution FK, JWT serializers with role in payload)
+- `core/permissions.py`: `IsAdminRole`, `IsTrainerRole`, `IsStudentRole`,
+  `IsInstitutionMember`, `IsOwnerTrainer`
+- `core/exceptions.py`: global exception handler returning
+  `{error, status_code, detail}` envelope
+- `apps/accounts`: custom `User` model (UUID PK, email as username, JWT auth)
 - `apps/institutions`: `Institution` model as multi-tenant root entity
-- `apps/students`: `Student` model with institution isolation and unique student code per institution
+- `apps/students`: `Student` model with institution isolation
 - `apps/trainers`: `Trainer` model with optional `User` link
 - `apps/courses`: `Course` model with unique code per institution
 - `apps/classes`: `Class` and `Enrollment` models with status state machines
-- `apps/grades`: `Grade` model with assessment types, value/max_value validation, unique constraint per enrollment and type
-- Docker Compose stack: PostgreSQL 16, Django/Gunicorn, Nginx
+- `apps/grades`: `Grade` model with assessment types and unique constraint
 - `.env.example` documenting all required environment variables
-- `API_REFERENCE.md` documenting all endpoints
 
 ---
 
-[Unreleased]: https://github.com/your-org/academico/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/your-org/academico/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/your-org/academico/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Emicy963/SchoolAI/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Emicy963/SchoolAI/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/Emicy963/SchoolAI/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/Emicy963/SchoolAI/releases/tag/v0.1.0
