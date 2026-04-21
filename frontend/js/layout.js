@@ -202,6 +202,7 @@ export function initLayout(activeNavId) {
 
   renderNav(activeNavId, user.role);
   renderUser(user);
+  renderInstitutionSwitcher('sidebar-institution-switcher');
   initMobileToggle();
   initLogout();
 
