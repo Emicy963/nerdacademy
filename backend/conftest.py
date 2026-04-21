@@ -127,6 +127,27 @@ class GradeFactory(DjangoModelFactory):
     notes = ""
 
 
+# ── API client helpers ─────────────────────────────────────────────
+
+
+def make_auth_client(user, institution=None):
+    """
+    Returns an APIClient authenticated as *user*.
+    If *institution* is given, the X-Institution-Id header is set so that
+    MembershipJWTAuthentication can load request.membership.
+    """
+    from rest_framework.test import APIClient
+    from rest_framework_simplejwt.tokens import AccessToken
+
+    client = APIClient()
+    token = str(AccessToken.for_user(user))
+    credentials = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
+    if institution is not None:
+        credentials["HTTP_X_INSTITUTION_ID"] = str(institution.id)
+    client.credentials(**credentials)
+    return client
+
+
 # ── Fixtures ───────────────────────────────────────────────────────
 
 
