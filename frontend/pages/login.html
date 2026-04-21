@@ -536,15 +536,21 @@
   confirmBtn.addEventListener('click', () => {
     if (!selectedMembership || !pendingData) return;
 
+    const userWithFlag = {
+      ...pendingData.user,
+      must_change_password: pendingData.must_change_password ?? false,
+    };
     session.set(
       pendingData.access,
       pendingData.refresh,
-      pendingData.user,
+      userWithFlag,
       pendingData.memberships,
       selectedMembership,
     );
 
-    window.location.href = '../pages/dashboard.html';
+    window.location.href = pendingData.must_change_password
+      ? '../pages/change-password.html'
+      : '../pages/dashboard.html';
   });
 
   // ── Submit login form ─────────────────────────────────
@@ -572,14 +578,14 @@
 
       if (memberships.length === 1) {
         // Single membership — skip picker, go straight in
-        session.set(
-          data.access,
-          data.refresh,
-          data.user,
-          memberships,
-          memberships[0],
-        );
-        window.location.href = '../pages/dashboard.html';
+        const userWithFlag = {
+          ...data.user,
+          must_change_password: data.must_change_password ?? false,
+        };
+        session.set(data.access, data.refresh, userWithFlag, memberships, memberships[0]);
+        window.location.href = data.must_change_password
+          ? '../pages/change-password.html'
+          : '../pages/dashboard.html';
       } else {
         // Multiple memberships — show picker
         setLoading(submitBtn, false);
