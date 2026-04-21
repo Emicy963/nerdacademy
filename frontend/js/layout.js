@@ -151,6 +151,11 @@ export function requireAuth() {
     window.location.href = '/pages/login.html';
     return null;
   }
+  // If a password change is required, redirect (but not if already there)
+  if (user.must_change_password && !window.location.pathname.includes('change-password')) {
+    window.location.href = '/pages/change-password.html';
+    return null;
+  }
   return user;
 }
 

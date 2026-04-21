@@ -223,23 +223,25 @@ export const auth = {
 
 // ── Students ──────────────────────────────────────────────────────
 export const students = {
-  list:       (params = {}) => apiFetch('/students/?' + new URLSearchParams(params)),
-  get:        (id)          => apiFetch(`/students/${id}/`),
-  create:     (data)        => apiFetch('/students/', { method: 'POST', body: JSON.stringify(data) }),
-  update:     (id, data)    => apiFetch(`/students/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
-  deactivate: (id)          => apiFetch(`/students/${id}/`, { method: 'DELETE' }),
-  me:         ()            => apiFetch('/students/me/'),
+  list:          (params = {}) => apiFetch('/students/?' + new URLSearchParams(params)),
+  get:           (id)          => apiFetch(`/students/${id}/`),
+  create:        (data)        => apiFetch('/students/', { method: 'POST', body: JSON.stringify(data) }),
+  update:        (id, data)    => apiFetch(`/students/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deactivate:    (id)          => apiFetch(`/students/${id}/`, { method: 'DELETE' }),
+  resetPassword: (id)          => apiFetch(`/students/${id}/reset-password/`, { method: 'POST' }),
+  me:            ()            => apiFetch('/students/me/'),
 };
 
 // ── Trainers ──────────────────────────────────────────────────────
 export const trainers = {
-  list:       (params = {}) => apiFetch('/trainers/?' + new URLSearchParams(params)),
-  get:        (id)          => apiFetch(`/trainers/${id}/`),
-  create:     (data)        => apiFetch('/trainers/', { method: 'POST', body: JSON.stringify(data) }),
-  update:     (id, data)    => apiFetch(`/trainers/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
-  deactivate: (id)          => apiFetch(`/trainers/${id}/`, { method: 'DELETE' }),
-  me:         ()            => apiFetch('/trainers/me/'),
-  classes:    (id)          => apiFetch(`/trainers/${id}/classes/`),
+  list:          (params = {}) => apiFetch('/trainers/?' + new URLSearchParams(params)),
+  get:           (id)          => apiFetch(`/trainers/${id}/`),
+  create:        (data)        => apiFetch('/trainers/', { method: 'POST', body: JSON.stringify(data) }),
+  update:        (id, data)    => apiFetch(`/trainers/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deactivate:    (id)          => apiFetch(`/trainers/${id}/`, { method: 'DELETE' }),
+  resetPassword: (id)          => apiFetch(`/trainers/${id}/reset-password/`, { method: 'POST' }),
+  me:            ()            => apiFetch('/trainers/me/'),
+  classes:       (id)          => apiFetch(`/trainers/${id}/classes/`),
 };
 
 // ── Courses ───────────────────────────────────────────────────────
