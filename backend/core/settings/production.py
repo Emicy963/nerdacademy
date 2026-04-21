@@ -19,3 +19,5 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
