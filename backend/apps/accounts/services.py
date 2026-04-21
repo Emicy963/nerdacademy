@@ -9,7 +9,9 @@ User = get_user_model()
 class UserService:
 
     @staticmethod
-    def create_user(email: str, password: str, full_name: str = "") -> User:
+    def create_user(
+        email: str, password: str, full_name: str = "", must_change_password: bool = False
+    ) -> User:
         """
         Create a global user identity.
         Does not assign any institution or role — use MembershipService for that.
@@ -17,11 +19,34 @@ class UserService:
         email = User.objects.normalize_email(email)
         if User.objects.filter(email=email).exists():
             raise ValidationError({"email": "A user with this email already exists."})
-        return User.objects.create_user(
+        user = User.objects.create_user(
             email=email,
             password=password,
             full_name=full_name,
         )
+        if must_change_password:
+            user.must_change_password = True
+            user.save(update_fields=["must_change_password"])
+        return user
+
+    @staticmethod
+    def create_managed_user(email: str, full_name: str, institution, role: str):
+        """
+        Creates a user with an auto-generated password and must_change_password=True,
+        then grants a membership at the given institution.
+        Returns (user, plain_password) — password is never stored in plain text after this.
+        """
+        import secrets
+
+        password = secrets.token_urlsafe(8)
+        user = UserService.create_user(
+            email=email,
+            password=password,
+            full_name=full_name,
+            must_change_password=True,
+        )
+        MembershipService.create_membership(user=user, institution=institution, role=role)
+        return user, password
 
     @staticmethod
     def get_user(user_id: str) -> User:

@@ -18,6 +18,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
         data["user"] = UserMeSerializer(self.user).data
+        data["must_change_password"] = self.user.must_change_password
         data["memberships"] = MembershipSerializer(
             self.user.memberships.filter(is_active=True).select_related("institution"),
             many=True,
