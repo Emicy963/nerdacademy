@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.services import UserService
 from core.mixins import PaginatedListMixin
 from core.permissions import IsAdminRole, IsTrainerRole
 from .serializers import (
@@ -79,6 +80,28 @@ class TrainerDetailView(APIView):
         trainer = self._get_trainer(request, trainer_id)
         TrainerService.deactivate_trainer(trainer)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class TrainerResetPasswordView(APIView):
+    """
+    POST /api/trainers/{id}/reset-password/ — admin only.
+    Generates a new temporary password for the linked user account.
+    """
+
+    permission_classes = [IsAuthenticated, IsAdminRole]
+
+    def post(self, request, trainer_id):
+        trainer = TrainerService.get_trainer(
+            trainer_id=str(trainer_id),
+            institution=request.membership.institution,
+        )
+        if not trainer.user_id:
+            return Response(
+                {"detail": "This trainer has no linked user account."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        new_password = UserService.reset_password(trainer.user)
+        return Response({"temp_password": new_password})
 
 
 class TrainerClassesView(APIView):
