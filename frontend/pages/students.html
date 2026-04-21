@@ -368,17 +368,24 @@
           <span class="form-error" id="e-name"></span>
         </div>
         <div class="form-group">
-          <label class="form-label" for="f-code">Student code <span style="color:var(--color-red)">*</span></label>
-          <input class="form-input" type="text" id="f-code" placeholder="EST-2024-001" autocomplete="off"
+          <label class="form-label" for="f-code">Student code</label>
+          <input class="form-input" type="text" id="f-code" placeholder="Auto-generated" autocomplete="off"
                  style="font-family:var(--font-mono)"/>
           <span class="form-error" id="e-code"></span>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
+          <label class="form-label" for="f-email">Email</label>
+          <input class="form-input" type="email" id="f-email" placeholder="student@institution.ao" autocomplete="off"/>
+          <span class="form-error" id="e-email"></span>
+        </div>
+        <div class="form-group">
           <label class="form-label" for="f-phone">Phone</label>
           <input class="form-input" type="tel" id="f-phone" placeholder="+244 9xx xxx xxx" autocomplete="off"/>
         </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label class="form-label" for="f-birth">Date of birth</label>
           <input class="form-input" type="date" id="f-birth"/>
@@ -843,9 +850,12 @@ function openModal(id = null) {
   clearModalErrors();
   modalError.style.display = 'none';
 
+  const emailRow = document.getElementById('f-email')?.closest('.form-group');
+
   if (id) {
     modalTitle.textContent  = 'Edit student';
     saveLabel.textContent   = 'Save changes';
+    if (emailRow) emailRow.style.display = 'none';
 
     // Pre-fill from current table data or fetch
     students.get(id).then(s => {
@@ -858,11 +868,14 @@ function openModal(id = null) {
   } else {
     modalTitle.textContent  = 'New student';
     saveLabel.textContent   = 'Create student';
+    if (emailRow) emailRow.style.display = '';
     document.getElementById('f-name').value    = '';
     document.getElementById('f-code').value    = '';
     document.getElementById('f-phone').value   = '';
     document.getElementById('f-birth').value   = '';
     document.getElementById('f-address').value = '';
+    const emailEl = document.getElementById('f-email');
+    if (emailEl) emailEl.value = '';
   }
 
   modal.classList.add('open');
@@ -879,12 +892,12 @@ document.getElementById('modal-cancel').addEventListener('click', closeModal);
 modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
 function clearModalErrors() {
-  ['f-name', 'f-code'].forEach(id => {
-    document.getElementById(id).classList.remove('error');
+  ['f-name', 'f-code', 'f-email'].forEach(id => {
+    document.getElementById(id)?.classList.remove('error');
   });
-  ['e-name', 'e-code'].forEach(id => {
+  ['e-name', 'e-code', 'e-email'].forEach(id => {
     const el = document.getElementById(id);
-    el.textContent = ''; el.style.display = 'none';
+    if (el) { el.textContent = ''; el.style.display = 'none'; }
   });
 }
 
@@ -901,17 +914,21 @@ saveBtn.addEventListener('click', async () => {
 
   const name    = document.getElementById('f-name').value.trim();
   const code    = document.getElementById('f-code').value.trim();
+  const email   = document.getElementById('f-email')?.value.trim() ?? '';
   const phone   = document.getElementById('f-phone').value.trim();
   const birth   = document.getElementById('f-birth').value;
   const address = document.getElementById('f-address').value.trim();
 
   let valid = true;
   if (!name) { showFieldError('f-name', 'e-name', 'Full name is required.'); valid = false; }
-  if (!code && !editingId) { showFieldError('f-code', 'e-code', 'Student code is required.'); valid = false; }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showFieldError('f-email', 'e-email', 'Enter a valid email address.'); valid = false;
+  }
   if (!valid) return;
 
   const payload = { full_name: name, phone, address };
-  if (birth) payload.birth_date = birth;
+  if (birth)  payload.birth_date = birth;
+  if (email)  payload.email = email;
   if (!editingId) payload.student_code = code;
 
   saveBtn.disabled = true;

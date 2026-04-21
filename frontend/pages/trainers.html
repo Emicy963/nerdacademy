@@ -406,6 +406,18 @@
           <input class="form-input" type="text" id="f-spec"
                  placeholder="Web Development" autocomplete="off"/>
         </div>
+        <div class="form-group" id="f-code-group">
+          <label class="form-label" for="f-code">Trainer code</label>
+          <input class="form-input" type="text" id="f-code"
+                 placeholder="Auto-generated" autocomplete="off"
+                 style="font-family:var(--font-mono)"/>
+        </div>
+        <div class="form-group" id="f-email-group">
+          <label class="form-label" for="f-email">Email</label>
+          <input class="form-input" type="email" id="f-email"
+                 placeholder="trainer@institution.ao" autocomplete="off"/>
+          <span class="form-error" id="e-email"></span>
+        </div>
         <div class="form-group">
           <label class="form-label" for="f-phone">Phone</label>
           <input class="form-input" type="tel" id="f-phone"
@@ -916,10 +928,15 @@ function openModal(id = null) {
 
   const activeGroup = document.getElementById('active-group');
 
+  const codeGroup  = document.getElementById('f-code-group');
+  const emailGroup = document.getElementById('f-email-group');
+
   if (id) {
     modalTitle.textContent = 'Edit trainer';
     saveLabel.textContent  = 'Save changes';
     activeGroup.style.display = 'block';
+    if (codeGroup)  codeGroup.style.display  = 'none';
+    if (emailGroup) emailGroup.style.display = 'none';
 
     trainers.get(id).then(t => {
       document.getElementById('f-name').value  = t.full_name      ?? '';
@@ -932,8 +949,10 @@ function openModal(id = null) {
     modalTitle.textContent = 'New trainer';
     saveLabel.textContent  = 'Create trainer';
     activeGroup.style.display = 'none';
-    ['f-name','f-spec','f-phone','f-bio'].forEach(id =>
-      { document.getElementById(id).value = ''; });
+    if (codeGroup)  codeGroup.style.display  = '';
+    if (emailGroup) emailGroup.style.display = '';
+    ['f-name','f-spec','f-phone','f-bio','f-code','f-email'].forEach(fid =>
+      { const el = document.getElementById(fid); if (el) el.value = ''; });
     document.getElementById('f-active-yes').checked = true;
   }
 
@@ -951,9 +970,13 @@ document.getElementById('modal-cancel').addEventListener('click', closeModal);
 modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
 function clearModalErrors() {
-  document.getElementById('f-name').classList.remove('error');
-  const en = document.getElementById('e-name');
-  en.textContent = ''; en.style.display = 'none';
+  ['f-name', 'f-email'].forEach(fid => {
+    document.getElementById(fid)?.classList.remove('error');
+  });
+  ['e-name', 'e-email'].forEach(eid => {
+    const el = document.getElementById(eid);
+    if (el) { el.textContent = ''; el.style.display = 'none'; }
+  });
 }
 
 saveBtn.addEventListener('click', async () => {
@@ -962,18 +985,31 @@ saveBtn.addEventListener('click', async () => {
 
   const name  = document.getElementById('f-name').value.trim();
   const spec  = document.getElementById('f-spec').value.trim();
+  const code  = document.getElementById('f-code')?.value.trim()  ?? '';
+  const email = document.getElementById('f-email')?.value.trim() ?? '';
   const phone = document.getElementById('f-phone').value.trim();
   const bio   = document.getElementById('f-bio').value.trim();
 
+  let valid = true;
   if (!name) {
     document.getElementById('f-name').classList.add('error');
     const en = document.getElementById('e-name');
     en.textContent = 'Full name is required.';
     en.style.display = 'block';
-    return;
+    valid = false;
   }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    document.getElementById('f-email').classList.add('error');
+    const ee = document.getElementById('e-email');
+    ee.textContent = 'Enter a valid email address.';
+    ee.style.display = 'block';
+    valid = false;
+  }
+  if (!valid) return;
 
   const payload = { full_name: name, specialization: spec, phone, bio };
+  if (!editingId && code)  payload.trainer_code = code;
+  if (!editingId && email) payload.email = email;
 
   if (editingId) {
     const activeVal = document.querySelector('input[name="f-active"]:checked')?.value;
