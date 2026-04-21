@@ -18,7 +18,7 @@ from conftest import (
 class TestStudentServiceCreate:
 
     def test_create_student_with_explicit_code(self, institution):
-        student = StudentService.create_student(
+        student, _ = StudentService.create_student(
             institution=institution,
             full_name="Ana Luísa Ferreira",
             student_code="EST-001",
@@ -29,7 +29,7 @@ class TestStudentServiceCreate:
         assert student.is_active is True
 
     def test_create_student_without_code_auto_generates(self, institution):
-        student = StudentService.create_student(
+        student, _ = StudentService.create_student(
             institution=institution,
             full_name="João Baptista",
         )
@@ -38,13 +38,13 @@ class TestStudentServiceCreate:
         assert student.student_code.startswith(prefix)
 
     def test_auto_generated_codes_are_sequential(self, institution):
-        s1 = StudentService.create_student(institution=institution, full_name="A")
-        s2 = StudentService.create_student(institution=institution, full_name="B")
+        s1, _ = StudentService.create_student(institution=institution, full_name="A")
+        s2, _ = StudentService.create_student(institution=institution, full_name="B")
         assert s1.student_code != s2.student_code
         assert s2.student_code > s1.student_code
 
     def test_explicit_code_is_uppercased(self, institution):
-        student = StudentService.create_student(
+        student, _ = StudentService.create_student(
             institution=institution, full_name="X", student_code="est-999"
         )
         assert student.student_code == "EST-999"
@@ -63,12 +63,30 @@ class TestStudentServiceCreate:
         inst_a = InstitutionFactory()
         inst_b = InstitutionFactory()
         StudentFactory(institution=inst_a, student_code="EST-001")
-        s = StudentService.create_student(
+        s, _ = StudentService.create_student(
             institution=inst_b,
             full_name="Outro",
             student_code="EST-001",
         )
         assert s.institution == inst_b
+
+    def test_create_student_with_email_creates_user_and_returns_password(self, institution):
+        student, temp_password = StudentService.create_student(
+            institution=institution,
+            full_name="Ana Costa",
+            email="ana@school.ao",
+        )
+        assert student.user is not None
+        assert student.user.email == "ana@school.ao"
+        assert student.user.must_change_password is True
+        assert temp_password is not None and len(temp_password) > 0
+
+    def test_create_student_without_email_returns_no_password(self, institution):
+        student, temp_password = StudentService.create_student(
+            institution=institution, full_name="Sem Email"
+        )
+        assert student.user is None
+        assert temp_password is None
 
 
 @pytest.mark.django_db

@@ -38,6 +38,14 @@ class TestLoginView:
         resp = client.post(self.URL, {"email": "ghost@no.com", "password": "x"})
         assert resp.status_code == 401
 
+    def test_login_includes_must_change_password(self, client, db):
+        user = UserFactory(password="pass1234")
+        resp = client.post(self.URL, {"email": user.email, "password": "pass1234"})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "must_change_password" in data
+        assert data["must_change_password"] is False
+
 
 # ── /api/auth/me/ ──────────────────────────────────────────────────
 

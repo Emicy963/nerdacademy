@@ -51,6 +51,13 @@ class TestTrainerListCreateView:
         })
         assert resp.status_code == 201
         assert resp.json()["full_name"] == "Carlos Mendes"
+        assert "temp_password" in resp.json()
+
+    def test_admin_can_create_trainer_without_email(self, db, institution, admin_user):
+        client = make_auth_client(admin_user, institution)
+        resp = client.post(self.URL, {"full_name": "Sem Email", "specialization": "Java"})
+        assert resp.status_code == 201
+        assert "temp_password" not in resp.json()
 
     def test_trainer_cannot_create(self, db, institution, trainer_user):
         client = make_auth_client(trainer_user, institution)

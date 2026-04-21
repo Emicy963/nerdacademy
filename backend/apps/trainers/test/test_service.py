@@ -20,7 +20,7 @@ from conftest import (
 class TestTrainerServiceCreate:
 
     def test_create_trainer_success(self, institution):
-        trainer = TrainerService.create_trainer(
+        trainer, _ = TrainerService.create_trainer(
             institution=institution,
             full_name="Prof. Carlos",
             specialization="Redes Informáticas",
@@ -31,7 +31,7 @@ class TestTrainerServiceCreate:
         assert trainer.trainer_code != ""
 
     def test_create_trainer_without_code_auto_generates(self, institution):
-        trainer = TrainerService.create_trainer(
+        trainer, _ = TrainerService.create_trainer(
             institution=institution,
             full_name="Formador Auto",
         )
@@ -39,7 +39,7 @@ class TestTrainerServiceCreate:
         assert trainer.trainer_code.startswith(prefix)
 
     def test_create_trainer_with_explicit_code(self, institution):
-        trainer = TrainerService.create_trainer(
+        trainer, _ = TrainerService.create_trainer(
             institution=institution,
             full_name="Formador Explícito",
             trainer_code="form-001",
@@ -47,17 +47,36 @@ class TestTrainerServiceCreate:
         assert trainer.trainer_code == "FORM-001"
 
     def test_auto_generated_trainer_codes_are_sequential(self, institution):
-        t1 = TrainerService.create_trainer(institution=institution, full_name="A")
-        t2 = TrainerService.create_trainer(institution=institution, full_name="B")
+        t1, _ = TrainerService.create_trainer(institution=institution, full_name="A")
+        t2, _ = TrainerService.create_trainer(institution=institution, full_name="B")
         assert t1.trainer_code != t2.trainer_code
 
     def test_create_trainer_minimal(self, institution):
-        trainer = TrainerService.create_trainer(
+        trainer, _ = TrainerService.create_trainer(
             institution=institution,
             full_name="Formador X",
         )
         assert trainer.bio == ""
         assert trainer.phone == ""
+
+    def test_create_trainer_with_email_creates_user_and_returns_password(self, institution):
+        trainer, temp_password = TrainerService.create_trainer(
+            institution=institution,
+            full_name="Prof. Costa",
+            specialization="Python",
+            email="prof@school.ao",
+        )
+        assert trainer.user is not None
+        assert trainer.user.email == "prof@school.ao"
+        assert trainer.user.must_change_password is True
+        assert temp_password is not None and len(temp_password) > 0
+
+    def test_create_trainer_without_email_returns_no_password(self, institution):
+        trainer, temp_password = TrainerService.create_trainer(
+            institution=institution, full_name="Sem Email"
+        )
+        assert trainer.user is None
+        assert temp_password is None
 
 
 @pytest.mark.django_db
