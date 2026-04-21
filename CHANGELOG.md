@@ -8,6 +8,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+---
+
+## [0.4.0] — 2026-04-21
+
 ### Added
 
 - Auto-generation of student and trainer codes scoped to institution
@@ -28,7 +32,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
-## [0.3.0] — 2026-04-21
+## [0.3.0] — 2026-03-28
 
 ### Added
 
@@ -153,7 +157,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
-[Unreleased]: https://github.com/Emicy963/SchoolAI/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Emicy963/SchoolAI/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Emicy963/SchoolAI/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Emicy963/SchoolAI/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Emicy963/SchoolAI/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Emicy963/SchoolAI/releases/tag/v0.1.0
