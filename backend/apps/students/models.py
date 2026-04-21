@@ -17,7 +17,7 @@ class Student(models.Model):
         related_name="student_profiles",
     )
     full_name = models.CharField(max_length=255)
-    student_code = models.CharField(max_length=50)
+    student_code = models.CharField(max_length=50, blank=True)
     birth_date = models.DateField(null=True, blank=True)
     phone = models.CharField(max_length=30, blank=True)
     address = models.TextField(blank=True)

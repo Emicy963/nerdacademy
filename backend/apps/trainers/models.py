@@ -17,6 +17,7 @@ class Trainer(models.Model):
         related_name="trainer_profiles",
     )
     full_name = models.CharField(max_length=255)
+    trainer_code = models.CharField(max_length=50, blank=True, null=True)
     specialization = models.CharField(max_length=255, blank=True)
     phone = models.CharField(max_length=30, blank=True)
     bio = models.TextField(blank=True)
@@ -32,6 +33,11 @@ class Trainer(models.Model):
                 fields=["institution", "user"],
                 condition=models.Q(user__isnull=False),
                 name="unique_trainer_user_per_institution",
+            ),
+            models.UniqueConstraint(
+                fields=["institution", "trainer_code"],
+                condition=models.Q(trainer_code__isnull=False),
+                name="unique_trainer_code_per_institution",
             ),
         ]
 
