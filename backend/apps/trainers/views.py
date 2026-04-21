@@ -39,11 +39,14 @@ class TrainerListCreateView(PaginatedListMixin, APIView):
     def post(self, request):
         serializer = TrainerCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        trainer = TrainerService.create_trainer(
+        trainer, temp_password = TrainerService.create_trainer(
             institution=request.membership.institution,
             **serializer.validated_data,
         )
-        return Response(TrainerSerializer(trainer).data, status=status.HTTP_201_CREATED)
+        response_data = TrainerSerializer(trainer).data
+        if temp_password:
+            response_data["temp_password"] = temp_password
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 class TrainerDetailView(APIView):

@@ -24,10 +24,12 @@ class TrainerSerializer(serializers.ModelSerializer):
 class TrainerCreateSerializer(serializers.ModelSerializer):
     # Optional — auto-generated from institution prefix if omitted
     trainer_code = serializers.CharField(required=False, allow_blank=True, default="")
+    # Optional — if provided, a User account is created and linked automatically
+    email = serializers.EmailField(required=False, allow_blank=True, default="")
 
     class Meta:
         model = Trainer
-        fields = ["full_name", "trainer_code", "specialization", "phone", "bio"]
+        fields = ["full_name", "trainer_code", "specialization", "phone", "bio", "email"]
 
     def validate_trainer_code(self, value):
         return value.strip().upper() if value and value.strip() else ""

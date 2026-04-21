@@ -6,20 +6,33 @@ from .models import Trainer
 class TrainerService:
 
     @staticmethod
-    def create_trainer(institution, full_name: str, trainer_code: str = None, **kwargs) -> Trainer:
+    def create_trainer(
+        institution, full_name: str, trainer_code: str = None, email: str = "", **kwargs
+    ) -> tuple:
         from apps.institutions.services import InstitutionService
+        from apps.accounts.services import UserService
 
         if not trainer_code:
             trainer_code = InstitutionService.generate_trainer_code(institution)
         else:
             trainer_code = trainer_code.strip().upper()
 
-        return Trainer.objects.create(
+        trainer = Trainer.objects.create(
             institution=institution,
             full_name=full_name,
             trainer_code=trainer_code,
             **kwargs,
         )
+
+        temp_password = None
+        if email:
+            user, temp_password = UserService.create_managed_user(
+                email=email, full_name=full_name, institution=institution, role="trainer"
+            )
+            trainer.user = user
+            trainer.save(update_fields=["user"])
+
+        return trainer, temp_password
 
     @staticmethod
     def get_trainer(trainer_id: str, institution) -> Trainer:
