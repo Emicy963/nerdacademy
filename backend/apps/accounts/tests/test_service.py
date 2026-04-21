@@ -104,6 +104,19 @@ class TestUserServicePassword:
             UserService.change_password(user, "errada", "novasenha")
         assert "old_password" in exc.value.detail
 
+    def test_reset_password_returns_new_plain_password(self, db):
+        user = UserFactory(password="original")
+        new_pwd = UserService.reset_password(user)
+        user.refresh_from_db()
+        assert user.check_password(new_pwd)
+        assert not user.check_password("original")
+
+    def test_reset_password_sets_must_change_password(self, db):
+        user = UserFactory()
+        UserService.reset_password(user)
+        user.refresh_from_db()
+        assert user.must_change_password is True
+
 
 @pytest.mark.django_db
 class TestMembershipServiceCreate:

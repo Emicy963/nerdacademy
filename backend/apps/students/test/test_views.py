@@ -144,3 +144,38 @@ class TestMyStudentProfileView:
         client = make_auth_client(student_user, institution)
         resp = client.get(self.URL)
         assert resp.status_code == 404
+
+
+@pytest.mark.django_db
+class TestStudentResetPasswordView:
+
+    def _url(self, student_id):
+        return f"/api/students/{student_id}/reset-password/"
+
+    def test_admin_can_reset_password(self, db, institution, admin_user):
+        user = UserFactory()
+        MembershipFactory(user=user, institution=institution, role="student")
+        student = StudentFactory(institution=institution, user=user)
+        client = make_auth_client(admin_user, institution)
+        resp = client.post(self._url(student.id))
+        assert resp.status_code == 200
+        assert "temp_password" in resp.json()
+        user.refresh_from_db()
+        assert user.must_change_password is True
+        assert user.check_password(resp.json()["temp_password"])
+
+    def test_student_without_user_returns_400(self, db, institution, admin_user, student):
+        client = make_auth_client(admin_user, institution)
+        resp = client.post(self._url(student.id))
+        assert resp.status_code == 400
+
+    def test_trainer_cannot_reset_password(self, db, institution, trainer_user, student):
+        client = make_auth_client(trainer_user, institution)
+        resp = client.post(self._url(student.id))
+        assert resp.status_code == 403
+
+    def test_cannot_reset_password_for_other_institution(self, db, institution, admin_user):
+        other_student = StudentFactory(institution=InstitutionFactory())
+        client = make_auth_client(admin_user, institution)
+        resp = client.post(self._url(other_student.id))
+        assert resp.status_code == 404
