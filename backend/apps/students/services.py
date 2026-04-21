@@ -8,15 +8,20 @@ class StudentService:
 
     @staticmethod
     def create_student(
-        institution, full_name: str, student_code: str, **kwargs
+        institution, full_name: str, student_code: str = None, **kwargs
     ) -> Student:
+        from apps.institutions.services import InstitutionService
+
+        if not student_code:
+            student_code = InstitutionService.generate_student_code(institution)
+        else:
+            student_code = student_code.strip().upper()
+
         if Student.objects.filter(
             institution=institution, student_code=student_code
         ).exists():
             raise ValidationError(
-                {
-                    "student_code": "This student code is already in use for this institution."
-                }
+                {"student_code": "This student code is already in use for this institution."}
             )
         try:
             return Student.objects.create(
@@ -27,9 +32,7 @@ class StudentService:
             )
         except IntegrityError:
             raise ValidationError(
-                {
-                    "student_code": "This student code is already in use for this institution."
-                }
+                {"student_code": "This student code is already in use for this institution."}
             )
 
     @staticmethod

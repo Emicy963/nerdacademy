@@ -22,15 +22,15 @@ class StudentSerializer(serializers.ModelSerializer):
 
 
 class StudentCreateSerializer(serializers.ModelSerializer):
+    # Optional — auto-generated from institution prefix if omitted
+    student_code = serializers.CharField(required=False, allow_blank=True, default="")
 
     class Meta:
         model = Student
         fields = ["full_name", "student_code", "birth_date", "phone", "address"]
 
     def validate_student_code(self, value):
-        if not value or not value.strip():
-            raise serializers.ValidationError("Student code cannot be blank.")
-        return value.strip().upper()
+        return value.strip().upper() if value and value.strip() else ""
 
 
 class StudentUpdateSerializer(serializers.ModelSerializer):

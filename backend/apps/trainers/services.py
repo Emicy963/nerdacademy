@@ -6,10 +6,18 @@ from .models import Trainer
 class TrainerService:
 
     @staticmethod
-    def create_trainer(institution, full_name: str, **kwargs) -> Trainer:
+    def create_trainer(institution, full_name: str, trainer_code: str = None, **kwargs) -> Trainer:
+        from apps.institutions.services import InstitutionService
+
+        if not trainer_code:
+            trainer_code = InstitutionService.generate_trainer_code(institution)
+        else:
+            trainer_code = trainer_code.strip().upper()
+
         return Trainer.objects.create(
             institution=institution,
             full_name=full_name,
+            trainer_code=trainer_code,
             **kwargs,
         )
 

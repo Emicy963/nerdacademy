@@ -19,6 +19,7 @@ class InstitutionFactory(DjangoModelFactory):
 
     name = factory.Faker("company", locale="pt_BR")
     slug = factory.Sequence(lambda n: f"institution-{n}")
+    institution_prefix = factory.Sequence(lambda n: f"T{n:02d}")
     email = factory.Faker("company_email")
     phone = factory.Faker("phone_number")
     is_active = True

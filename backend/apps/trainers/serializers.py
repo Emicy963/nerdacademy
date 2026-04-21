@@ -10,6 +10,7 @@ class TrainerSerializer(serializers.ModelSerializer):
             "id",
             "institution",
             "full_name",
+            "trainer_code",
             "specialization",
             "phone",
             "bio",
@@ -17,14 +18,19 @@ class TrainerSerializer(serializers.ModelSerializer):
             "hired_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "institution", "hired_at", "updated_at"]
+        read_only_fields = ["id", "institution", "trainer_code", "hired_at", "updated_at"]
 
 
 class TrainerCreateSerializer(serializers.ModelSerializer):
+    # Optional — auto-generated from institution prefix if omitted
+    trainer_code = serializers.CharField(required=False, allow_blank=True, default="")
 
     class Meta:
         model = Trainer
-        fields = ["full_name", "specialization", "phone", "bio"]
+        fields = ["full_name", "trainer_code", "specialization", "phone", "bio"]
+
+    def validate_trainer_code(self, value):
+        return value.strip().upper() if value and value.strip() else ""
 
 
 class TrainerUpdateSerializer(serializers.ModelSerializer):
@@ -48,5 +54,5 @@ class TrainerSummarySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Trainer
-        fields = ["id", "full_name", "specialization"]
+        fields = ["id", "full_name", "trainer_code", "specialization"]
         read_only_fields = fields

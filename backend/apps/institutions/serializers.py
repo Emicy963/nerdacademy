@@ -10,6 +10,7 @@ class InstitutionSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "slug",
+            "institution_prefix",
             "province",
             "email",
             "phone",
@@ -25,4 +26,7 @@ class InstitutionUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Institution
-        fields = ["name", "province", "email", "phone", "address", "is_active"]
+        fields = ["name", "institution_prefix", "province", "email", "phone", "address", "is_active"]
+
+    def validate_institution_prefix(self, value):
+        return value.strip().upper() if value else ""

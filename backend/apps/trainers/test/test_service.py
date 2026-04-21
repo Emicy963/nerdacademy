@@ -28,6 +28,28 @@ class TestTrainerServiceCreate:
         assert trainer.full_name == "Prof. Carlos"
         assert trainer.institution == institution
         assert trainer.is_active is True
+        assert trainer.trainer_code != ""
+
+    def test_create_trainer_without_code_auto_generates(self, institution):
+        trainer = TrainerService.create_trainer(
+            institution=institution,
+            full_name="Formador Auto",
+        )
+        prefix = institution.institution_prefix + "F"
+        assert trainer.trainer_code.startswith(prefix)
+
+    def test_create_trainer_with_explicit_code(self, institution):
+        trainer = TrainerService.create_trainer(
+            institution=institution,
+            full_name="Formador Explícito",
+            trainer_code="form-001",
+        )
+        assert trainer.trainer_code == "FORM-001"
+
+    def test_auto_generated_trainer_codes_are_sequential(self, institution):
+        t1 = TrainerService.create_trainer(institution=institution, full_name="A")
+        t2 = TrainerService.create_trainer(institution=institution, full_name="B")
+        assert t1.trainer_code != t2.trainer_code
 
     def test_create_trainer_minimal(self, institution):
         trainer = TrainerService.create_trainer(

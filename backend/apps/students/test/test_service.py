@@ -17,7 +17,7 @@ from conftest import (
 @pytest.mark.django_db
 class TestStudentServiceCreate:
 
-    def test_create_student_success(self, institution):
+    def test_create_student_with_explicit_code(self, institution):
         student = StudentService.create_student(
             institution=institution,
             full_name="Ana Luísa Ferreira",
@@ -27,6 +27,27 @@ class TestStudentServiceCreate:
         assert student.student_code == "EST-001"
         assert student.institution == institution
         assert student.is_active is True
+
+    def test_create_student_without_code_auto_generates(self, institution):
+        student = StudentService.create_student(
+            institution=institution,
+            full_name="João Baptista",
+        )
+        assert student.student_code != ""
+        prefix = institution.institution_prefix
+        assert student.student_code.startswith(prefix)
+
+    def test_auto_generated_codes_are_sequential(self, institution):
+        s1 = StudentService.create_student(institution=institution, full_name="A")
+        s2 = StudentService.create_student(institution=institution, full_name="B")
+        assert s1.student_code != s2.student_code
+        assert s2.student_code > s1.student_code
+
+    def test_explicit_code_is_uppercased(self, institution):
+        student = StudentService.create_student(
+            institution=institution, full_name="X", student_code="est-999"
+        )
+        assert student.student_code == "EST-999"
 
     def test_create_student_duplicate_code_same_institution(self, institution):
         StudentFactory(institution=institution, student_code="EST-001")
