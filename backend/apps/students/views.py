@@ -42,11 +42,14 @@ class StudentListCreateView(PaginatedListMixin, APIView):
     def post(self, request):
         serializer = StudentCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        student = StudentService.create_student(
+        student, temp_password = StudentService.create_student(
             institution=request.membership.institution,
             **serializer.validated_data,
         )
-        return Response(StudentSerializer(student).data, status=status.HTTP_201_CREATED)
+        response_data = StudentSerializer(student).data
+        if temp_password:
+            response_data["temp_password"] = temp_password
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 class StudentDetailView(APIView):

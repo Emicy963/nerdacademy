@@ -24,10 +24,12 @@ class StudentSerializer(serializers.ModelSerializer):
 class StudentCreateSerializer(serializers.ModelSerializer):
     # Optional — auto-generated from institution prefix if omitted
     student_code = serializers.CharField(required=False, allow_blank=True, default="")
+    # Optional — if provided, a User account is created and linked automatically
+    email = serializers.EmailField(required=False, allow_blank=True, default="")
 
     class Meta:
         model = Student
-        fields = ["full_name", "student_code", "birth_date", "phone", "address"]
+        fields = ["full_name", "student_code", "birth_date", "phone", "address", "email"]
 
     def validate_student_code(self, value):
         return value.strip().upper() if value and value.strip() else ""
