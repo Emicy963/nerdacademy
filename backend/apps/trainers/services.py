@@ -31,6 +31,8 @@ class TrainerService:
             )
             trainer.user = user
             trainer.save(update_fields=["user"])
+            from apps.accounts.emails import send_welcome_trainer
+            send_welcome_trainer(trainer, temp_password)
 
         return trainer, temp_password
 

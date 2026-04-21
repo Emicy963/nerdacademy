@@ -88,6 +88,8 @@ class UserService:
         user.set_password(password)
         user.must_change_password = True
         user.save(update_fields=["password", "must_change_password"])
+        from apps.accounts.emails import send_password_reset
+        send_password_reset(user, password)
         return password
 
     @staticmethod

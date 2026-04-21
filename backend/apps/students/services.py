@@ -43,6 +43,8 @@ class StudentService:
             )
             student.user = user
             student.save(update_fields=["user"])
+            from apps.accounts.emails import send_welcome_student
+            send_welcome_student(student, temp_password)
 
         return student, temp_password
 
