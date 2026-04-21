@@ -80,6 +80,17 @@ class UserService:
         return user
 
     @staticmethod
+    def reset_password(user: User) -> str:
+        """Generate a new temp password and force must_change_password on next login."""
+        import secrets
+
+        password = secrets.token_urlsafe(8)
+        user.set_password(password)
+        user.must_change_password = True
+        user.save(update_fields=["password", "must_change_password"])
+        return password
+
+    @staticmethod
     def deactivate_user(user: User) -> User:
         user.is_active = False
         user.save()
