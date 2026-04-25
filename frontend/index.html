@@ -1,427 +1,849 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Acadêmico — Dashboard</title>
-  <link rel="stylesheet" href="css/global.css"/>
-  <link rel="stylesheet" href="css/layout.css"/>
+  <title>Acadêmico — Gestão Académica para Angola</title>
+  <meta name="description" content="Plataforma de gestão académica para centros de formação técnica em Angola. Gerencie alunos, formadores, cursos, turmas e notas numa só plataforma."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet"/>
+
   <style>
-    /* ── Page-specific: dashboard preview styles ── */
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4); margin-bottom: var(--sp-8); }
-    @media (max-width: 1000px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 600px)  { .stats-grid { grid-template-columns: 1fr; } }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .stat-accent-green .stat-card__icon { background: var(--color-green-bg); color: var(--color-green); }
-    .stat-accent-blue  .stat-card__icon { background: var(--color-blue-bg);  color: var(--color-blue); }
-    .stat-accent-gray  .stat-card__icon { background: var(--bg-raised);      color: var(--text-secondary); }
-
-    .section-title {
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--text-tertiary);
-      margin-bottom: var(--sp-4);
+    :root {
+      --bg-canvas:      #F7F6F3;
+      --bg-surface:     #FFFFFF;
+      --bg-raised:      #F0EEE9;
+      --text-primary:   #181714;
+      --text-secondary: #6B6860;
+      --text-tertiary:  #9C9A93;
+      --text-inverse:   #F5F3EE;
+      --border-default: #E4E2DC;
+      --border-strong:  #C8C5BC;
+      --color-amber:    #E8A838;
+      --color-amber-bg: #FFF8EC;
+      --color-green:    #27AE60;
+      --sidebar-bg:     #1C1B18;
+      --sidebar-text:   #8C8A83;
+      --font-ui:        'DM Sans', system-ui, sans-serif;
+      --radius-md:      6px;
+      --radius-lg:      12px;
+      --transition-fast: 120ms ease;
+      --transition-base: 200ms ease;
+      --max-w:          1120px;
     }
 
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-6); }
-    @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+    html { font-size: 15px; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+    body  { font-family: var(--font-ui); background: var(--bg-canvas); color: var(--text-primary); }
+    a     { color: inherit; text-decoration: none; }
+    img   { display: block; max-width: 100%; }
 
-    .activity-list { display: flex; flex-direction: column; }
-    .activity-item {
-      display: flex;
-      align-items: flex-start;
-      gap: var(--sp-3);
-      padding: var(--sp-3) var(--sp-5);
-      border-bottom: 1px solid var(--border-default);
+    /* ── Layout helpers ───────────────────────────────── */
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+    .section { padding: 96px 0; }
+    .section--sm { padding: 72px 0; }
+
+    /* ── Badge ────────────────────────────────────────── */
+    .badge-label {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px;
+      background: var(--color-amber-bg);
+      border: 1px solid #F3D68A;
+      border-radius: 999px;
+      font-size: 12px; font-weight: 500;
+      color: #7A5A00;
+      letter-spacing: 0.01em;
     }
-    .activity-item:last-child { border-bottom: none; }
-    .activity-dot {
-      width: 6px;
-      height: 6px;
+    .badge-label .dot {
+      width: 5px; height: 5px;
       border-radius: 50%;
-      margin-top: 6px;
+      background: var(--color-amber);
+    }
+
+    /* ── Buttons ──────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 0 20px; height: 44px;
+      border: none; border-radius: var(--radius-md);
+      font-family: var(--font-ui); font-size: 14px; font-weight: 500;
+      cursor: pointer; white-space: nowrap;
+      transition: background var(--transition-fast), opacity var(--transition-fast), color var(--transition-fast);
+    }
+    .btn-primary {
+      background: var(--text-primary); color: var(--text-inverse);
+    }
+    .btn-primary:hover { background: #2C2B27; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      color: var(--text-primary);
+    }
+    .btn-outline:hover { background: var(--bg-raised); }
+    .btn-ghost-inv {
+      background: transparent;
+      color: var(--sidebar-text);
+      padding: 0 12px;
+    }
+    .btn-ghost-inv:hover { color: var(--text-inverse); }
+    .btn-amber {
+      background: var(--color-amber); color: #1C1100;
+    }
+    .btn-amber:hover { background: #D4962E; }
+
+    /* ── Navbar ───────────────────────────────────────── */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--sidebar-bg);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .navbar__inner {
+      display: flex; align-items: center;
+      height: 60px; gap: 32px;
+    }
+    .navbar__brand {
+      display: flex; align-items: center; gap: 9px;
       flex-shrink: 0;
     }
-    .activity-dot.green { background: var(--color-green); }
-    .activity-dot.amber { background: var(--color-amber); }
-    .activity-dot.blue  { background: var(--color-blue); }
-    .activity-text { font-size: 13px; color: var(--text-primary); line-height: 1.5; }
-    .activity-time { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
-
-    .quick-links {
-      display: flex;
-      flex-direction: column;
-      gap: var(--sp-1);
-      padding: var(--sp-2) 0;
+    .navbar__logo {
+      width: 28px; height: 28px;
+      background: var(--color-amber);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
-    .quick-link {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: var(--sp-3) var(--sp-5);
+    .navbar__logo svg { width: 13px; height: 13px; color: #1C1100; }
+    .navbar__name {
+      font-size: 15px; font-weight: 600; color: var(--text-inverse);
+      letter-spacing: -0.2px;
+    }
+    .navbar__edition {
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--color-amber); background: rgba(232,168,56,0.12);
+      padding: 2px 6px; border-radius: 4px;
+    }
+
+    .navbar__nav {
+      display: flex; align-items: center; gap: 2px;
+      margin-left: auto;
+    }
+    .navbar__nav a {
+      padding: 6px 12px;
+      font-size: 13.5px; color: var(--sidebar-text);
+      border-radius: 5px;
+      transition: color var(--transition-fast), background var(--transition-fast);
+    }
+    .navbar__nav a:hover { color: var(--text-inverse); background: rgba(255,255,255,0.05); }
+
+    .navbar__actions {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .lang-switcher {
+      display: flex; align-items: center;
+      background: rgba(255,255,255,0.06);
+      border-radius: 5px; overflow: hidden;
+    }
+    .lang-switcher button {
+      background: none; border: none; cursor: pointer;
+      padding: 5px 9px;
+      font-family: var(--font-ui); font-size: 12px; font-weight: 500;
+      color: var(--sidebar-text);
+      transition: color var(--transition-fast), background var(--transition-fast);
+      letter-spacing: 0.03em;
+    }
+    .lang-switcher button.active {
+      color: var(--text-inverse);
+      background: rgba(255,255,255,0.1);
+    }
+    .lang-switcher button:hover:not(.active) { color: var(--text-inverse); }
+
+    .navbar__login {
+      height: 36px; padding: 0 16px;
       font-size: 13.5px;
-      color: var(--text-primary);
-      cursor: pointer;
-      border-radius: 0;
-      transition: background var(--transition-fast);
-      text-decoration: none;
     }
-    .quick-link:hover { background: var(--bg-canvas); }
-    .quick-link__right {
-      display: flex;
-      align-items: center;
-      gap: var(--sp-2);
-      color: var(--text-tertiary);
-    }
-    .quick-link__right svg { width: 12px; height: 12px; }
 
-    /* skeleton loader demo */
-    .skel-line { height: 14px; border-radius: var(--radius-sm); margin-bottom: var(--sp-2); }
+    /* ── Hero ─────────────────────────────────────────── */
+    .hero {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-default);
+      padding: 100px 0 80px;
+      text-align: center;
+    }
+    .hero__badge { margin-bottom: 24px; }
+    .hero__title {
+      font-size: clamp(36px, 6vw, 60px);
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      color: var(--text-primary);
+      max-width: 760px;
+      margin: 0 auto 20px;
+    }
+    .hero__title em {
+      font-style: normal;
+      color: var(--color-amber);
+    }
+    .hero__subtitle {
+      font-size: 17px;
+      line-height: 1.65;
+      color: var(--text-secondary);
+      max-width: 580px;
+      margin: 0 auto 36px;
+    }
+    .hero__actions {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      flex-wrap: wrap;
+    }
+    .hero__actions .btn { height: 48px; padding: 0 24px; font-size: 15px; }
+    .hero__trusted {
+      margin-top: 56px;
+      font-size: 12px; color: var(--text-tertiary);
+      letter-spacing: 0.03em; text-transform: uppercase; font-weight: 500;
+    }
+
+    /* ── Dashboard preview card ───────────────────────── */
+    .hero__preview {
+      margin: 48px auto 0;
+      max-width: 900px;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-default);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .preview__bar {
+      height: 36px;
+      background: var(--sidebar-bg);
+      display: flex; align-items: center;
+      padding: 0 14px; gap: 6px;
+    }
+    .preview__dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .preview__dot:nth-child(1) { background: #FF5F57; }
+    .preview__dot:nth-child(2) { background: #FEBC2E; }
+    .preview__dot:nth-child(3) { background: #28C840; }
+    .preview__content {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      height: 340px;
+    }
+    .preview__sidebar {
+      background: var(--sidebar-bg);
+      padding: 16px 12px;
+      border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    .preview__sidebar-brand {
+      display: flex; align-items: center; gap: 7px;
+      padding: 4px 8px; margin-bottom: 20px;
+    }
+    .preview__logo-sm {
+      width: 18px; height: 18px;
+      background: var(--color-amber);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .preview__logo-sm svg { width: 9px; height: 9px; color: #1C1100; }
+    .preview__brand-name {
+      font-size: 12px; font-weight: 600; color: var(--text-inverse);
+    }
+    .preview__nav-section {
+      font-size: 9px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+      color: #3A3935; margin: 12px 8px 6px;
+    }
+    .preview__nav-item {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 8px; border-radius: 5px;
+      font-size: 11.5px; color: #8C8A83; margin-bottom: 1px;
+    }
+    .preview__nav-item.active { background: rgba(255,255,255,0.07); color: var(--text-inverse); }
+    .preview__nav-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: currentColor; flex-shrink: 0;
+    }
+    .preview__main {
+      padding: 20px 24px; overflow: hidden;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .preview__topbar {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .preview__title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+    .preview__badge {
+      font-size: 10px; padding: 3px 8px;
+      background: #EAF7EF; color: var(--color-green);
+      border-radius: 4px; font-weight: 500;
+    }
+    .preview__stats {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 10px;
+    }
+    .preview__stat {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .preview__stat-label { font-size: 10px; color: var(--text-tertiary); margin-bottom: 4px; }
+    .preview__stat-value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+    .preview__stat-delta { font-size: 10px; color: var(--color-green); margin-top: 2px; }
+    .preview__card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      flex: 1; overflow: hidden;
+    }
+    .preview__card-header {
+      padding: 10px 14px; border-bottom: 1px solid var(--border-default);
+      font-size: 11px; font-weight: 600; color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .preview__rows { display: flex; flex-direction: column; }
+    .preview__row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border-default);
+      font-size: 11.5px; color: var(--text-primary);
+    }
+    .preview__row:last-child { border-bottom: none; }
+    .preview__row-badge {
+      font-size: 9.5px; padding: 2px 7px;
+      border-radius: 3px; font-weight: 500;
+    }
+    .preview__row-badge.green { background: #EAF7EF; color: var(--color-green); }
+    .preview__row-badge.amber { background: var(--color-amber-bg); color: #7A5A00; }
+
+    /* ── Features section ─────────────────────────────── */
+    .features { background: var(--bg-canvas); }
+    .section__header { text-align: center; margin-bottom: 56px; }
+    .section__badge { margin-bottom: 16px; }
+    .section__title {
+      font-size: clamp(26px, 4vw, 38px);
+      font-weight: 700; letter-spacing: -0.8px;
+      line-height: 1.2; margin-bottom: 14px;
+    }
+    .section__subtitle {
+      font-size: 16px; color: var(--text-secondary); line-height: 1.6;
+      max-width: 560px; margin: 0 auto;
+    }
+    .features__grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 900px) { .features__grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 580px) { .features__grid { grid-template-columns: 1fr; } }
+
+    .feat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: 28px 28px 32px;
+      transition: box-shadow var(--transition-base), transform var(--transition-base);
+    }
+    .feat-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+    .feat-card__icon {
+      width: 44px; height: 44px;
+      background: var(--bg-raised);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+      color: var(--text-secondary);
+    }
+    .feat-card__icon svg { width: 20px; height: 20px; }
+    .feat-card__title {
+      font-size: 15px; font-weight: 600;
+      margin-bottom: 8px; letter-spacing: -0.2px;
+    }
+    .feat-card__desc { font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; }
+
+    /* ── How it works ─────────────────────────────────── */
+    .how { background: var(--bg-surface); border-top: 1px solid var(--border-default); border-bottom: 1px solid var(--border-default); }
+    .how__steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      position: relative;
+    }
+    .how__steps::before {
+      content: '';
+      position: absolute;
+      top: 24px; left: calc(16.66% + 28px); right: calc(16.66% + 28px);
+      height: 1px;
+      background: var(--border-default);
+    }
+    @media (max-width: 720px) {
+      .how__steps { grid-template-columns: 1fr; }
+      .how__steps::before { display: none; }
+    }
+    .step { position: relative; }
+    .step__num {
+      width: 48px; height: 48px;
+      background: var(--text-primary);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      color: var(--text-inverse);
+      letter-spacing: 0.04em;
+      margin-bottom: 20px;
+      position: relative; z-index: 1;
+    }
+    .step__title { font-size: 16px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.2px; }
+    .step__desc  { font-size: 13.5px; color: var(--text-secondary); line-height: 1.65; }
+
+    /* ── CTA band ─────────────────────────────────────── */
+    .cta-band {
+      background: var(--sidebar-bg);
+      text-align: center;
+    }
+    .cta-band__title {
+      font-size: clamp(22px, 3.5vw, 34px);
+      font-weight: 700; letter-spacing: -0.6px;
+      color: var(--text-inverse);
+      margin-bottom: 10px;
+    }
+    .cta-band__subtitle {
+      font-size: 15px; color: var(--sidebar-text);
+      margin-bottom: 32px;
+    }
+    .cta-band .btn { height: 50px; padding: 0 28px; font-size: 15px; }
+
+    /* ── Footer ───────────────────────────────────────── */
+    .footer {
+      background: var(--sidebar-bg);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 56px 0 32px;
+    }
+    .footer__top {
+      display: grid;
+      grid-template-columns: 1.8fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+    @media (max-width: 720px) {
+      .footer__top { grid-template-columns: 1fr 1fr; }
+      .footer__brand { grid-column: 1/-1; }
+    }
+    @media (max-width: 420px) {
+      .footer__top { grid-template-columns: 1fr; }
+    }
+    .footer__brand-row {
+      display: flex; align-items: center; gap: 9px;
+      margin-bottom: 14px;
+    }
+    .footer__logo {
+      width: 26px; height: 26px;
+      background: var(--color-amber);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .footer__logo svg { width: 12px; height: 12px; color: #1C1100; }
+    .footer__name { font-size: 14px; font-weight: 600; color: var(--text-inverse); }
+    .footer__tagline { font-size: 13px; color: var(--sidebar-text); line-height: 1.6; max-width: 280px; }
+    .footer__col-title {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      color: #4A4842; margin-bottom: 14px;
+    }
+    .footer__links { display: flex; flex-direction: column; gap: 10px; }
+    .footer__links a {
+      font-size: 13px; color: var(--sidebar-text);
+      transition: color var(--transition-fast);
+    }
+    .footer__links a:hover { color: var(--text-inverse); }
+
+    .footer__bottom {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer__copy { font-size: 12.5px; color: #4A4842; }
+
+    /* ── Mobile nav ───────────────────────────────────── */
+    .navbar__menu-btn {
+      display: none;
+      background: none; border: none;
+      cursor: pointer; color: var(--sidebar-text);
+      padding: 6px; border-radius: 5px;
+    }
+    .navbar__menu-btn:hover { color: var(--text-inverse); }
+    .navbar__menu-btn svg { width: 18px; height: 18px; display: block; }
+    @media (max-width: 760px) {
+      .navbar__nav { display: none; }
+      .navbar__menu-btn { display: block; }
+    }
+    @media (max-width: 480px) {
+      .navbar__nav a { display: none; }
+    }
+
+    /* ── Smooth scroll offset for sticky nav ──────────── */
+    [id] { scroll-margin-top: 72px; }
   </style>
 </head>
 <body>
 
-<!-- Icon sprite (loaded inline for demo) -->
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
-  <symbol id="icon-dashboard" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="1.5" y="1.5" width="5" height="5" rx="1"/>
-    <rect x="9.5" y="1.5" width="5" height="5" rx="1"/>
-    <rect x="1.5" y="9.5" width="5" height="5" rx="1"/>
-    <rect x="9.5" y="9.5" width="5" height="5" rx="1"/>
-  </symbol>
-  <symbol id="icon-students" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5"/>
-  </symbol>
-  <symbol id="icon-trainers" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M11 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M5.5 14c0-2.761 2.462-4 5.5-4s5.5 1.239 5.5 4"/>
-    <path d="M1 14c0-2 1.5-3.5 3.5-3.5"/><path d="M5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
-  </symbol>
-  <symbol id="icon-courses" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M3 2h8a1 1 0 0 1 1 1v9l-2-1-2 1-2-1-2 1V3a1 1 0 0 1 1-1Z"/><path d="M5 5.5h6M5 8h4"/>
-  </symbol>
-  <symbol id="icon-classes" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M5.5 3.5V2M10.5 3.5V2"/><path d="M1.5 7h13"/>
-  </symbol>
-  <symbol id="icon-grades" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M8 1.5 10 6h4.5L11 9l1.5 4.5L8 11l-4.5 2.5L5 9 1.5 6H6L8 1.5Z"/>
-  </symbol>
-  <symbol id="icon-search" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/>
-  </symbol>
-  <symbol id="icon-bell" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M8 1.5a5 5 0 0 1 5 5v2.5l1 2H2l1-2V6.5a5 5 0 0 1 5-5Z"/><path d="M6.5 13.5a1.5 1.5 0 0 0 3 0"/>
-  </symbol>
-  <symbol id="icon-logout" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3M11 11l3-3-3-3M14 8H6"/>
-  </symbol>
-  <symbol id="icon-menu" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-    <path d="M2 4h12M2 8h12M2 12h12"/>
-  </symbol>
-  <symbol id="icon-chevron-right" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M6 4l4 4-4 4"/>
-  </symbol>
-  <symbol id="icon-plus" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-    <path d="M8 3v10M3 8h10"/>
-  </symbol>
-</svg>
+<!-- ── Navbar ──────────────────────────────────────────────────── -->
+<header class="navbar">
+  <div class="container">
+    <nav class="navbar__inner">
 
-<div class="app">
-
-  <!-- ── Sidebar ───────────────────────────────────────── -->
-  <aside class="sidebar" id="sidebar">
-
-    <div class="sidebar__brand">
-      <div class="sidebar__logo">
-        <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
-          <path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z" fill="currentColor"/>
-        </svg>
-      </div>
-      <span class="sidebar__name">Acadêmico</span>
-      <span class="sidebar__edition">Beta</span>
-    </div>
-
-    <nav class="sidebar__nav" id="sidebar-nav" aria-label="Main navigation"></nav>
-
-    <div class="sidebar__footer">
-      <div class="sidebar__user">
-        <div class="sidebar__avatar" id="sidebar-avatar">AD</div>
-        <div class="sidebar__user-info">
-          <div class="sidebar__user-name" id="sidebar-user-name">Administrator</div>
-          <div class="sidebar__user-role"  id="sidebar-user-role">Admin</div>
+      <a href="/" class="navbar__brand">
+        <div class="navbar__logo">
+          <svg viewBox="0 0 14 14" fill="none">
+            <path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z" fill="currentColor"/>
+          </svg>
         </div>
-        <button class="sidebar__logout" id="logout-btn" title="Sign out">
-          <svg width="16" height="16"><use href="#icon-logout"/></svg>
-        </button>
-      </div>
-    </div>
-  </aside>
+        <span class="navbar__name">Acadêmico</span>
+        <span class="navbar__edition">Beta</span>
+      </a>
 
-  <!-- ── Main ──────────────────────────────────────────── -->
-  <div class="main">
-
-    <header class="topbar">
-      <button class="topbar__icon-btn" id="menu-toggle" aria-label="Menu"
-              style="display:none">
-        <svg width="16" height="16"><use href="#icon-menu"/></svg>
-      </button>
-
-      <nav class="topbar__breadcrumb" id="topbar-breadcrumb">
-        <span class="topbar__breadcrumb-item current">Dashboard</span>
+      <nav class="navbar__nav" id="nav-links">
+        <a href="#features" data-i18n="nav.features">Funcionalidades</a>
+        <a href="#how"      data-i18n="nav.how">Como funciona</a>
       </nav>
 
-      <label class="topbar__search">
-        <svg width="14" height="14"><use href="#icon-search"/></svg>
-        <input type="search" placeholder="Search anything…" autocomplete="off"/>
-      </label>
-
-      <div class="topbar__actions">
-        <button class="topbar__icon-btn" aria-label="Notifications">
-          <svg width="16" height="16"><use href="#icon-bell"/></svg>
-        </button>
-      </div>
-    </header>
-
-    <!-- ── Page content ────────────────────────────────── -->
-    <main class="page">
-
-      <!-- Header -->
-      <div class="page-header">
-        <div class="page-header__left">
-          <h1 class="page-header__title">Good morning, Administrator</h1>
-          <p class="page-header__subtitle">Here's what's happening at CINFOTEC Huambo today.</p>
+      <div class="navbar__actions">
+        <div class="lang-switcher" role="group" aria-label="Idioma / Language">
+          <button data-lang-btn="pt" onclick="switchLang('pt')">PT</button>
+          <button data-lang-btn="en" onclick="switchLang('en')">EN</button>
         </div>
-        <div class="page-header__actions">
-          <button class="btn btn-secondary">
-            <svg width="14" height="14"><use href="#icon-bell"/></svg>
-            Reports
-          </button>
-          <button class="btn btn-primary">
-            <svg width="14" height="14"><use href="#icon-plus"/></svg>
-            New student
-          </button>
-        </div>
+        <a href="pages/login.html" class="btn btn-amber navbar__login" data-i18n="nav.login">Entrar</a>
       </div>
 
-      <!-- Stats -->
-      <div class="stats-grid">
-        <div class="stat-card stat-accent-blue">
-          <div class="stat-card__icon">
-            <svg width="16" height="16"><use href="#icon-students"/></svg>
-          </div>
-          <div class="stat-card__label">Total Students</div>
-          <div class="stat-card__value">248</div>
-          <div class="stat-card__delta">+12 this month</div>
-        </div>
-        <div class="stat-card stat-accent-amber">
-          <div class="stat-card__icon">
-            <svg width="16" height="16"><use href="#icon-trainers"/></svg>
-          </div>
-          <div class="stat-card__label">Trainers</div>
-          <div class="stat-card__value">18</div>
-          <div class="stat-card__delta">3 part-time</div>
-        </div>
-        <div class="stat-card stat-accent-green">
-          <div class="stat-card__icon">
-            <svg width="16" height="16"><use href="#icon-classes"/></svg>
-          </div>
-          <div class="stat-card__label">Active Classes</div>
-          <div class="stat-card__value">34</div>
-          <div class="stat-card__delta">6 starting this week</div>
-        </div>
-        <div class="stat-card stat-accent-gray">
-          <div class="stat-card__icon">
-            <svg width="16" height="16"><use href="#icon-courses"/></svg>
-          </div>
-          <div class="stat-card__label">Courses</div>
-          <div class="stat-card__value">21</div>
-          <div class="stat-card__delta">All active</div>
-        </div>
-      </div>
+    </nav>
+  </div>
+</header>
 
-      <!-- Two-column section -->
-      <div class="two-col">
 
-        <!-- Recent activity -->
-        <div>
-          <div class="section-title">Recent Activity</div>
-          <div class="card" style="overflow:hidden">
-            <div class="activity-list">
-              <div class="activity-item">
-                <div class="activity-dot green"></div>
-                <div>
-                  <div class="activity-text">Ana Luísa was enrolled in <strong>Web Development II</strong></div>
-                  <div class="activity-time">2 minutes ago</div>
-                </div>
-              </div>
-              <div class="activity-item">
-                <div class="activity-dot amber"></div>
-                <div>
-                  <div class="activity-text">Grade submitted for <strong>Database Design</strong> · Exam</div>
-                  <div class="activity-time">18 minutes ago</div>
-                </div>
-              </div>
-              <div class="activity-item">
-                <div class="activity-dot blue"></div>
-                <div>
-                  <div class="activity-text">New course <strong>Cloud Computing</strong> created</div>
-                  <div class="activity-time">1 hour ago</div>
-                </div>
-              </div>
-              <div class="activity-item">
-                <div class="activity-dot green"></div>
-                <div>
-                  <div class="activity-text">Class <strong>Python Basics — Turma A</strong> started</div>
-                  <div class="activity-time">3 hours ago</div>
-                </div>
-              </div>
-              <div class="activity-item">
-                <div class="activity-dot amber"></div>
-                <div>
-                  <div class="activity-text">Trainer <strong>Carlos Mendes</strong> profile updated</div>
-                  <div class="activity-time">Yesterday, 16:40</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+<!-- ── Hero ────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container">
 
-        <!-- Quick links -->
-        <div>
-          <div class="section-title">Quick Access</div>
-          <div class="card" style="overflow:hidden">
-            <div class="quick-links">
-              <a class="quick-link" href="pages/students.html">
-                <span style="display:flex;align-items:center;gap:10px">
-                  <svg width="15" height="15" style="color:var(--text-tertiary)"><use href="#icon-students"/></svg>
-                  Manage students
-                </span>
-                <span class="quick-link__right">
-                  <span class="badge badge-blue">248</span>
-                  <svg><use href="#icon-chevron-right"/></svg>
-                </span>
-              </a>
-              <a class="quick-link" href="pages/trainers.html">
-                <span style="display:flex;align-items:center;gap:10px">
-                  <svg width="15" height="15" style="color:var(--text-tertiary)"><use href="#icon-trainers"/></svg>
-                  Manage trainers
-                </span>
-                <span class="quick-link__right">
-                  <span class="badge badge-amber">18</span>
-                  <svg><use href="#icon-chevron-right"/></svg>
-                </span>
-              </a>
-              <a class="quick-link" href="pages/classes.html">
-                <span style="display:flex;align-items:center;gap:10px">
-                  <svg width="15" height="15" style="color:var(--text-tertiary)"><use href="#icon-classes"/></svg>
-                  View active classes
-                </span>
-                <span class="quick-link__right">
-                  <span class="badge badge-green">34</span>
-                  <svg><use href="#icon-chevron-right"/></svg>
-                </span>
-              </a>
-              <a class="quick-link" href="pages/grades.html">
-                <span style="display:flex;align-items:center;gap:10px">
-                  <svg width="15" height="15" style="color:var(--text-tertiary)"><use href="#icon-grades"/></svg>
-                  Grade reports
-                </span>
-                <span class="quick-link__right">
-                  <svg><use href="#icon-chevron-right"/></svg>
-                </span>
-              </a>
-              <a class="quick-link" href="pages/courses.html">
-                <span style="display:flex;align-items:center;gap:10px">
-                  <svg width="15" height="15" style="color:var(--text-tertiary)"><use href="#icon-courses"/></svg>
-                  Browse courses
-                </span>
-                <span class="quick-link__right">
-                  <span class="badge badge-gray">21</span>
-                  <svg><use href="#icon-chevron-right"/></svg>
-                </span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Component samples -->
-          <div style="margin-top: var(--sp-6)">
-            <div class="section-title">Design System Samples</div>
-            <div class="card card-body" style="display:flex;flex-direction:column;gap:var(--sp-4)">
-
-              <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap">
-                <button class="btn btn-primary">Primary</button>
-                <button class="btn btn-secondary">Secondary</button>
-                <button class="btn btn-ghost">Ghost</button>
-                <button class="btn btn-danger">Danger</button>
-                <button class="btn btn-primary btn-sm">Small</button>
-              </div>
-
-              <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;align-items:center">
-                <span class="badge badge-green">Active</span>
-                <span class="badge badge-amber">In Progress</span>
-                <span class="badge badge-red">Dropped</span>
-                <span class="badge badge-blue">Open</span>
-                <span class="badge badge-gray">Draft</span>
-              </div>
-
-              <div style="display:flex;gap:var(--sp-3);flex-direction:column">
-                <div class="alert alert-success">Grades submitted successfully for all students.</div>
-                <div class="alert alert-warning">3 students have missing grades for Exam assessment.</div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </main>
-
-  </div><!-- /.main -->
-</div><!-- /.app -->
-
-<script>
-  // Nav rendering — inline for the preview (no module import needed)
-  const NAV = [
-    { section: 'Overview',    items: [{ id:'dashboard', label:'Dashboard', icon:'dashboard', href:'index.html' }] },
-    { section: 'Management', items: [
-      { id:'students',  label:'Students',  icon:'students',  href:'pages/students.html' },
-      { id:'trainers',  label:'Trainers',  icon:'trainers',  href:'pages/trainers.html' },
-      { id:'courses',   label:'Courses',   icon:'courses',   href:'pages/courses.html' },
-      { id:'classes',   label:'Classes',   icon:'classes',   href:'pages/classes.html' },
-    ]},
-    { section: 'Academic', items: [
-      { id:'grades', label:'Grades', icon:'grades', href:'pages/grades.html' },
-    ]},
-  ];
-
-  const navEl = document.getElementById('sidebar-nav');
-  navEl.innerHTML = NAV.map(s => `
-    <div class="sidebar__section">
-      <div class="sidebar__section-label">${s.section}</div>
-      ${s.items.map(item => `
-        <a href="${item.href}" class="nav-item ${item.id === 'dashboard' ? 'active' : ''}">
-          <svg class="nav-item__icon" width="16" height="16" aria-hidden="true">
-            <use href="#icon-${item.icon}"/>
-          </svg>
-          ${item.label}
-        </a>
-      `).join('')}
+    <div class="hero__badge">
+      <span class="badge-label">
+        <span class="dot"></span>
+        <span data-i18n="hero.badge">Plataforma académica para Angola</span>
+      </span>
     </div>
-  `).join('');
 
-  // Mobile toggle
-  const menuBtn = document.getElementById('menu-toggle');
-  const sidebar  = document.getElementById('sidebar');
-  menuBtn?.addEventListener('click', () => sidebar.classList.toggle('open'));
+    <h1 class="hero__title" data-i18n="hero.title">
+      Gerencie a sua instituição com <em>clareza</em>
+    </h1>
 
-  // Show menu button on mobile via JS
-  if (window.innerWidth <= 900) {
-    menuBtn.style.display = 'flex';
-  }
-  window.addEventListener('resize', () => {
-    menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
-  });
+    <p class="hero__subtitle" data-i18n="hero.subtitle">
+      O Acadêmico centraliza alunos, formadores, cursos, turmas e notas numa única plataforma — desenhada para centros de formação técnica angolanos.
+    </p>
+
+    <div class="hero__actions">
+      <a href="pages/login.html" class="btn btn-primary" data-i18n="hero.cta">Começar agora</a>
+      <a href="#features"         class="btn btn-outline" data-i18n="hero.cta.demo">Ver demonstração</a>
+    </div>
+
+    <p class="hero__trusted" data-i18n="hero.trusted">
+      Utilizado por centros de formação técnica em Angola
+    </p>
+
+    <!-- Dashboard preview mockup -->
+    <div class="hero__preview" aria-hidden="true">
+      <div class="preview__bar">
+        <div class="preview__dot"></div>
+        <div class="preview__dot"></div>
+        <div class="preview__dot"></div>
+      </div>
+      <div class="preview__content">
+        <!-- Sidebar -->
+        <div class="preview__sidebar">
+          <div class="preview__sidebar-brand">
+            <div class="preview__logo-sm">
+              <svg viewBox="0 0 14 14" fill="none"><path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z" fill="currentColor"/></svg>
+            </div>
+            <span class="preview__brand-name">Acadêmico</span>
+          </div>
+          <div class="preview__nav-section">Overview</div>
+          <div class="preview__nav-item active"><div class="preview__nav-dot"></div> Dashboard</div>
+          <div class="preview__nav-section">Management</div>
+          <div class="preview__nav-item"><div class="preview__nav-dot"></div> Students</div>
+          <div class="preview__nav-item"><div class="preview__nav-dot"></div> Trainers</div>
+          <div class="preview__nav-item"><div class="preview__nav-dot"></div> Courses</div>
+          <div class="preview__nav-item"><div class="preview__nav-dot"></div> Classes</div>
+          <div class="preview__nav-section">Academic</div>
+          <div class="preview__nav-item"><div class="preview__nav-dot"></div> Grades</div>
+        </div>
+        <!-- Main area -->
+        <div class="preview__main">
+          <div class="preview__topbar">
+            <div class="preview__title">Dashboard</div>
+            <div class="preview__badge">● Online</div>
+          </div>
+          <div class="preview__stats">
+            <div class="preview__stat">
+              <div class="preview__stat-label">Students</div>
+              <div class="preview__stat-value">248</div>
+              <div class="preview__stat-delta">+12 this month</div>
+            </div>
+            <div class="preview__stat">
+              <div class="preview__stat-label">Trainers</div>
+              <div class="preview__stat-value">18</div>
+              <div class="preview__stat-delta">3 part-time</div>
+            </div>
+            <div class="preview__stat">
+              <div class="preview__stat-label">Classes</div>
+              <div class="preview__stat-value">34</div>
+              <div class="preview__stat-delta">6 starting soon</div>
+            </div>
+            <div class="preview__stat">
+              <div class="preview__stat-label">Courses</div>
+              <div class="preview__stat-value">21</div>
+              <div class="preview__stat-delta">All active</div>
+            </div>
+          </div>
+          <div class="preview__card">
+            <div class="preview__card-header">Recent Classes</div>
+            <div class="preview__rows">
+              <div class="preview__row">
+                <span>Web Development II — Turma A</span>
+                <span class="preview__row-badge green">Active</span>
+              </div>
+              <div class="preview__row">
+                <span>Database Design — Turma B</span>
+                <span class="preview__row-badge green">Active</span>
+              </div>
+              <div class="preview__row">
+                <span>Python Basics — Turma C</span>
+                <span class="preview__row-badge amber">Starting</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ── Features ────────────────────────────────────────────────── -->
+<section class="section features" id="features">
+  <div class="container">
+    <div class="section__header">
+      <div class="section__badge">
+        <span class="badge-label">
+          <span class="dot"></span>
+          <span data-i18n="features.badge">Funcionalidades</span>
+        </span>
+      </div>
+      <h2 class="section__title" data-i18n="features.title">
+        Tudo o que precisa para gerir a sua instituição
+      </h2>
+      <p class="section__subtitle" data-i18n="features.subtitle">
+        Da matrícula à avaliação final, o Acadêmico cobre todo o ciclo académico.
+      </p>
+    </div>
+
+    <div class="features__grid">
+
+      <div class="feat-card">
+        <div class="feat-card__icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 10a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"/>
+            <path d="M2.5 17.5c0-4.142 3.358-6.25 7.5-6.25s7.5 2.108 7.5 6.25"/>
+          </svg>
+        </div>
+        <h3 class="feat-card__title" data-i18n="feat.students.title">Gestão de Alunos</h3>
+        <p class="feat-card__desc"   data-i18n="feat.students.desc">Registe e acompanhe todos os seus alunos, gere códigos automáticos, controle presenças e muito mais.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-card__icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13.75 10a3.125 3.125 0 1 0 0-6.25 3.125 3.125 0 0 0 0 6.25Z"/>
+            <path d="M6.25 17.5c0-3.452 3.358-5 7.5-5 4.142 0 6.25 1.548 6.25 5"/>
+            <path d="M6.875 10a3.125 3.125 0 1 1-3.22-3.12"/>
+            <path d="M1.25 17.5c0-3 1.875-4.375 4.375-4.375"/>
+          </svg>
+        </div>
+        <h3 class="feat-card__title" data-i18n="feat.trainers.title">Gestão de Formadores</h3>
+        <p class="feat-card__desc"   data-i18n="feat.trainers.desc">Associe formadores a turmas, gira perfis e acesso ao sistema com total controlo de permissões.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-card__icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2.5" y="3.75" width="15" height="11.25" rx="1.5"/>
+            <path d="M6.25 3.75V2.5M13.75 3.75V2.5M2.5 8.75h15"/>
+          </svg>
+        </div>
+        <h3 class="feat-card__title" data-i18n="feat.courses.title">Cursos e Turmas</h3>
+        <p class="feat-card__desc"   data-i18n="feat.courses.desc">Crie cursos, abra turmas, faça matrículas e acompanhe o progresso em tempo real.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-card__icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 2L12.5 7.5H18L13.75 11.25 15.5 17 10 13.75 4.5 17 6.25 11.25 2 7.5h5.5L10 2Z"/>
+          </svg>
+        </div>
+        <h3 class="feat-card__title" data-i18n="feat.grades.title">Notas e Avaliações</h3>
+        <p class="feat-card__desc"   data-i18n="feat.grades.desc">Registe exames, testes e trabalhos. Calcule médias automaticamente e gere relatórios de desempenho.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-card__icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.5 10H15a5 5 0 1 1-5-5V2.5"/>
+            <path d="M17.5 2.5 15 5l2.5 2.5L20 5l-2.5-2.5Z"/>
+            <path d="M15 5h5"/>
+          </svg>
+        </div>
+        <h3 class="feat-card__title" data-i18n="feat.multi.title">Multi-instituição</h3>
+        <p class="feat-card__desc"   data-i18n="feat.multi.desc">Um único utilizador pode pertencer a várias instituições. Mude de contexto com um clique.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-card__icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3.75" y="8.75" width="12.5" height="9.375" rx="1.25"/>
+            <path d="M6.25 8.75V5.625a3.75 3.75 0 0 1 7.5 0V8.75"/>
+            <circle cx="10" cy="13.75" r="1.25" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <h3 class="feat-card__title" data-i18n="feat.secure.title">Segurança e Acessos</h3>
+        <p class="feat-card__desc"   data-i18n="feat.secure.desc">Controlo de acessos por função (admin, formador, aluno) com autenticação JWT e tokens de actualização.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ── How it works ─────────────────────────────────────────────── -->
+<section class="section how" id="how">
+  <div class="container">
+    <div class="section__header">
+      <div class="section__badge">
+        <span class="badge-label">
+          <span class="dot"></span>
+          <span data-i18n="how.badge">Como funciona</span>
+        </span>
+      </div>
+      <h2 class="section__title" data-i18n="how.title">Operacional em minutos</h2>
+      <p class="section__subtitle" data-i18n="how.subtitle">Sem instalações complexas. Sem configurações intermináveis.</p>
+    </div>
+
+    <div class="how__steps">
+
+      <div class="step">
+        <div class="step__num" data-i18n="how.step1.num">01</div>
+        <h3 class="step__title" data-i18n="how.step1.title">Crie a sua instituição</h3>
+        <p class="step__desc"  data-i18n="how.step1.desc">Registe a sua instituição, defina o prefixo de códigos e configure os dados básicos.</p>
+      </div>
+
+      <div class="step">
+        <div class="step__num" data-i18n="how.step2.num">02</div>
+        <h3 class="step__title" data-i18n="how.step2.title">Adicione alunos e formadores</h3>
+        <p class="step__desc"  data-i18n="how.step2.desc">Importe ou crie manualmente. Palavras-passe temporárias são geradas e enviadas por email automaticamente.</p>
+      </div>
+
+      <div class="step">
+        <div class="step__num" data-i18n="how.step3.num">03</div>
+        <h3 class="step__title" data-i18n="how.step3.title">Comece a gerir</h3>
+        <p class="step__desc"  data-i18n="how.step3.desc">Abra turmas, realize matrículas, submeta notas e acompanhe o desempenho no dashboard.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ── CTA band ─────────────────────────────────────────────────── -->
+<section class="section--sm cta-band">
+  <div class="container">
+    <h2 class="cta-band__title" data-i18n="cta.title">
+      Pronto para modernizar a sua gestão académica?
+    </h2>
+    <p class="cta-band__subtitle" data-i18n="cta.subtitle">
+      Comece hoje. Sem cartão de crédito necessário.
+    </p>
+    <a href="pages/login.html" class="btn btn-amber" data-i18n="cta.btn">
+      Criar conta gratuita
+    </a>
+  </div>
+</section>
+
+
+<!-- ── Footer ───────────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+
+    <div class="footer__top">
+
+      <div class="footer__brand">
+        <div class="footer__brand-row">
+          <div class="footer__logo">
+            <svg viewBox="0 0 14 14" fill="none">
+              <path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z" fill="currentColor"/>
+            </svg>
+          </div>
+          <span class="footer__name">Acadêmico</span>
+        </div>
+        <p class="footer__tagline" data-i18n="footer.tagline">
+          Gestão académica simples e eficaz para Angola.
+        </p>
+      </div>
+
+      <div>
+        <div class="footer__col-title" data-i18n="footer.product">Produto</div>
+        <div class="footer__links">
+          <a href="#features"       data-i18n="footer.features">Funcionalidades</a>
+          <a href="#"               data-i18n="footer.changelog">Novidades</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer__col-title" data-i18n="footer.company">Empresa</div>
+        <div class="footer__links">
+          <a href="#" data-i18n="footer.about">Sobre nós</a>
+          <a href="#" data-i18n="footer.contact">Contacto</a>
+          <a href="#" data-i18n="footer.privacy">Privacidade</a>
+          <a href="#" data-i18n="footer.legal">Termos de Uso</a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer__bottom">
+      <span class="footer__copy" data-i18n="footer.copyright">
+        © 2026 PyNerd Development. Todos os direitos reservados.
+      </span>
+      <div class="lang-switcher" role="group" aria-label="Idioma / Language">
+        <button data-lang-btn="pt" onclick="switchLang('pt')">PT</button>
+        <button data-lang-btn="en" onclick="switchLang('en')">EN</button>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+
+<script type="module">
+  import { applyTranslations, setLocale, getLocale } from './js/i18n.js';
+
+  // Apply translations on load
+  document.addEventListener('DOMContentLoaded', applyTranslations);
+
+  // Expose switcher globally for onclick handlers
+  window.switchLang = (lang) => {
+    setLocale(lang);
+  };
+
+  // If already loaded (scripts deferred)
+  if (document.readyState !== 'loading') applyTranslations();
 </script>
 
 </body>
