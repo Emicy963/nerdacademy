@@ -16,6 +16,42 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
+        identifier = attrs.get(self.username_field, "")
+
+        # Code-based login: no "@" → look up student or trainer code
+        if "@" not in identifier:
+            from apps.students.models import Student
+            from apps.trainers.models import Trainer
+
+            code = identifier.strip().upper()
+            user = None
+
+            student = (
+                Student.objects
+                .filter(student_code=code, user__isnull=False)
+                .select_related("user")
+                .first()
+            )
+            if student:
+                user = student.user
+
+            if not user:
+                trainer = (
+                    Trainer.objects
+                    .filter(trainer_code=code, user__isnull=False)
+                    .select_related("user")
+                    .first()
+                )
+                if trainer:
+                    user = trainer.user
+
+            if not user:
+                raise serializers.ValidationError(
+                    {"email": "Nenhuma conta encontrada para este código."}
+                )
+
+            attrs[self.username_field] = user.email
+
         data = super().validate(attrs)
         data["user"] = UserMeSerializer(self.user).data
         data["must_change_password"] = self.user.must_change_password
@@ -37,10 +73,18 @@ class MembershipSerializer(serializers.ModelSerializer):
 
 
 class UserMeSerializer(serializers.ModelSerializer):
+    email = serializers.SerializerMethodField()
+
+    def get_email(self, obj):
+        # Placeholder emails for code-only users are never exposed to the client
+        if obj.email.endswith("@local.academico"):
+            return ""
+        return obj.email
+
     class Meta:
         model = User
         fields = ["id", "email", "full_name", "is_active", "must_change_password", "created_at"]
-        read_only_fields = fields
+        read_only_fields = ["id", "full_name", "is_active", "must_change_password", "created_at"]
 
 
 class UserSerializer(serializers.ModelSerializer):

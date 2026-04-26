@@ -24,13 +24,16 @@ class TrainerService:
             **kwargs,
         )
 
-        temp_password = None
+        user, temp_password = UserService.create_managed_user(
+            email=email,
+            full_name=full_name,
+            institution=institution,
+            role="trainer",
+            code=trainer_code,
+        )
+        trainer.user = user
+        trainer.save(update_fields=["user"])
         if email:
-            user, temp_password = UserService.create_managed_user(
-                email=email, full_name=full_name, institution=institution, role="trainer"
-            )
-            trainer.user = user
-            trainer.save(update_fields=["user"])
             from apps.accounts.emails import send_welcome_trainer
             send_welcome_trainer(trainer, temp_password)
 

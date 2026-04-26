@@ -36,13 +36,16 @@ class StudentService:
                 {"student_code": "This student code is already in use for this institution."}
             )
 
-        temp_password = None
+        user, temp_password = UserService.create_managed_user(
+            email=email,
+            full_name=full_name,
+            institution=institution,
+            role="student",
+            code=student_code,
+        )
+        student.user = user
+        student.save(update_fields=["user"])
         if email:
-            user, temp_password = UserService.create_managed_user(
-                email=email, full_name=full_name, institution=institution, role="student"
-            )
-            student.user = user
-            student.save(update_fields=["user"])
             from apps.accounts.emails import send_welcome_student
             send_welcome_student(student, temp_password)
 

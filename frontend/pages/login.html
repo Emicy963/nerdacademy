@@ -391,10 +391,11 @@
       <form class="auth-form" id="login-form" novalidate autocomplete="on">
         <div class="form-group">
           <label class="form-label" for="email" data-i18n="login.email">Email</label>
-          <input class="form-input" type="email" id="email" name="email"
-                 placeholder="you@institution.ao"
-                 autocomplete="email" inputmode="email" required/>
-          <span class="field-error" id="email-error">Please enter a valid email address.</span>
+          <input class="form-input" type="text" id="email" name="email"
+                 placeholder="email@instituição.ao ou CIN20260001"
+                 data-i18n-placeholder="login.email.placeholder"
+                 autocomplete="username" required/>
+          <span class="field-error" id="email-error" data-i18n="login.err.empty">Introduza o seu email ou código.</span>
         </div>
 
         <div class="form-group">
@@ -467,6 +468,7 @@
 
 <script type="module">
   import { auth, session } from '../js/api.js';
+  import { t } from '../js/i18n.js';
 
   // ── Already logged in → go to dashboard ──────────────
   if (session.isLoggedIn() && session.getInstitutionId()) {
@@ -529,7 +531,7 @@
   function validate() {
     let ok = true;
     const email = emailEl.value.trim();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email) {
       emailEl.classList.add('error');
       emailErr.classList.add('visible');
       ok = false;
@@ -546,12 +548,16 @@
   function showPicker(memberships) {
     loginForm.style.display = 'none';
     picker.classList.add('visible');
-    cardTitle.textContent    = 'Choose your institution';
+    cardTitle.textContent    = t('login.select.title');
     cardSubtitle.textContent = memberships.length > 1
-      ? 'Your account has access to multiple institutions.'
-      : 'Confirm your institution to continue.';
+      ? t('login.select.subtitle')
+      : t('login.select.confirm.single');
 
-    const roleLabels = { admin: 'Administrator', trainer: 'Trainer', student: 'Student' };
+    const roleLabels = {
+      admin:   t('ui.role.admin'),
+      trainer: t('ui.role.trainer'),
+      student: t('ui.role.student'),
+    };
 
     membershipList.innerHTML = memberships.map(m => `
       <div class="membership-option" data-id="${m.id}"
@@ -618,7 +624,7 @@
 
       if (!memberships.length) {
         setLoading(submitBtn, false);
-        showAlert('Your account has no active memberships. Contact your administrator.');
+        showAlert(t('login.err.no_membership'));
         return;
       }
 
@@ -643,8 +649,8 @@
     } catch (err) {
       setLoading(submitBtn, false);
       const msg = err.status === 401
-        ? 'Invalid email or password. Please try again.'
-        : (err.detail ?? 'Something went wrong. Please try again.');
+        ? t('login.err.invalid')
+        : (err.detail ?? t('login.err.generic'));
       showAlert(msg);
 
       const card = document.querySelector('.auth-card');

@@ -30,17 +30,26 @@ class UserService:
         return user
 
     @staticmethod
-    def create_managed_user(email: str, full_name: str, institution, role: str):
+    def create_managed_user(
+        email: str, full_name: str, institution, role: str, code: str = ""
+    ):
         """
-        Creates a user with an auto-generated password and must_change_password=True,
-        then grants a membership at the given institution.
-        Returns (user, plain_password) — password is never stored in plain text after this.
+        Creates a user with must_change_password=True and a membership at the institution.
+        - With email: random secure password; caller is responsible for sending welcome email.
+        - Without email: placeholder address derived from code, fixed password 'pass123'.
+        Returns (user, plain_password).
         """
         import secrets
 
-        password = secrets.token_urlsafe(8)
+        if email:
+            password = secrets.token_urlsafe(8)
+            user_email = email
+        else:
+            password = "pass123"
+            user_email = f"{code.lower()}@local.academico"
+
         user = UserService.create_user(
-            email=email,
+            email=user_email,
             password=password,
             full_name=full_name,
             must_change_password=True,
