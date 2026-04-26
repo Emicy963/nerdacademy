@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -265,7 +265,7 @@
       </nav>
       <label class="topbar__search">
         <svg width="14" height="14"><use href="#icon-search"/></svg>
-        <input type="search" placeholder="Search anything…" autocomplete="off"/>
+        <input type="search" data-i18n-placeholder="ui.searchTopbar" placeholder="Pesquisar…" autocomplete="off"/>
       </label>
       <div class="topbar__actions">
         <button class="topbar__icon-btn" aria-label="Notifications">
@@ -286,12 +286,13 @@ import {
   students, trainers, courses, classes, grades,
   institutions, auth, token
 } from '../js/api.js';
+import { t } from '../js/i18n.js';
 
 // ── Bootstrap ──────────────────────────────────────────
 const user = initLayout('dashboard');
 if (!user) throw new Error('unauthenticated');
 
-setBreadcrumb([{ label: 'Dashboard', current: true }]);
+setBreadcrumb([{ label: t('dash.title'), current: true }]);
 
 // Load icons sprite
 fetch('../components/icons.html')
@@ -312,9 +313,9 @@ const root = document.getElementById('page-root');
 
 function greeting() {
   const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (h < 12) return t('dash.morning');
+  if (h < 18) return t('dash.afternoon');
+  return t('dash.evening');
 }
 
 function displayName(u) {
@@ -327,7 +328,7 @@ function statSkeleton(accent) {
   return `
     <div class="stat-card stat-accent-${accent} stat-card--loading">
       <div class="stat-card__icon">&nbsp;</div>
-      <div class="stat-card__label">Loading</div>
+      <div class="stat-card__label">${t('ui.loading')}</div>
       <div class="stat-card__value">—</div>
       <div class="stat-card__delta">—</div>
     </div>`;
@@ -349,9 +350,9 @@ function itemSkeletons(n = 4) {
 // Status badge
 function classBadge(status) {
   const map = {
-    open:        ['badge-blue',  'Open'],
-    in_progress: ['badge-amber', 'In Progress'],
-    closed:      ['badge-gray',  'Closed'],
+    open:        ['badge-blue',  t('classes.status.open')],
+    in_progress: ['badge-amber', t('classes.status.progress')],
+    closed:      ['badge-gray',  t('classes.status.closed')],
   };
   const [cls, label] = map[status] ?? ['badge-gray', status];
   return `<span class="badge ${cls}">${label}</span>`;
@@ -376,12 +377,12 @@ async function renderAdmin() {
     <div class="page-header">
       <div class="page-header__left">
         <h1 class="page-header__title">${greeting()}, <span class="greeting-name">${name}</span></h1>
-        <p class="page-header__subtitle" id="inst-name">Loading institution…</p>
+        <p class="page-header__subtitle" id="inst-name">${t('dash.subtitle.admin')}</p>
       </div>
       <div class="page-header__actions">
         <a href="students.html" class="btn btn-primary">
           <svg width="14" height="14"><use href="#icon-plus"/></svg>
-          New student
+          ${t('dash.newStudent')}
         </a>
       </div>
     </div>
@@ -395,51 +396,51 @@ async function renderAdmin() {
     <!-- Content -->
     <div class="dash-grid">
       <div>
-        <div class="section-label">Recent classes</div>
+        <div class="section-label">${t('dash.section.recent')}</div>
         <div class="card" style="overflow:hidden">
           <div class="item-list" id="classes-list">${itemSkeletons(5)}</div>
           <div class="card-footer" style="display:flex;justify-content:flex-end">
-            <a href="classes.html" class="btn btn-ghost btn-sm">View all classes →</a>
+            <a href="classes.html" class="btn btn-ghost btn-sm">${t('dash.viewAllClasses')}</a>
           </div>
         </div>
       </div>
 
       <div>
-        <div class="section-label">Quick actions</div>
+        <div class="section-label">${t('dash.section.quick')}</div>
         <div class="card card-body" style="padding:var(--sp-2) 0">
           <div class="quick-actions">
             <a href="students.html" class="qa-item">
               <div class="qa-item__icon" style="background:var(--color-blue-bg)">
                 <svg width="14" height="14" style="color:var(--color-blue)"><use href="#icon-students"/></svg>
               </div>
-              <span class="qa-item__label">Students</span>
+              <span class="qa-item__label">${t('dash.qa.students')}</span>
               <span class="qa-item__count" id="qa-students">—</span>
             </a>
             <a href="trainers.html" class="qa-item">
               <div class="qa-item__icon" style="background:var(--color-amber-bg)">
                 <svg width="14" height="14" style="color:#8A5E10"><use href="#icon-trainers"/></svg>
               </div>
-              <span class="qa-item__label">Trainers</span>
+              <span class="qa-item__label">${t('dash.qa.trainers')}</span>
               <span class="qa-item__count" id="qa-trainers">—</span>
             </a>
             <a href="courses.html" class="qa-item">
               <div class="qa-item__icon" style="background:var(--color-green-bg)">
                 <svg width="14" height="14" style="color:var(--color-green)"><use href="#icon-courses"/></svg>
               </div>
-              <span class="qa-item__label">Courses</span>
+              <span class="qa-item__label">${t('dash.qa.courses')}</span>
               <span class="qa-item__count" id="qa-courses">—</span>
             </a>
             <a href="grades.html" class="qa-item">
               <div class="qa-item__icon" style="background:var(--bg-raised)">
                 <svg width="14" height="14" style="color:var(--text-secondary)"><use href="#icon-grades"/></svg>
               </div>
-              <span class="qa-item__label">Grade reports</span>
+              <span class="qa-item__label">${t('dash.qa.gradeReports')}</span>
               <span class="qa-item__count">→</span>
             </a>
           </div>
         </div>
 
-        <div class="section-label" style="margin-top:var(--sp-6)">Institution</div>
+        <div class="section-label" style="margin-top:var(--sp-6)">${t('dash.section.institution')}</div>
         <div class="card card-body" id="inst-card">
           <div class="skel skeleton" style="height:14px;width:60%;margin-bottom:8px"></div>
           <div class="skel skeleton" style="height:12px;width:40%"></div>
@@ -462,7 +463,7 @@ async function renderAdmin() {
   // Institution name
   const inst = instData.status === 'fulfilled' ? instData.value : null;
   document.getElementById('inst-name').textContent =
-    inst ? inst.name : 'Your institution';
+    inst ? inst.name : t('dash.subtitle.admin');
 
   // Institution card
   const instCard = document.getElementById('inst-card');
@@ -474,11 +475,11 @@ async function renderAdmin() {
       <div style="font-size:12px;color:var(--text-tertiary)">${inst.slug ?? ''}</div>
       <div style="margin-top:var(--sp-4)">
         <span class="badge ${inst.is_active ? 'badge-green' : 'badge-red'}">
-          ${inst.is_active ? 'Active' : 'Inactive'}
+          ${inst.is_active ? t('ui.active') : t('ui.inactive')}
         </span>
       </div>`;
   } else {
-    instCard.innerHTML = `<p class="t-body-sm">Could not load institution data.</p>`;
+    instCard.innerHTML = `<p class="t-body-sm">${t('dash.inst.error')}</p>`;
   }
 
   // Stats
@@ -494,33 +495,33 @@ async function renderAdmin() {
       <div class="stat-card__icon">
         <svg width="16" height="16"><use href="#icon-students"/></svg>
       </div>
-      <div class="stat-card__label">Students</div>
+      <div class="stat-card__label">${t('dash.stat.students')}</div>
       <div class="stat-card__value">${sCount}</div>
-      <div class="stat-card__delta">Total enrolled</div>
+      <div class="stat-card__delta">${t('dash.stat.students.delta')}</div>
     </div>
     <div class="stat-card stat-accent-amber">
       <div class="stat-card__icon">
         <svg width="16" height="16"><use href="#icon-trainers"/></svg>
       </div>
-      <div class="stat-card__label">Trainers</div>
+      <div class="stat-card__label">${t('dash.stat.trainers')}</div>
       <div class="stat-card__value">${tCount}</div>
-      <div class="stat-card__delta">Active staff</div>
+      <div class="stat-card__delta">${t('dash.stat.trainers.delta')}</div>
     </div>
     <div class="stat-card stat-accent-green">
       <div class="stat-card__icon">
         <svg width="16" height="16"><use href="#icon-classes"/></svg>
       </div>
-      <div class="stat-card__label">Active classes</div>
+      <div class="stat-card__label">${t('dash.stat.classes')}</div>
       <div class="stat-card__value">${clOpen}</div>
-      <div class="stat-card__delta">Open & in progress</div>
+      <div class="stat-card__delta">${t('dash.stat.classes.delta')}</div>
     </div>
     <div class="stat-card stat-accent-gray">
       <div class="stat-card__icon">
         <svg width="16" height="16"><use href="#icon-courses"/></svg>
       </div>
-      <div class="stat-card__label">Courses</div>
+      <div class="stat-card__label">${t('dash.stat.courses')}</div>
       <div class="stat-card__value">${cCount}</div>
-      <div class="stat-card__delta">Available</div>
+      <div class="stat-card__delta">${t('dash.stat.courses.delta')}</div>
     </div>`;
 
   // Quick action counts
@@ -549,7 +550,7 @@ async function renderAdmin() {
           <rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/>
           <path d="M1.5 7h13"/>
         </svg>
-        <p>No classes yet.</p>
+        <p>${t('dash.empty.classes')}</p>
       </div>`;
   }
 }
@@ -565,7 +566,7 @@ async function renderTrainer() {
     <div class="page-header">
       <div class="page-header__left">
         <h1 class="page-header__title">${greeting()}, <span class="greeting-name">${name}</span></h1>
-        <p class="page-header__subtitle">Here are your active classes and students.</p>
+        <p class="page-header__subtitle">${t('dash.subtitle.trainer')}</p>
       </div>
     </div>
 
@@ -576,17 +577,17 @@ async function renderTrainer() {
 
     <div class="dash-grid">
       <div>
-        <div class="section-label">My classes</div>
+        <div class="section-label">${t('dash.section.myClasses')}</div>
         <div class="card" style="overflow:hidden">
           <div class="item-list" id="my-classes">${itemSkeletons(4)}</div>
           <div class="card-footer" style="display:flex;justify-content:flex-end">
-            <a href="classes.html" class="btn btn-ghost btn-sm">View all →</a>
+            <a href="classes.html" class="btn btn-ghost btn-sm">${t('dash.viewAll')}</a>
           </div>
         </div>
       </div>
 
       <div>
-        <div class="section-label">My students</div>
+        <div class="section-label">${t('dash.section.myStudents')}</div>
         <div class="card" style="overflow:hidden">
           <div class="item-list" id="my-students">${itemSkeletons(4)}</div>
         </div>
@@ -614,33 +615,33 @@ async function renderTrainer() {
       <div class="stat-card__icon">
         <svg width="16" height="16"><use href="#icon-classes"/></svg>
       </div>
-      <div class="stat-card__label">My classes</div>
+      <div class="stat-card__label">${t('dash.stat.myClasses')}</div>
       <div class="stat-card__value">${myClasses.length}</div>
-      <div class="stat-card__delta">Total assigned</div>
+      <div class="stat-card__delta">${t('dash.stat.myClasses.delta')}</div>
     </div>
     <div class="stat-card stat-accent-blue">
       <div class="stat-card__icon">
         <svg width="16" height="16"><use href="#icon-students"/></svg>
       </div>
-      <div class="stat-card__label">Students</div>
+      <div class="stat-card__label">${t('dash.stat.students')}</div>
       <div class="stat-card__value">${totalStudents}</div>
-      <div class="stat-card__delta">Active in institution</div>
+      <div class="stat-card__delta">${t('dash.stat.studentsInst.delta')}</div>
     </div>
     <div class="stat-card stat-accent-amber">
       <div class="stat-card__icon">
         <svg width="16" height="16"><use href="#icon-dashboard"/></svg>
       </div>
-      <div class="stat-card__label">In progress</div>
+      <div class="stat-card__label">${t('dash.stat.inProgress')}</div>
       <div class="stat-card__value">${inProgressCount}</div>
-      <div class="stat-card__delta">Classes running now</div>
+      <div class="stat-card__delta">${t('dash.stat.inProgress.delta')}</div>
     </div>
     <div class="stat-card stat-accent-gray">
       <div class="stat-card__icon">
         <svg width="16" height="16"><use href="#icon-grades"/></svg>
       </div>
-      <div class="stat-card__label">Open</div>
+      <div class="stat-card__label">${t('dash.stat.openClasses')}</div>
       <div class="stat-card__value">${openCount}</div>
-      <div class="stat-card__delta">Accepting enrolments</div>
+      <div class="stat-card__delta">${t('dash.stat.openClasses.delta')}</div>
     </div>`;
 
   // My classes list
@@ -667,7 +668,7 @@ async function renderTrainer() {
           <rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/>
           <path d="M1.5 7h13"/>
         </svg>
-        <p>No classes assigned yet.</p>
+        <p>${t('dash.empty.myClasses')}</p>
       </div>`;
   }
 
@@ -685,7 +686,7 @@ async function renderTrainer() {
         </div>
         <div class="item-row__right">
           <span class="badge ${s.is_active ? 'badge-green' : 'badge-red'}">
-            ${s.is_active ? 'Active' : 'Inactive'}
+            ${s.is_active ? t('ui.active') : t('ui.inactive')}
           </span>
         </div>
       </div>`).join('');
@@ -696,7 +697,7 @@ async function renderTrainer() {
           <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
           <path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5"/>
         </svg>
-        <p>No students found.</p>
+        <p>${t('dash.empty.students')}</p>
       </div>`;
   }
 }
@@ -712,7 +713,7 @@ async function renderStudent() {
     <div class="page-header">
       <div class="page-header__left">
         <h1 class="page-header__title">${greeting()}, <span class="greeting-name">${name}</span></h1>
-        <p class="page-header__subtitle">Track your enrolments and grades below.</p>
+        <p class="page-header__subtitle">${t('dash.subtitle.student')}</p>
       </div>
     </div>
 
@@ -723,21 +724,21 @@ async function renderStudent() {
 
     <div class="dash-grid">
       <div>
-        <div class="section-label">My enrolments</div>
+        <div class="section-label">${t('dash.section.myEnrolments')}</div>
         <div class="card" style="overflow:hidden">
           <div class="item-list" id="enrolment-list">${itemSkeletons(4)}</div>
           <div class="card-footer" style="display:flex;justify-content:flex-end">
-            <a href="classes.html" class="btn btn-ghost btn-sm">All enrolments →</a>
+            <a href="classes.html" class="btn btn-ghost btn-sm">${t('dash.allEnrolments')}</a>
           </div>
         </div>
       </div>
 
       <div>
-        <div class="section-label">My grades</div>
+        <div class="section-label">${t('dash.section.myGrades')}</div>
         <div class="card" style="overflow:hidden">
           <div class="item-list" id="grade-list">${itemSkeletons(4)}</div>
           <div class="card-footer" style="display:flex;justify-content:flex-end">
-            <a href="grades.html" class="btn btn-ghost btn-sm">All grades →</a>
+            <a href="grades.html" class="btn btn-ghost btn-sm">${t('dash.allGrades')}</a>
           </div>
         </div>
       </div>
@@ -771,54 +772,59 @@ async function renderStudent() {
       <div class="stat-card__icon">
         <svg width="16" height="16"><use href="#icon-classes"/></svg>
       </div>
-      <div class="stat-card__label">Enrolments</div>
+      <div class="stat-card__label">${t('dash.stat.enrolments')}</div>
       <div class="stat-card__value">${enrolments.length}</div>
-      <div class="stat-card__delta">Total classes</div>
+      <div class="stat-card__delta">${t('dash.stat.enrolments.delta')}</div>
     </div>
     <div class="stat-card stat-accent-green">
       <div class="stat-card__icon">
         <svg width="16" height="16"><use href="#icon-check"/></svg>
       </div>
-      <div class="stat-card__label">Completed</div>
+      <div class="stat-card__label">${t('dash.stat.completed')}</div>
       <div class="stat-card__value">${completedCount}</div>
-      <div class="stat-card__delta">Finished classes</div>
+      <div class="stat-card__delta">${t('dash.stat.completed.delta')}</div>
     </div>
     <div class="stat-card stat-accent-amber">
       <div class="stat-card__icon">
         <svg width="16" height="16"><use href="#icon-grades"/></svg>
       </div>
-      <div class="stat-card__label">Overall avg.</div>
+      <div class="stat-card__label">${t('dash.stat.overallAvg')}</div>
       <div class="stat-card__value">${overallAvg}${overallAvg !== '—' ? '<span style="font-size:14px;font-weight:400;color:var(--text-tertiary)">/20</span>' : ''}</div>
-      <div class="stat-card__delta">Across all classes</div>
+      <div class="stat-card__delta">${t('dash.stat.overallAvg.delta')}</div>
     </div>
     <div class="stat-card stat-accent-gray">
       <div class="stat-card__icon">
         <svg width="16" height="16"><use href="#icon-dashboard"/></svg>
       </div>
-      <div class="stat-card__label">Active</div>
+      <div class="stat-card__label">${t('ui.active')}</div>
       <div class="stat-card__value">${activeCount}</div>
-      <div class="stat-card__delta">Current enrolments</div>
+      <div class="stat-card__delta">${t('dash.stat.active.delta')}</div>
     </div>`;
 
   // Enrolment list
   const enrolList = document.getElementById('enrolment-list');
   if (enrolments.length) {
-    enrolList.innerHTML = enrolments.slice(0, 6).map(e => `
-      <div class="item-row">
-        <div class="item-row__icon" style="background:var(--color-blue-bg)">
-          <svg width="13" height="13" style="color:var(--color-blue)"><use href="#icon-classes"/></svg>
-        </div>
-        <div class="item-row__body">
-          <div class="item-row__title">${e.class_name ?? '—'}</div>
-          <div class="item-row__sub">${e.course_name ?? '—'} · ${e.trainer_name ?? '—'}</div>
-        </div>
-        <div class="item-row__right">
-          <span class="badge ${
-            e.status === 'active'    ? 'badge-blue'  :
-            e.status === 'completed' ? 'badge-green' : 'badge-red'
-          }">${e.status}</span>
-        </div>
-      </div>`).join('');
+    const statusMap = {
+      active:    ['badge-blue',  t('dash.enrol.active')],
+      completed: ['badge-green', t('dash.enrol.completed')],
+      dropped:   ['badge-red',   t('dash.enrol.dropped')],
+    };
+    enrolList.innerHTML = enrolments.slice(0, 6).map(e => {
+      const [badgeCls, badgeLabel] = statusMap[e.status] ?? ['badge-gray', e.status];
+      return `
+        <div class="item-row">
+          <div class="item-row__icon" style="background:var(--color-blue-bg)">
+            <svg width="13" height="13" style="color:var(--color-blue)"><use href="#icon-classes"/></svg>
+          </div>
+          <div class="item-row__body">
+            <div class="item-row__title">${e.class_name ?? '—'}</div>
+            <div class="item-row__sub">${e.course_name ?? '—'} · ${e.trainer_name ?? '—'}</div>
+          </div>
+          <div class="item-row__right">
+            <span class="badge ${badgeCls}">${badgeLabel}</span>
+          </div>
+        </div>`;
+    }).join('');
   } else {
     enrolList.innerHTML = `
       <div class="card-empty">
@@ -826,7 +832,7 @@ async function renderStudent() {
           <rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/>
           <path d="M1.5 7h13"/>
         </svg>
-        <p>Not enrolled in any class yet.</p>
+        <p>${t('dash.empty.enrolments')}</p>
       </div>`;
   }
 
@@ -857,7 +863,7 @@ async function renderStudent() {
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M8 1.5 10 6h4.5L11 9l1.5 4.5L8 11l-4.5 2.5L5 9 1.5 6H6L8 1.5Z"/>
         </svg>
-        <p>No grades yet.</p>
+        <p>${t('dash.empty.grades')}</p>
       </div>`;
   }
 }
@@ -882,9 +888,9 @@ try {
         <circle cx="8" cy="8" r="6.5"/>
         <path d="M8 5v3.5M8 11v.5"/>
       </svg>
-      <div class="empty-state__title">Could not load dashboard</div>
-      <p class="empty-state__desc">${err.message ?? 'An unexpected error occurred.'}</p>
-      <button class="btn btn-secondary mt-4" onclick="location.reload()">Try again</button>
+      <div class="empty-state__title">${t('dash.error.title')}</div>
+      <p class="empty-state__desc">${err.message ?? t('ui.error.generic')}</p>
+      <button class="btn btn-secondary mt-4" onclick="location.reload()">${t('ui.tryAgain')}</button>
     </div>`;
 }
 </script>
