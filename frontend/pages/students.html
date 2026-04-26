@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Students — Acadêmico</title>
+  <title>Alunos — Acadêmico</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
@@ -247,10 +247,12 @@
       <nav class="topbar__breadcrumb" id="topbar-breadcrumb"></nav>
       <label class="topbar__search">
         <svg width="14" height="14"><use href="#icon-search"/></svg>
-        <input type="search" placeholder="Search anything…" autocomplete="off"/>
+        <input type="search" data-i18n-placeholder="ui.searchTopbar"
+               placeholder="Pesquisar…" autocomplete="off"/>
       </label>
       <div class="topbar__actions">
-        <button class="topbar__icon-btn" aria-label="Notifications">
+        <button class="topbar__icon-btn" data-i18n-title="ui.notifications"
+                aria-label="Notifications">
           <svg width="16" height="16"><use href="#icon-bell"/></svg>
         </button>
       </div>
@@ -261,7 +263,7 @@
       <!-- Page header -->
       <div class="page-header">
         <div class="page-header__left">
-          <h1 class="page-header__title">Students</h1>
+          <h1 class="page-header__title" data-i18n="students.title">Alunos</h1>
           <p class="page-header__subtitle" id="subtitle">Loading…</p>
         </div>
         <div class="page-header__actions" id="header-actions">
@@ -273,15 +275,16 @@
       <div class="toolbar">
         <label class="toolbar__search">
           <svg width="14" height="14"><use href="#icon-search"/></svg>
-          <input type="text" placeholder="Search by name or code…"
+          <input type="text" data-i18n-placeholder="students.search"
+                 placeholder="Pesquisar por nome ou código…"
                  id="search-input" autocomplete="off"/>
         </label>
 
         <select class="form-select" id="filter-status"
                 style="width:140px;height:34px;box-shadow:var(--shadow-sm)">
-          <option value="">All students</option>
-          <option value="true">Active only</option>
-          <option value="false">Inactive only</option>
+          <option value=""    data-i18n="students.filter.all">Todos os alunos</option>
+          <option value="true"  data-i18n="ui.activeOnly">Apenas activos</option>
+          <option value="false" data-i18n="ui.inactiveOnly">Apenas inactivos</option>
         </select>
 
         <div class="toolbar__spacer"></div>
@@ -295,11 +298,11 @@
           <thead>
             <tr>
               <th style="width:36px"></th>
-              <th>Full name</th>
-              <th>Student code</th>
-              <th>Phone</th>
-              <th>Status</th>
-              <th>Enrolled</th>
+              <th data-i18n="students.col.name">Nome completo</th>
+              <th data-i18n="students.col.code">Código</th>
+              <th data-i18n="students.col.phone">Telefone</th>
+              <th data-i18n="students.col.status">Estado</th>
+              <th data-i18n="students.col.enrolled">Inscrito em</th>
               <th style="width:80px"></th>
             </tr>
           </thead>
@@ -363,12 +366,12 @@
     <div class="modal-body" id="modal-body">
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label" for="f-name">Full name <span style="color:var(--color-red)">*</span></label>
+          <label class="form-label" for="f-name" data-i18n="ui.fullName">Nome completo</label>
           <input class="form-input" type="text" id="f-name" placeholder="Ana Luísa Silva" autocomplete="off"/>
           <span class="form-error" id="e-name"></span>
         </div>
         <div class="form-group">
-          <label class="form-label" for="f-code">Student code</label>
+          <label class="form-label" for="f-code" data-i18n="students.code">Código de aluno</label>
           <input class="form-input" type="text" id="f-code" placeholder="Auto-generated" autocomplete="off"
                  style="font-family:var(--font-mono)"/>
           <span class="form-error" id="e-code"></span>
@@ -376,23 +379,23 @@
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label" for="f-email">Email</label>
+          <label class="form-label" for="f-email" data-i18n="ui.email">Email</label>
           <input class="form-input" type="email" id="f-email" placeholder="student@institution.ao" autocomplete="off"/>
           <span class="form-error" id="e-email"></span>
         </div>
         <div class="form-group">
-          <label class="form-label" for="f-phone">Phone</label>
+          <label class="form-label" for="f-phone" data-i18n="ui.phone">Telefone</label>
           <input class="form-input" type="tel" id="f-phone" placeholder="+244 9xx xxx xxx" autocomplete="off"/>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label" for="f-birth">Date of birth</label>
+          <label class="form-label" for="f-birth" data-i18n="ui.dob">Data de nascimento</label>
           <input class="form-input" type="date" id="f-birth"/>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label" for="f-address">Address</label>
+        <label class="form-label" for="f-address" data-i18n="ui.address">Morada</label>
         <textarea class="form-textarea" id="f-address" rows="2"
                   placeholder="Street, city…" style="min-height:64px"></textarea>
       </div>
@@ -400,9 +403,9 @@
       <div class="alert alert-error" id="modal-error" style="display:none"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+      <button class="btn btn-secondary" id="modal-cancel" data-i18n="ui.cancel">Cancelar</button>
       <button class="btn btn-primary"   id="modal-save">
-        <span id="modal-save-label">Create student</span>
+        <span id="modal-save-label" data-i18n="students.modal.save">Criar aluno</span>
       </button>
     </div>
   </div>
@@ -420,14 +423,16 @@
 <script type="module">
 import { initLayout, setBreadcrumb } from '../js/layout.js';
 import { students } from '../js/api.js';
+import { t } from '../js/i18n.js';
 
 // ── Bootstrap ──────────────────────────────────────
 const user = initLayout('students');
 if (!user) throw new Error('unauthenticated');
 
-setBreadcrumb([
-  { label: 'Students', current: true }
-]);
+setBreadcrumb([{ label: t('students.title'), current: true }]);
+
+window.addEventListener('localechange', () =>
+  setBreadcrumb([{ label: t('students.title'), current: true }]));
 
 fetch('../components/icons.html')
   .then(r => r.text())
@@ -451,7 +456,7 @@ if (canWrite) {
   document.getElementById('header-actions').innerHTML = `
     <button class="btn btn-primary" id="new-student-btn">
       <svg width="14" height="14"><use href="#icon-plus"/></svg>
-      New student
+      ${t('students.new')}
     </button>`;
   document.getElementById('new-student-btn')
     .addEventListener('click', () => openModal());
@@ -511,7 +516,8 @@ async function loadStudents(page = 1) {
     renderTable(data.results ?? []);
     renderPagination();
     document.getElementById('subtitle').textContent =
-      `${totalCount} student${totalCount !== 1 ? 's' : ''} in your institution`;
+      `${totalCount} ${t('students.title').toLowerCase()}`;
+    document.getElementById('page-header-title')?.setAttribute('data-i18n', 'students.title');
   } catch (err) {
     renderError(err.message);
   }
@@ -529,15 +535,15 @@ function renderTable(rows) {
             <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
             <path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5"/>
           </svg>
-          <div class="empty-state__title">No students found</div>
+          <div class="empty-state__title">${t('students.empty.title')}</div>
           <p class="empty-state__desc">
             ${searchQuery
-              ? `No results for "${searchQuery}". Try a different search.`
-              : 'No students have been added yet.'}
+              ? t('students.empty.search').replace('{q}', searchQuery)
+              : t('students.empty.desc')}
           </p>
           ${canWrite && !searchQuery
             ? `<button class="btn btn-primary mt-4" onclick="document.getElementById('new-student-btn').click()">
-                 Add first student
+                 ${t('students.empty.add')}
                </button>`
             : ''}
         </div>
@@ -563,7 +569,7 @@ function renderTable(rows) {
       </td>
       <td>
         <span class="badge ${s.is_active ? 'badge-green' : 'badge-red'}">
-          ${s.is_active ? 'Active' : 'Inactive'}
+          ${s.is_active ? t('ui.active') : t('ui.inactive')}
         </span>
       </td>
       <td style="color:var(--text-tertiary);font-size:12px">${fmtDate(s.enrolled_at)}</td>
@@ -608,9 +614,9 @@ function renderError(msg) {
           <circle cx="8" cy="8" r="6.5"/>
           <path d="M8 5v3.5M8 11v.5"/>
         </svg>
-        <div class="empty-state__title">Could not load students</div>
+        <div class="empty-state__title">${t('students.err.load')}</div>
         <p class="empty-state__desc">${msg}</p>
-        <button class="btn btn-secondary mt-4" onclick="loadStudents()">Try again</button>
+        <button class="btn btn-secondary mt-4" onclick="loadStudents()">${t('ui.tryAgain')}</button>
       </div>
     </td></tr>`;
 }
@@ -751,7 +757,7 @@ function openDetailPanel(id) {
         <div class="detail-field__label">Status</div>
         <div class="detail-field__value">
           <span class="badge ${s.is_active ? 'badge-green' : 'badge-red'}">
-            ${s.is_active ? 'Active' : 'Inactive'}
+            ${s.is_active ? t('ui.active') : t('ui.inactive')}
           </span>
         </div>
       </div>
@@ -853,8 +859,8 @@ function openModal(id = null) {
   const emailRow = document.getElementById('f-email')?.closest('.form-group');
 
   if (id) {
-    modalTitle.textContent  = 'Edit student';
-    saveLabel.textContent   = 'Save changes';
+    modalTitle.textContent  = t('students.modal.edit');
+    saveLabel.textContent   = t('students.modal.update');
     if (emailRow) emailRow.style.display = 'none';
 
     // Pre-fill from current table data or fetch
@@ -866,8 +872,8 @@ function openModal(id = null) {
       document.getElementById('f-address').value = s.address ?? '';
     });
   } else {
-    modalTitle.textContent  = 'New student';
-    saveLabel.textContent   = 'Create student';
+    modalTitle.textContent  = t('students.modal.create');
+    saveLabel.textContent   = t('students.modal.save');
     if (emailRow) emailRow.style.display = '';
     document.getElementById('f-name').value    = '';
     document.getElementById('f-code').value    = '';
@@ -920,9 +926,9 @@ saveBtn.addEventListener('click', async () => {
   const address = document.getElementById('f-address').value.trim();
 
   let valid = true;
-  if (!name) { showFieldError('f-name', 'e-name', 'Full name is required.'); valid = false; }
+  if (!name) { showFieldError('f-name', 'e-name', t('val.nameRequired')); valid = false; }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showFieldError('f-email', 'e-email', 'Enter a valid email address.'); valid = false;
+    showFieldError('f-email', 'e-email', t('val.email')); valid = false;
   }
   if (!valid) return;
 
@@ -932,15 +938,15 @@ saveBtn.addEventListener('click', async () => {
   if (!editingId) payload.student_code = code;
 
   saveBtn.disabled = true;
-  saveLabel.textContent = editingId ? 'Saving…' : 'Creating…';
+  saveLabel.textContent = editingId ? t('ui.saving') : t('ui.creating');
 
   try {
     if (editingId) {
       await students.update(editingId, payload);
-      showToast('Student updated successfully.');
+      showToast(t('students.toast.updated'));
     } else {
       await students.create(payload);
-      showToast('Student created successfully.');
+      showToast(t('students.toast.created'));
     }
     closeModal();
     loadStudents(currentPage);
@@ -949,7 +955,7 @@ saveBtn.addEventListener('click', async () => {
     modalError.style.display = 'flex';
   } finally {
     saveBtn.disabled = false;
-    saveLabel.textContent = editingId ? 'Save changes' : 'Create student';
+    saveLabel.textContent = editingId ? t('students.modal.update') : t('students.modal.save');
   }
 });
 

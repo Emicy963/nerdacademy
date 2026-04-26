@@ -1,41 +1,32 @@
-/**
- * layout.js
- * Manages the app shell: sidebar nav, mobile toggle,
- * breadcrumb, user info and auth guard.
- *
- * Uses session.getUserWithRole() which merges the active Membership
- * into the user object so pages can use user.role, user.institution_id
- * and user.institution_name as before.
- */
-
 import { session, auth } from './api.js';
+import { t, applyTranslations, getLocale, setLocale } from './i18n.js';
 
 // ── Nav items ─────────────────────────────────────────────────────
 const NAV_ITEMS = [
   {
-    section: 'Overview',
+    sectionKey: 'nav.section.overview',
     items: [
-      { id: 'dashboard', label: 'Dashboard', icon: 'dashboard',
+      { id: 'dashboard', labelKey: 'nav.item.dashboard', icon: 'dashboard',
         href: '/pages/dashboard.html', roles: ['admin', 'trainer', 'student'] },
     ]
   },
   {
-    section: 'Management',
+    sectionKey: 'nav.section.management',
     items: [
-      { id: 'students', label: 'Students', icon: 'students',
+      { id: 'students', labelKey: 'nav.item.students', icon: 'students',
         href: '/pages/students.html',  roles: ['admin', 'trainer'] },
-      { id: 'trainers', label: 'Trainers', icon: 'trainers',
+      { id: 'trainers', labelKey: 'nav.item.trainers', icon: 'trainers',
         href: '/pages/trainers.html',  roles: ['admin'] },
-      { id: 'courses',  label: 'Courses',  icon: 'courses',
+      { id: 'courses',  labelKey: 'nav.item.courses',  icon: 'courses',
         href: '/pages/courses.html',   roles: ['admin', 'trainer', 'student'] },
-      { id: 'classes',  label: 'Classes',  icon: 'classes',
+      { id: 'classes',  labelKey: 'nav.item.classes',  icon: 'classes',
         href: '/pages/classes.html',   roles: ['admin', 'trainer', 'student'] },
     ]
   },
   {
-    section: 'Academic',
+    sectionKey: 'nav.section.academic',
     items: [
-      { id: 'grades', label: 'Grades', icon: 'grades',
+      { id: 'grades', labelKey: 'nav.item.grades', icon: 'grades',
         href: '/pages/grades.html', roles: ['admin', 'trainer', 'student'] },
     ]
   },
@@ -52,7 +43,7 @@ export function renderNav(activeId, userRole = 'admin') {
 
     return `
       <div class="sidebar__section">
-        <div class="sidebar__section-label">${section.section}</div>
+        <div class="sidebar__section-label">${t(section.sectionKey)}</div>
         ${visible.map(item => `
           <a href="${item.href}"
              class="nav-item ${item.id === activeId ? 'active' : ''}"
@@ -60,10 +51,59 @@ export function renderNav(activeId, userRole = 'admin') {
             <svg class="nav-item__icon" aria-hidden="true">
               <use href="#icon-${item.icon}"/>
             </svg>
-            ${item.label}
+            ${t(item.labelKey)}
           </a>`).join('')}
       </div>`;
   }).join('');
+}
+
+// ── Inject language switcher into topbar ─────────────────────────
+function injectLangSwitcher() {
+  const actions = document.querySelector('.topbar__actions');
+  if (!actions || actions.querySelector('.topbar-lang-switcher')) return;
+
+  const locale = getLocale();
+  const switcher = document.createElement('div');
+  switcher.className = 'topbar-lang-switcher';
+  switcher.setAttribute('role', 'group');
+  switcher.setAttribute('aria-label', 'Idioma / Language');
+  switcher.style.cssText = [
+    'display:flex', 'align-items:center',
+    'background:var(--bg-raised)', 'border:1px solid var(--border-default)',
+    'border-radius:5px', 'overflow:hidden', 'margin-right:4px',
+  ].join(';');
+
+  ['pt', 'en'].forEach(lang => {
+    const btn = document.createElement('button');
+    btn.dataset.langBtn = lang;
+    btn.textContent = lang.toUpperCase();
+    btn.style.cssText = [
+      'background:none', 'border:none', 'cursor:pointer',
+      `padding:4px 8px`, 'font-family:var(--font-ui)', 'font-size:11px', 'font-weight:600',
+      `color:${locale === lang ? 'var(--text-primary)' : 'var(--text-tertiary)'}`,
+      `background:${locale === lang ? 'var(--bg-canvas)' : 'transparent'}`,
+      'transition:all 120ms ease', 'letter-spacing:0.03em',
+    ].join(';');
+
+    btn.addEventListener('click', () => {
+      setLocale(lang);
+      const activeNavId = document.querySelector('.nav-item.active')?.dataset?.navId ?? '';
+      const user = session.getUserWithRole();
+      if (user) renderNav(activeNavId, user.role);
+    });
+
+    switcher.appendChild(btn);
+  });
+
+  window.addEventListener('localechange', ({ detail }) => {
+    switcher.querySelectorAll('button').forEach(b => {
+      const active = b.dataset.langBtn === detail.lang;
+      b.style.color      = active ? 'var(--text-primary)' : 'var(--text-tertiary)';
+      b.style.background = active ? 'var(--bg-canvas)'    : 'transparent';
+    });
+  });
+
+  actions.insertBefore(switcher, actions.firstChild);
 }
 
 // ── Render user info in sidebar footer ────────────────────────────
@@ -73,7 +113,6 @@ export function renderUser(user) {
   const avatarEl = document.getElementById('sidebar-avatar');
   if (!nameEl) return;
 
-  // Prefer full_name, fall back to email prefix
   const displayName = user?.full_name?.trim()
     || (user?.email ? user.email.split('@')[0].replace(/[._]/g, ' ') : 'User');
 
@@ -83,9 +122,9 @@ export function renderUser(user) {
     .join('');
 
   const roleLabel = {
-    admin:   'Administrator',
-    trainer: 'Trainer',
-    student: 'Student',
+    admin:   t('ui.role.admin')   || 'Administrator',
+    trainer: t('ui.role.trainer') || 'Trainer',
+    student: t('ui.role.student') || 'Student',
   }[user?.role] ?? user?.role ?? '';
 
   nameEl.textContent  = displayName;
@@ -130,6 +169,8 @@ export function initMobileToggle() {
 export function initLogout() {
   const btn = document.getElementById('logout-btn');
   if (!btn) return;
+  btn.title = t('nav.signout');
+  btn.setAttribute('aria-label', t('nav.signout'));
   btn.addEventListener('click', () => auth.logout());
 }
 
@@ -139,19 +180,16 @@ export function requireAuth() {
     window.location.href = '/pages/login.html';
     return null;
   }
-  // Returns user merged with active membership role/institution
   const user = session.getUserWithRole();
   if (!user) {
     window.location.href = '/pages/login.html';
     return null;
   }
-  // If logged in but no active membership yet, redirect to login
   if (!user.role) {
     session.clear();
     window.location.href = '/pages/login.html';
     return null;
   }
-  // If a password change is required, redirect (but not if already there)
   if (user.must_change_password && !window.location.pathname.includes('change-password')) {
     window.location.href = '/pages/change-password.html';
     return null;
@@ -210,6 +248,14 @@ export function initLayout(activeNavId) {
   renderInstitutionSwitcher('sidebar-institution-switcher');
   initMobileToggle();
   initLogout();
+  injectLangSwitcher();
+  applyTranslations();
+
+  // Re-render nav + apply translations on language change
+  window.addEventListener('localechange', () => {
+    renderNav(activeNavId, user.role);
+    applyTranslations();
+  });
 
   return user;
 }

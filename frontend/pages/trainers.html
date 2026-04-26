@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Trainers — Acadêmico</title>
+  <title>Formadores — Acadêmico</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
@@ -263,10 +263,12 @@
       <nav class="topbar__breadcrumb" id="topbar-breadcrumb"></nav>
       <label class="topbar__search">
         <svg width="14" height="14"><use href="#icon-search"/></svg>
-        <input type="search" placeholder="Search anything…" autocomplete="off"/>
+        <input type="search" data-i18n-placeholder="ui.searchTopbar"
+               placeholder="Pesquisar…" autocomplete="off"/>
       </label>
       <div class="topbar__actions">
-        <button class="topbar__icon-btn" aria-label="Notifications">
+        <button class="topbar__icon-btn" data-i18n-title="ui.notifications"
+                aria-label="Notifications">
           <svg width="16" height="16"><use href="#icon-bell"/></svg>
         </button>
       </div>
@@ -277,13 +279,13 @@
       <!-- Page header -->
       <div class="page-header">
         <div class="page-header__left">
-          <h1 class="page-header__title">Trainers</h1>
+          <h1 class="page-header__title" data-i18n="trainers.title">Formadores</h1>
           <p class="page-header__subtitle" id="subtitle">Loading…</p>
         </div>
         <div class="page-header__actions">
           <button class="btn btn-primary" id="new-trainer-btn">
             <svg width="14" height="14"><use href="#icon-plus"/></svg>
-            New trainer
+            <span data-i18n="trainers.new">Novo formador</span>
           </button>
         </div>
       </div>
@@ -293,14 +295,15 @@
         <label class="toolbar__search">
           <svg width="14" height="14"><use href="#icon-search"/></svg>
           <input type="text" id="search-input"
-                 placeholder="Search by name or specialization…" autocomplete="off"/>
+                 data-i18n-placeholder="trainers.search"
+                 placeholder="Pesquisar por nome ou especialização…" autocomplete="off"/>
         </label>
 
         <select class="form-select" id="filter-status"
                 style="width:140px;height:34px;box-shadow:var(--shadow-sm)">
-          <option value="">All trainers</option>
-          <option value="true">Active only</option>
-          <option value="false">Inactive only</option>
+          <option value=""     data-i18n="trainers.filter.all">Todos os formadores</option>
+          <option value="true"  data-i18n="ui.activeOnly">Apenas activos</option>
+          <option value="false" data-i18n="ui.inactiveOnly">Apenas inactivos</option>
         </select>
 
         <div class="toolbar__spacer"></div>
@@ -313,11 +316,11 @@
           <thead>
             <tr>
               <th style="width:36px"></th>
-              <th>Full name</th>
-              <th>Specialization</th>
-              <th>Phone</th>
-              <th>Status</th>
-              <th>Hired</th>
+              <th data-i18n="trainers.col.name">Nome completo</th>
+              <th data-i18n="trainers.col.spec">Especialização</th>
+              <th data-i18n="trainers.col.phone">Telefone</th>
+              <th data-i18n="trainers.col.status">Estado</th>
+              <th data-i18n="trainers.col.hired">Contratado em</th>
               <th style="width:80px"></th>
             </tr>
           </thead>
@@ -364,8 +367,8 @@
 
   <!-- Tabs -->
   <div class="panel-tabs">
-    <button class="panel-tab active" data-tab="info">Profile</button>
-    <button class="panel-tab"        data-tab="classes">Classes</button>
+    <button class="panel-tab active" data-tab="info"    data-i18n="trainers.tab.profile">Perfil</button>
+    <button class="panel-tab"        data-tab="classes" data-i18n="trainers.tab.classes">Turmas</button>
   </div>
 
   <!-- Tab: Profile -->
@@ -395,44 +398,44 @@
       <div class="form-row">
         <div class="form-group" style="grid-column:1/-1">
           <label class="form-label" for="f-name">
-            Full name <span style="color:var(--color-red)">*</span>
+            <span data-i18n="ui.fullName">Nome completo</span> <span style="color:var(--color-red)">*</span>
           </label>
           <input class="form-input" type="text" id="f-name"
                  placeholder="Carlos Mendes" autocomplete="off"/>
           <span class="form-error" id="e-name"></span>
         </div>
         <div class="form-group">
-          <label class="form-label" for="f-spec">Specialization</label>
+          <label class="form-label" for="f-spec" data-i18n="ui.specialization">Especialização</label>
           <input class="form-input" type="text" id="f-spec"
                  placeholder="Web Development" autocomplete="off"/>
         </div>
         <div class="form-group" id="f-code-group">
-          <label class="form-label" for="f-code">Trainer code</label>
+          <label class="form-label" for="f-code" data-i18n="trainers.code">Código de formador</label>
           <input class="form-input" type="text" id="f-code"
                  placeholder="Auto-generated" autocomplete="off"
                  style="font-family:var(--font-mono)"/>
         </div>
         <div class="form-group" id="f-email-group">
-          <label class="form-label" for="f-email">Email</label>
+          <label class="form-label" for="f-email" data-i18n="ui.email">Email</label>
           <input class="form-input" type="email" id="f-email"
                  placeholder="trainer@institution.ao" autocomplete="off"/>
           <span class="form-error" id="e-email"></span>
         </div>
         <div class="form-group">
-          <label class="form-label" for="f-phone">Phone</label>
+          <label class="form-label" for="f-phone" data-i18n="ui.phone">Telefone</label>
           <input class="form-input" type="tel" id="f-phone"
                  placeholder="+244 9xx xxx xxx" autocomplete="off"/>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label" for="f-bio">Bio</label>
+        <label class="form-label" for="f-bio" data-i18n="ui.bio">Biografia</label>
         <textarea class="form-textarea" id="f-bio" rows="3"
                   placeholder="Brief professional background…"></textarea>
-        <span class="form-hint">Optional. Shown on trainer profile.</span>
+        <span class="form-hint" data-i18n="trainers.bio.hint">Opcional. Visível no perfil do formador.</span>
       </div>
       <!-- Edit-only: active toggle -->
       <div class="form-group" id="active-group" style="display:none">
-        <label class="form-label">Status</label>
+        <label class="form-label" data-i18n="ui.status">Estado</label>
         <div style="display:flex;align-items:center;gap:var(--sp-3);margin-top:var(--sp-1)">
           <label style="display:flex;align-items:center;gap:var(--sp-2);cursor:pointer;font-size:13px">
             <input type="radio" name="f-active" id="f-active-yes" value="true"/>
@@ -447,9 +450,9 @@
       <div class="alert alert-error" id="modal-error" style="display:none"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+      <button class="btn btn-secondary" id="modal-cancel" data-i18n="ui.cancel">Cancelar</button>
       <button class="btn btn-primary"   id="modal-save">
-        <span id="modal-save-label">Create trainer</span>
+        <span id="modal-save-label" data-i18n="trainers.modal.save">Criar formador</span>
       </button>
     </div>
   </div>
@@ -467,17 +470,17 @@
 <script type="module">
 import { initLayout, setBreadcrumb } from '../js/layout.js';
 import { trainers } from '../js/api.js';
+import { t as $t } from '../js/i18n.js';
 
 // ── Bootstrap ──────────────────────────────────────
 const user = initLayout('trainers');
 if (!user) throw new Error('unauthenticated');
 
-// Trainers page is admin-only — redirect others
-if (user.role !== 'admin') {
-  window.location.href = 'dashboard.html';
-}
+if (user.role !== 'admin') { window.location.href = 'dashboard.html'; }
 
-setBreadcrumb([{ label: 'Trainers', current: true }]);
+setBreadcrumb([{ label: $t('trainers.title'), current: true }]);
+window.addEventListener('localechange', () =>
+  setBreadcrumb([{ label: t('trainers.title'), current: true }]));
 
 fetch('../components/icons.html')
   .then(r => r.text())
@@ -546,7 +549,7 @@ async function loadTrainers(page = 1) {
     renderTable(data.results ?? []);
     renderPagination();
     document.getElementById('subtitle').textContent =
-      `${totalCount} trainer${totalCount !== 1 ? 's' : ''} in your institution`;
+      `${totalCount} ${$t('trainers.title').toLowerCase()}`;
   } catch (err) {
     renderError(err.message);
   }
@@ -598,7 +601,7 @@ function renderTable(rows) {
       </td>
       <td>
         <span class="badge ${t.is_active ? 'badge-green' : 'badge-red'}">
-          ${t.is_active ? 'Active' : 'Inactive'}
+          ${t.is_active ? $t('ui.active') : $t('ui.inactive')}
         </span>
       </td>
       <td style="color:var(--text-tertiary);font-size:12px">${fmtDate(t.hired_at)}</td>
@@ -774,7 +777,7 @@ function openDetailPanel(id) {
         <div class="detail-field__label">Status</div>
         <div class="detail-field__value">
           <span class="badge ${t.is_active ? 'badge-green' : 'badge-red'}">
-            ${t.is_active ? 'Active' : 'Inactive'}
+            ${t.is_active ? $t('ui.active') : $t('ui.inactive')}
           </span>
         </div>
       </div>
@@ -932,8 +935,8 @@ function openModal(id = null) {
   const emailGroup = document.getElementById('f-email-group');
 
   if (id) {
-    modalTitle.textContent = 'Edit trainer';
-    saveLabel.textContent  = 'Save changes';
+    modalTitle.textContent = $t('trainers.modal.edit');
+    saveLabel.textContent  = $t('trainers.modal.update');
     activeGroup.style.display = 'block';
     if (codeGroup)  codeGroup.style.display  = 'none';
     if (emailGroup) emailGroup.style.display = 'none';
@@ -946,8 +949,8 @@ function openModal(id = null) {
       document.getElementById(t.is_active ? 'f-active-yes' : 'f-active-no').checked = true;
     });
   } else {
-    modalTitle.textContent = 'New trainer';
-    saveLabel.textContent  = 'Create trainer';
+    modalTitle.textContent = $t('trainers.modal.create');
+    saveLabel.textContent  = $t('trainers.modal.save');
     activeGroup.style.display = 'none';
     if (codeGroup)  codeGroup.style.display  = '';
     if (emailGroup) emailGroup.style.display = '';
@@ -1022,10 +1025,10 @@ saveBtn.addEventListener('click', async () => {
   try {
     if (editingId) {
       await trainers.update(editingId, payload);
-      showToast('Trainer updated successfully.');
+      showToast($t('trainers.toast.updated'));
     } else {
       await trainers.create(payload);
-      showToast('Trainer created successfully.');
+      showToast($t('trainers.toast.created'));
     }
     closeModal();
     loadTrainers(currentPage);
@@ -1034,7 +1037,7 @@ saveBtn.addEventListener('click', async () => {
     modalError.style.display = 'flex';
   } finally {
     saveBtn.disabled = false;
-    saveLabel.textContent = editingId ? 'Save changes' : 'Create trainer';
+    saveLabel.textContent = editingId ? $t('trainers.modal.update') : $t('trainers.modal.save');
   }
 });
 

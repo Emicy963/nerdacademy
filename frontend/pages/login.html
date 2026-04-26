@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sign in — Acadêmico</title>
+  <title>Entrar — Acadêmico</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
@@ -281,6 +281,37 @@
     @media (max-width: 420px) {
       .auth-form-panel { padding: 32px 20px; }
     }
+
+    .login-lang-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+    }
+    .login-lang-switcher {
+      display: flex;
+      align-items: center;
+      background: var(--bg-raised);
+      border: 1px solid var(--border-default);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .login-lang-switcher button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px 10px;
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      transition: color 120ms ease, background 120ms ease;
+      letter-spacing: 0.03em;
+    }
+    .login-lang-switcher button.active {
+      color: var(--text-primary);
+      background: var(--bg-canvas);
+    }
+    .login-lang-switcher button:hover:not(.active) { color: var(--text-primary); }
   </style>
 </head>
 <body>
@@ -300,34 +331,29 @@
       </div>
 
       <div class="panel-tagline">
-        <h2>Academic management,<br>done right.</h2>
-        <p>A focused platform for technical training centres to manage students, trainers, courses and assessments.</p>
+        <h2 data-i18n="login.subtitle">Gestão académica para centros de formação.</h2>
+        <p data-i18n="login.brand.tagline">Gestão académica simples e eficaz para centros de formação.</p>
       </div>
 
       <div class="panel-features">
         <div class="panel-feature">
           <div class="panel-feature-dot"></div>
-          Multi-role access — admin, trainer, student
+          <span data-i18n="login.brand.feat2">Controlo de acessos por função (admin, formador, aluno)</span>
         </div>
         <div class="panel-feature">
           <div class="panel-feature-dot"></div>
-          One account across multiple institutions
+          <span data-i18n="login.brand.feat1">Multi-instituição — um login para todas as suas instituições</span>
         </div>
         <div class="panel-feature">
           <div class="panel-feature-dot"></div>
-          Grade tracking with custom assessment types
-        </div>
-        <div class="panel-feature">
-          <div class="panel-feature-dot"></div>
-          Enrolment and class lifecycle management
+          <span data-i18n="login.brand.feat3">Dashboard em tempo real com dados da sua instituição</span>
         </div>
       </div>
     </div>
 
     <div class="panel-bottom">
-      <div class="panel-footer">
-        Acadêmico · SaaS Academic Platform<br>
-        &copy; 2025 · All rights reserved
+      <div class="panel-footer" data-i18n="login.footer">
+        © 2026 PyNerd Development
       </div>
     </div>
   </div>
@@ -336,8 +362,16 @@
   <div class="auth-form-panel">
     <div class="auth-card">
 
+      <!-- Lang switcher -->
+      <div class="login-lang-row">
+        <div class="login-lang-switcher" role="group" aria-label="Idioma / Language">
+          <button type="button" data-lang-btn="pt" onclick="switchLang('pt')">PT</button>
+          <button type="button" data-lang-btn="en" onclick="switchLang('en')">EN</button>
+        </div>
+      </div>
+
       <div class="auth-card__header">
-        <h1 class="auth-card__title" id="card-title">Sign in to your account</h1>
+        <h1 class="auth-card__title" id="card-title" data-i18n="login.title">Entrar na sua conta</h1>
         <p class="auth-card__subtitle" id="card-subtitle">
           Enter your credentials to access the dashboard.
         </p>
@@ -356,7 +390,7 @@
       <!-- Step 1: credentials -->
       <form class="auth-form" id="login-form" novalidate autocomplete="on">
         <div class="form-group">
-          <label class="form-label" for="email">Email address</label>
+          <label class="form-label" for="email" data-i18n="login.email">Email</label>
           <input class="form-input" type="email" id="email" name="email"
                  placeholder="you@institution.ao"
                  autocomplete="email" inputmode="email" required/>
@@ -364,7 +398,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="password">Password</label>
+          <label class="form-label" for="password" data-i18n="login.password">Palavra-passe</label>
           <div class="input-wrapper">
             <input class="form-input has-right-icon" type="password"
                    id="password" name="password"
@@ -393,19 +427,19 @@
 
         <button type="submit" class="btn-submit" id="submit-btn">
           <div class="spinner" aria-hidden="true"></div>
-          <span class="btn-label">Sign in</span>
+          <span class="btn-label" data-i18n="login.btn">Entrar</span>
         </button>
       </form>
 
       <!-- Step 2: institution picker (hidden until needed) -->
       <div class="institution-picker" id="institution-picker">
-        <div class="institution-picker__label">Choose your institution</div>
-        <div class="institution-picker__subtitle">
-          Your account has access to multiple institutions. Select one to continue.
+        <div class="institution-picker__label" data-i18n="login.select.title">Seleccione a instituição</div>
+        <div class="institution-picker__subtitle" data-i18n="login.select.subtitle">
+          A sua conta pertence a várias instituições. Escolha uma para continuar.
         </div>
         <div id="membership-list"></div>
         <button class="btn-submit" id="confirm-membership-btn" disabled>
-          <span class="btn-label">Continue</span>
+          <span class="btn-label" data-i18n="login.select.confirm">Confirmar</span>
         </button>
       </div>
 
@@ -416,6 +450,20 @@
     </div>
   </div>
 </div>
+
+<script type="module">
+  import { applyTranslations, setLocale, getLocale } from '../js/i18n.js';
+
+  function updateLangBtns(locale) {
+    document.querySelectorAll('[data-lang-btn]').forEach(b =>
+      b.classList.toggle('active', b.dataset.langBtn === locale));
+  }
+
+  window.switchLang = (lang) => { setLocale(lang); updateLangBtns(lang); };
+
+  applyTranslations();
+  updateLangBtns(getLocale());
+</script>
 
 <script type="module">
   import { auth, session } from '../js/api.js';

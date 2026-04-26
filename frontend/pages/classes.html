@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -259,10 +259,12 @@
       <nav class="topbar__breadcrumb" id="topbar-breadcrumb"></nav>
       <label class="topbar__search">
         <svg width="14" height="14"><use href="#icon-search"/></svg>
-        <input type="search" placeholder="Search anything…" autocomplete="off"/>
+        <input type="search" data-i18n-placeholder="ui.searchTopbar"
+               placeholder="Pesquisar…" autocomplete="off"/>
       </label>
       <div class="topbar__actions">
-        <button class="topbar__icon-btn" aria-label="Notifications">
+        <button class="topbar__icon-btn" data-i18n-title="ui.notifications"
+                aria-label="Notifications">
           <svg width="16" height="16"><use href="#icon-bell"/></svg>
         </button>
       </div>
@@ -272,7 +274,7 @@
 
       <div class="page-header">
         <div class="page-header__left">
-          <h1 class="page-header__title">Classes</h1>
+          <h1 class="page-header__title" data-i18n="classes.title">Turmas</h1>
           <p class="page-header__subtitle" id="subtitle">Loading…</p>
         </div>
         <div class="page-header__actions" id="header-actions"></div>
@@ -283,15 +285,16 @@
         <label class="toolbar__search">
           <svg width="14" height="14"><use href="#icon-search"/></svg>
           <input type="text" id="search-input"
-                 placeholder="Search by name…" autocomplete="off"/>
+                 data-i18n-placeholder="classes.search"
+                 placeholder="Pesquisar por nome…" autocomplete="off"/>
         </label>
 
         <select class="form-select" id="filter-status"
                 style="width:148px;height:34px;box-shadow:var(--shadow-sm)">
-          <option value="">All statuses</option>
-          <option value="open">Open</option>
-          <option value="in_progress">In Progress</option>
-          <option value="closed">Closed</option>
+          <option value=""            data-i18n="classes.filter.all">Todos os estados</option>
+          <option value="open"        data-i18n="classes.filter.open">Aberta</option>
+          <option value="in_progress" data-i18n="classes.filter.progress">Em Progresso</option>
+          <option value="closed"      data-i18n="classes.filter.closed">Fechada</option>
         </select>
 
         <div class="toolbar__spacer"></div>
