@@ -10,6 +10,31 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.4.3] — 2026-04-27
+
+### Added
+
+- Self-service password recovery flow:
+  - `POST /api/auth/password-reset/` — accepts email, sends a reset link (always
+    returns 200 to prevent email enumeration; silently skips placeholder addresses
+    and inactive accounts)
+  - `POST /api/auth/password-reset/confirm/` — validates Django's built-in
+    `PasswordResetTokenGenerator` token, sets new password, clears
+    `must_change_password`
+  - `FRONTEND_URL` setting (reads from env, defaults to `http://127.0.0.1:3000`)
+    used to build the reset link
+  - `send_password_reset_link()` email function added to `emails.py`
+  - `PasswordResetRequestSerializer` and `PasswordResetConfirmSerializer` added
+  - 6 new service tests covering success, token invalidation, and edge cases
+- `forgot-password.html` — email form; always shows success state after submit
+- `reset-password.html` — new password form; reads `uid` and `token` from URL
+  params; shows invalid-link state if params are missing or token is rejected
+- Login page "Esqueceu a palavra-passe?" link now navigates to `forgot-password.html`
+- `auth.requestPasswordReset()` and `auth.confirmPasswordReset()` added to `api.js`
+- i18n keys for both new pages added in PT and EN
+
+---
+
 ## [0.4.2] — 2026-04-27
 
 ### Added

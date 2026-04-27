@@ -116,6 +116,31 @@ const TRANSLATIONS = {
     'profile.err.load':        'Não foi possível carregar o perfil.',
     'profile.err.save':        'Não foi possível guardar as alterações.',
 
+    // ── Forgot password page ─────────────────────────────
+    'forgot.title':        'Recuperar palavra-passe',
+    'forgot.subtitle':     'Introduza o seu email e enviaremos um link para redefinir a palavra-passe.',
+    'forgot.email':        'Email',
+    'forgot.btn':          'Enviar link',
+    'forgot.sending':      'A enviar…',
+    'forgot.success.title': 'Link enviado!',
+    'forgot.success.desc': 'Se o email existir na nossa base de dados, receberá um link em breve. Verifique também a pasta de spam.',
+    'forgot.back':         'Voltar ao início de sessão',
+    'forgot.no_email':     'Sem email? Contacte o administrador da sua instituição para repor a palavra-passe.',
+
+    // ── Reset password page ───────────────────────────────
+    'reset.title':         'Definir nova palavra-passe',
+    'reset.subtitle':      'Escolha uma nova palavra-passe para a sua conta.',
+    'reset.new':           'Nova palavra-passe',
+    'reset.confirm':       'Confirmar palavra-passe',
+    'reset.btn':           'Redefinir palavra-passe',
+    'reset.saving':        'A guardar…',
+    'reset.success.title': 'Palavra-passe redefinida!',
+    'reset.success.desc':  'A sua palavra-passe foi alterada com sucesso. Pode agora iniciar sessão.',
+    'reset.go_login':      'Ir para o início de sessão',
+    'reset.err.link':      'Este link é inválido ou já expirou. Solicite um novo.',
+    'reset.err.short':     'Mínimo 8 caracteres.',
+    'reset.err.match':     'As palavras-passe não coincidem.',
+
     // ── Students page ────────────────────────────────────
     'students.title':         'Alunos',
     'students.new':           'Novo aluno',
@@ -504,6 +529,31 @@ const TRANSLATIONS = {
     'profile.saved':           'Email updated successfully.',
     'profile.err.load':        'Could not load profile.',
     'profile.err.save':        'Could not save changes.',
+
+    // ── Forgot password page ─────────────────────────────
+    'forgot.title':        'Recover password',
+    'forgot.subtitle':     'Enter your email and we\'ll send you a link to reset your password.',
+    'forgot.email':        'Email',
+    'forgot.btn':          'Send link',
+    'forgot.sending':      'Sending…',
+    'forgot.success.title': 'Link sent!',
+    'forgot.success.desc': 'If the email exists in our database, you will receive a link shortly. Check your spam folder too.',
+    'forgot.back':         'Back to sign in',
+    'forgot.no_email':     'No email? Contact your institution administrator to reset your password.',
+
+    // ── Reset password page ───────────────────────────────
+    'reset.title':         'Set new password',
+    'reset.subtitle':      'Choose a new password for your account.',
+    'reset.new':           'New password',
+    'reset.confirm':       'Confirm password',
+    'reset.btn':           'Reset password',
+    'reset.saving':        'Saving…',
+    'reset.success.title': 'Password reset!',
+    'reset.success.desc':  'Your password has been changed successfully. You can now sign in.',
+    'reset.go_login':      'Go to sign in',
+    'reset.err.link':      'This link is invalid or has expired. Please request a new one.',
+    'reset.err.short':     'Minimum 8 characters.',
+    'reset.err.match':     'Passwords do not match.',
 
     // ── Students page ────────────────────────────────────
     'students.title':         'Students',

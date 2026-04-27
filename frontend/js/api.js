@@ -213,6 +213,26 @@ export const auth = {
     return apiFetch('/auth/me/', { method: 'PATCH', body: JSON.stringify(data) });
   },
 
+  async requestPasswordReset(email) {
+    const res = await fetch(`${API_BASE}/auth/password-reset/`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email }),
+    });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+
+  async confirmPasswordReset(uid, token, new_password) {
+    const res = await fetch(`${API_BASE}/auth/password-reset/confirm/`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ uid, token, new_password }),
+    });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+
   async changePassword(old_password, new_password) {
     return apiFetch('/auth/change-password/', {
       method: 'POST',

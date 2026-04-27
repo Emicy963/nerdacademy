@@ -50,6 +50,21 @@ def send_welcome_trainer(trainer, temp_password: str):
     )
 
 
+def send_password_reset_link(user, reset_url: str):
+    """Sent when a user requests a self-service password reset link."""
+    _send(
+        subject="Acadêmico — Redefinição de palavra-passe",
+        message=(
+            f"Olá {user.full_name or user.email},\n\n"
+            "Recebemos um pedido para redefinir a palavra-passe da sua conta.\n\n"
+            f"Clique no link abaixo para definir uma nova palavra-passe:\n{reset_url}\n\n"
+            "Este link é válido por 24 horas. Se não fez este pedido, ignore este email.\n\n"
+            "Acadêmico"
+        ),
+        to=user.email,
+    )
+
+
 def send_password_reset(user, temp_password: str):
     """Sent when an admin resets a user's password."""
     if not user.email:

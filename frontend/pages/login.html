@@ -216,6 +216,11 @@
       margin-top: 24px; text-align: center;
       font-size: 12px; color: var(--text-tertiary); line-height: 1.6;
     }
+    .auth-footer a {
+      color: inherit;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
 
     /* ── Institution picker (shown when user has multiple) ── */
     .institution-picker {
@@ -445,7 +450,8 @@
       </div>
 
       <p class="auth-footer">
-        Having trouble? Contact your institution administrator.
+        <a href="/pages/forgot-password.html"
+           data-i18n="login.forgot">Esqueceu a palavra-passe?</a>
       </p>
 
     </div>

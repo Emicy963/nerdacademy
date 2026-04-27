@@ -117,6 +117,59 @@ class TestUserServiceUpdateMe:
 
 
 @pytest.mark.django_db
+class TestUserServicePasswordReset:
+
+    def test_confirm_reset_sets_new_password(self, db):
+        from django.contrib.auth.tokens import PasswordResetTokenGenerator
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+
+        user = UserFactory(email="reset@academico.ao")
+        token = PasswordResetTokenGenerator().make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        UserService.confirm_password_reset(uid, token, "novasenha999")
+        user.refresh_from_db()
+        assert user.check_password("novasenha999")
+
+    def test_confirm_reset_clears_must_change_password(self, db):
+        from django.contrib.auth.tokens import PasswordResetTokenGenerator
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+
+        user = UserFactory(email="reset2@academico.ao", must_change_password=True)
+        token = PasswordResetTokenGenerator().make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        UserService.confirm_password_reset(uid, token, "novasenha999")
+        user.refresh_from_db()
+        assert user.must_change_password is False
+
+    def test_confirm_reset_invalid_token_raises(self, db):
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+
+        user = UserFactory(email="reset3@academico.ao")
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        with pytest.raises(Exception) as exc:
+            UserService.confirm_password_reset(uid, "token-invalido", "novasenha999")
+        assert "token" in str(exc.value).lower() or "inválido" in str(exc.value)
+
+    def test_confirm_reset_invalid_uid_raises(self, db):
+        with pytest.raises(Exception):
+            UserService.confirm_password_reset("uid-invalido", "qualquer-token", "novasenha999")
+
+    def test_request_reset_silent_for_unknown_email(self, db):
+        # Must not raise — prevents email enumeration
+        UserService.request_password_reset("naoexiste@academico.ao")
+
+    def test_request_reset_silent_for_placeholder_email(self, db, institution):
+        user = UserFactory(email="cin20260001@local.academico")
+        UserService.request_password_reset(user.email)
+
+
+@pytest.mark.django_db
 class TestUserServicePassword:
 
     def test_change_password_success(self, db):

@@ -111,6 +111,50 @@ class UserService:
         return password
 
     @staticmethod
+    def request_password_reset(email: str) -> None:
+        from django.contrib.auth.tokens import PasswordResetTokenGenerator
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+        from django.conf import settings
+
+        try:
+            user = UserService.get_user_by_email(email)
+        except Exception:
+            return  # silent — never reveal whether the email exists
+
+        if user.email.endswith("@local.academico") or not user.is_active:
+            return  # placeholder or deactivated — silently skip
+
+        token = PasswordResetTokenGenerator().make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        reset_url = (
+            f"{settings.FRONTEND_URL}/pages/reset-password.html"
+            f"?uid={uid}&token={token}"
+        )
+
+        from apps.accounts.emails import send_password_reset_link
+        send_password_reset_link(user, reset_url)
+
+    @staticmethod
+    def confirm_password_reset(uid_b64: str, token: str, new_password: str) -> None:
+        from django.contrib.auth.tokens import PasswordResetTokenGenerator
+        from django.utils.http import urlsafe_base64_decode
+        from django.utils.encoding import force_str
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uid_b64))
+            user = User.objects.get(pk=uid)
+        except Exception:
+            raise ValidationError({"token": "Link inválido ou expirado."})
+
+        if not PasswordResetTokenGenerator().check_token(user, token):
+            raise ValidationError({"token": "Link inválido ou expirado."})
+
+        user.set_password(new_password)
+        user.must_change_password = False
+        user.save(update_fields=["password", "must_change_password"])
+
+    @staticmethod
     def deactivate_user(user: User) -> User:
         user.is_active = False
         user.save()

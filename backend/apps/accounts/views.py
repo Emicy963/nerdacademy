@@ -5,7 +5,10 @@ from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import UserMeSerializer, MembershipSerializer, ChangePasswordSerializer, UserUpdateMeSerializer
+from .serializers import (
+    UserMeSerializer, MembershipSerializer, ChangePasswordSerializer,
+    UserUpdateMeSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
+)
 from .services import UserService
 
 
@@ -75,3 +78,32 @@ class ChangePasswordView(APIView):
         except Exception as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"detail": "Password updated successfully."})
+
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        UserService.request_password_reset(serializer.validated_data["email"])
+        return Response(
+            {"detail": "Se o email existir, um link de recuperação foi enviado."}
+        )
+
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            UserService.confirm_password_reset(
+                uid_b64=serializer.validated_data["uid"],
+                token=serializer.validated_data["token"],
+                new_password=serializer.validated_data["new_password"],
+            )
+        except Exception as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "Senha redefinida com sucesso."})
