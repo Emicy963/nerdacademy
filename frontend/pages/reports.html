@@ -283,7 +283,15 @@
           <p class="page-header__subtitle" id="page-subtitle"></p>
         </div>
         <div class="page-header__actions" id="page-actions" style="display:none">
-          <button class="btn btn-secondary btn-sm" onclick="window.print()">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-csv">
+            <svg width="13" height="13"><use href="#icon-download"/></svg>
+            <span data-i18n="report.btn.csv">Exportar CSV</span>
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-pdf">
+            <svg width="13" height="13"><use href="#icon-download"/></svg>
+            <span id="btn-pdf-label" data-i18n="report.btn.pdf">Exportar PDF</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-print" onclick="window.print()">
             <svg width="13" height="13"><use href="#icon-print"/></svg>
             <span data-i18n="report.btn.print">Imprimir</span>
           </button>
@@ -296,6 +304,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.1/dist/jspdf.plugin.autotable.min.js"></script>
 <script type="module">
 import { initLayout, setBreadcrumb } from '../js/layout.js';
 import { t, applyTranslations } from '../js/i18n.js';
@@ -352,6 +362,35 @@ function destroyChart() {
   if (activeChart) { activeChart.destroy(); activeChart = null; }
 }
 
+// ── Download state ─────────────────────────────────
+const dl = {
+  type:        null,   // 'class' | 'student'
+  rows:        [],     // class report rows OR student groups
+  activeTypes: [],     // assessment types present (class view)
+  className:   '',
+  courseName:  '',
+};
+
+// ── Download utilities ─────────────────────────────
+function slugify(s) {
+  return s.toLowerCase().replace(/[^\w]+/g, '-').replace(/^-|-$/g, '');
+}
+function today() { return new Date().toISOString().split('T')[0]; }
+
+function triggerDownload(content, filename, mime) {
+  const blob = new Blob(['﻿' + content], { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function pdfColor(pct) {
+  if (pct >= 60) return [45, 125, 79];
+  if (pct >= 40) return [138, 94, 16];
+  return [192, 57, 43];
+}
+
 // ══════════════════════════════════════════════════
 //  ADMIN / TRAINER VIEW
 // ══════════════════════════════════════════════════
@@ -406,6 +445,8 @@ async function renderStaffView() {
     const classId = sel.value;
     const cl = classList.find(c => c.id === classId);
     if (cl) {
+      dl.className  = cl.name;
+      dl.courseName = cl.course?.name ?? '';
       document.getElementById('sel-meta').style.display = 'flex';
       document.getElementById('meta-trainer').textContent = cl.trainer?.full_name ?? '';
       document.getElementById('meta-dates').textContent =
@@ -571,6 +612,7 @@ function renderClassReport(rows) {
     </div>`;
 
   document.getElementById('page-actions').style.display = 'flex';
+  Object.assign(dl, { type: 'class', rows, activeTypes });
 
   // ── Render Chart.js ────────────────────────────────
   const ctx = document.getElementById('report-chart').getContext('2d');
@@ -692,6 +734,7 @@ async function renderStudentView() {
       <div class="my-class-list" id="my-class-list"></div>`;
 
     document.getElementById('page-actions').style.display = 'flex';
+    Object.assign(dl, { type: 'student', rows: groups });
 
     // Chart
     const ctx = document.getElementById('my-chart').getContext('2d');
@@ -779,6 +822,221 @@ async function renderStudentView() {
     area.innerHTML = emptyState('#icon-grades', err.message);
   }
 }
+
+// ══════════════════════════════════════════════════
+//  DOWNLOADS — CLASS REPORT
+// ══════════════════════════════════════════════════
+function downloadClassCSV() {
+  const { rows, activeTypes, className } = dl;
+  const sep = ',';
+  const header = [
+    `"${t('report.table.student')}"`, '"Code"',
+    ...activeTypes.map(tp => `"${typeLabel(tp)}"`),
+    `"${t('report.table.average')} /20"`,
+  ].join(sep);
+
+  const lines = [header, ...rows.map(row => {
+    const gmap = {};
+    (row.grades ?? []).forEach(g => { gmap[g.assessment_type] = g; });
+    const avg = parseFloat(row.average);
+    return [
+      `"${row.student?.full_name ?? ''}"`,
+      `"${row.student?.student_code ?? ''}"`,
+      ...activeTypes.map(tp => {
+        const g = gmap[tp];
+        return g ? `${parseFloat(g.value).toFixed(2)}/${parseFloat(g.max_value).toFixed(0)}` : '-';
+      }),
+      avg > 0 ? avg.toFixed(2) : '-',
+    ].join(sep);
+  })];
+
+  triggerDownload(lines.join('\n'), `grades-${slugify(className)}-${today()}.csv`, 'text/csv;charset=utf-8;');
+}
+
+function downloadClassPDF() {
+  const { rows, activeTypes, className, courseName } = dl;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+  // ── Header ─────────────────────────────────────────
+  doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+  doc.text('Grade Report', 14, 18);
+  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.setTextColor(120, 120, 120);
+  doc.text(`${courseName ? courseName + ' — ' : ''}${className}`, 14, 27);
+  doc.text(new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' }), 14, 33);
+  doc.setTextColor(0, 0, 0);
+
+  // ── Stats line ─────────────────────────────────────
+  const active = rows.filter(r => r.enrollment_status !== 'dropped');
+  const avgs   = active.map(r => parseFloat(r.average)).filter(a => a > 0);
+  const cAvg   = avgs.length ? avgs.reduce((s, a) => s + a, 0) / avgs.length : null;
+  doc.setFontSize(9); doc.setTextColor(110, 110, 110);
+  const statsLine = [
+    `Students: ${rows.length}`,
+    cAvg !== null ? `Class avg: ${cAvg.toFixed(2)}/20` : '',
+    avgs.length    ? `Highest: ${Math.max(...avgs).toFixed(2)}` : '',
+    avgs.length    ? `Lowest: ${Math.min(...avgs).toFixed(2)}`  : '',
+  ].filter(Boolean).join('   |   ');
+  doc.text(statsLine, 14, 41);
+  doc.setTextColor(0, 0, 0);
+
+  // ── Table ──────────────────────────────────────────
+  const head = [[
+    { content: t('report.table.student'), styles: { halign: 'left' } },
+    { content: 'Code',                    styles: { halign: 'left' } },
+    ...activeTypes.map(tp => ({ content: typeLabel(tp), styles: { halign: 'center' } })),
+    { content: `${t('report.table.average')} /20`,      styles: { halign: 'right' } },
+  ]];
+
+  const body = rows.map(row => {
+    const gmap = {};
+    (row.grades ?? []).forEach(g => { gmap[g.assessment_type] = g; });
+    const avg     = parseFloat(row.average);
+    const dropped = row.enrollment_status === 'dropped';
+    return [
+      { content: row.student?.full_name ?? '—',    styles: { fontStyle: dropped ? 'italic' : 'normal' } },
+      { content: row.student?.student_code ?? '—', styles: { font: 'courier', fontSize: 8 } },
+      ...activeTypes.map(tp => {
+        const g = gmap[tp];
+        if (!g) return { content: '—', styles: { halign: 'center', textColor: [180, 180, 180] } };
+        const val = parseFloat(g.value), max = parseFloat(g.max_value);
+        const pct = (val / max) * 100;
+        return { content: `${val.toFixed(1)}/${max.toFixed(0)}`, styles: { halign: 'center', fontStyle: 'bold', textColor: pdfColor(pct) } };
+      }),
+      {
+        content: avg > 0 ? avg.toFixed(2) : '—',
+        styles: { halign: 'right', fontStyle: 'bold', textColor: avg > 0 ? pdfColor((avg / 20) * 100) : [180, 180, 180] },
+      },
+    ];
+  });
+
+  doc.autoTable({
+    head, body, startY: 47,
+    styles:            { fontSize: 9, cellPadding: 2.5 },
+    headStyles:        { fillColor: [28, 27, 24], textColor: [255, 255, 255], fontStyle: 'bold' },
+    alternateRowStyles:{ fillColor: [247, 246, 243] },
+    columnStyles:      { 0: { cellWidth: 48 }, 1: { cellWidth: 26 } },
+    margin:            { left: 14, right: 14 },
+  });
+
+  // ── Footer ─────────────────────────────────────────
+  const pages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) {
+    doc.setPage(i); doc.setFontSize(8); doc.setTextColor(170, 170, 170);
+    doc.text(
+      `Acadêmico — ${className} — Page ${i} of ${pages}`,
+      14, doc.internal.pageSize.height - 8
+    );
+  }
+
+  doc.save(`grades-${slugify(className)}-${today()}.pdf`);
+}
+
+// ══════════════════════════════════════════════════
+//  DOWNLOADS — STUDENT VIEW
+// ══════════════════════════════════════════════════
+function downloadStudentCSV() {
+  const { rows: groups } = dl;
+  const sep = ',';
+  const header = ['"Class"', '"Course"', '"Trainer"', '"Assessment Type"', '"Grade"', '"Max"', '"Date"', '"Average /20"'].join(sep);
+  const lines  = [header];
+
+  groups.forEach(group => {
+    const avg = parseFloat(group.average) || 0;
+    (group.grades ?? []).forEach(g => {
+      lines.push([
+        `"${group.class_name}"`,
+        `"${group.course_name}"`,
+        `"${group.trainer_name}"`,
+        `"${typeLabel(g.assessment_type)}"`,
+        parseFloat(g.value).toFixed(2),
+        parseFloat(g.max_value).toFixed(0),
+        g.assessed_at ?? '',
+        avg > 0 ? avg.toFixed(2) : '-',
+      ].join(sep));
+    });
+  });
+
+  triggerDownload(lines.join('\n'), `my-grades-${today()}.csv`, 'text/csv;charset=utf-8;');
+}
+
+function downloadStudentPDF() {
+  const { rows: groups } = dl;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+  doc.text('My Academic Report', 14, 18);
+  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.setTextColor(120, 120, 120);
+  doc.text(new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' }), 14, 26);
+  doc.setTextColor(0, 0, 0);
+
+  let y = 34;
+  groups.forEach((group, idx) => {
+    if (idx > 0) y += 4;
+    if (y > 250) { doc.addPage(); y = 14; }
+
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+    doc.text(group.class_name, 14, y); y += 6;
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.setTextColor(130, 130, 130);
+    doc.text(`${group.course_name} · ${group.trainer_name}`, 14, y);
+    doc.setTextColor(0, 0, 0); y += 4;
+
+    const avg = parseFloat(group.average) || 0;
+    const tableBody = (group.grades ?? []).map(g => {
+      const val = parseFloat(g.value), max = parseFloat(g.max_value);
+      const pct = (val / max) * 100;
+      return [
+        { content: typeLabel(g.assessment_type) },
+        { content: `${val.toFixed(1)} / ${max.toFixed(0)}`, styles: { halign: 'center', fontStyle: 'bold', textColor: pdfColor(pct) } },
+        { content: g.assessed_at ?? '—', styles: { halign: 'right', textColor: [140, 140, 140] } },
+      ];
+    });
+    tableBody.push([
+      { content: t('report.table.average'), styles: { fontStyle: 'bold' } },
+      { content: avg > 0 ? `${avg.toFixed(2)} / 20` : '—', styles: { halign: 'center', fontStyle: 'bold', textColor: avg > 0 ? pdfColor((avg / 20) * 100) : [160, 160, 160] } },
+      { content: '' },
+    ]);
+
+    doc.autoTable({
+      head: [['Assessment', 'Grade', 'Date']],
+      body: tableBody,
+      startY: y,
+      styles:            { fontSize: 9, cellPadding: 2 },
+      headStyles:        { fillColor: [28, 27, 24], textColor: [255, 255, 255] },
+      alternateRowStyles:{ fillColor: [247, 246, 243] },
+      margin:            { left: 14, right: 14 },
+    });
+    y = doc.lastAutoTable.finalY + 6;
+  });
+
+  doc.save(`my-grades-${today()}.pdf`);
+}
+
+// ── Button listeners ───────────────────────────────
+document.getElementById('btn-csv').addEventListener('click', () => {
+  if (dl.type === 'class')   downloadClassCSV();
+  else if (dl.type === 'student') downloadStudentCSV();
+});
+
+document.getElementById('btn-pdf').addEventListener('click', () => {
+  const btn   = document.getElementById('btn-pdf');
+  const label = document.getElementById('btn-pdf-label');
+  btn.disabled = true;
+  label.textContent = t('report.btn.generating');
+  try {
+    if (dl.type === 'class')        downloadClassPDF();
+    else if (dl.type === 'student') downloadStudentPDF();
+  } finally {
+    setTimeout(() => {
+      btn.disabled = false;
+      label.textContent = t('report.btn.pdf');
+    }, 400);
+  }
+});
 
 // ── Helpers ────────────────────────────────────────
 function emptyPrompt(msg) {
