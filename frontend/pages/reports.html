@@ -445,8 +445,9 @@ async function renderStaffView() {
     const classId = sel.value;
     const cl = classList.find(c => c.id === classId);
     if (cl) {
-      dl.className  = cl.name;
-      dl.courseName = cl.course?.name ?? '';
+      dl.className   = cl.name;
+      dl.courseName  = cl.course?.name ?? '';
+      dl.trainerName = cl.trainer?.full_name ?? '';
       document.getElementById('sel-meta').style.display = 'flex';
       document.getElementById('meta-trainer').textContent = cl.trainer?.full_name ?? '';
       document.getElementById('meta-dates').textContent =
@@ -854,7 +855,7 @@ function downloadClassCSV() {
 }
 
 function downloadClassPDF() {
-  const { rows, activeTypes, className, courseName } = dl;
+  const { rows, activeTypes, className, courseName, trainerName } = dl;
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
@@ -863,8 +864,14 @@ function downloadClassPDF() {
   doc.text('Grade Report', 14, 18);
   doc.setFontSize(10); doc.setFont('helvetica', 'normal');
   doc.setTextColor(120, 120, 120);
-  doc.text(`${courseName ? courseName + ' — ' : ''}${className}`, 14, 27);
-  doc.text(new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' }), 14, 33);
+  const headerLines = [
+    courseName ? `${t('nav.item.courses')}: ${courseName}` : null,
+    `${t('nav.item.classes')}: ${className}`,
+    trainerName ? `${t('nav.item.trainers').replace(/s$/,'')}: ${trainerName}` : null,
+    new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' }),
+  ].filter(Boolean);
+  headerLines.forEach((line, i) => doc.text(line, 14, 27 + i * 6));
+  const headerEndY = 27 + headerLines.length * 6;
   doc.setTextColor(0, 0, 0);
 
   // ── Stats line ─────────────────────────────────────
@@ -878,7 +885,7 @@ function downloadClassPDF() {
     avgs.length    ? `Highest: ${Math.max(...avgs).toFixed(2)}` : '',
     avgs.length    ? `Lowest: ${Math.min(...avgs).toFixed(2)}`  : '',
   ].filter(Boolean).join('   |   ');
-  doc.text(statsLine, 14, 41);
+  doc.text(statsLine, 14, headerEndY);
   doc.setTextColor(0, 0, 0);
 
   // ── Table ──────────────────────────────────────────
@@ -912,7 +919,7 @@ function downloadClassPDF() {
   });
 
   doc.autoTable({
-    head, body, startY: 47,
+    head, body, startY: headerEndY + 6,
     styles:            { fontSize: 9, cellPadding: 2.5 },
     headStyles:        { fillColor: [28, 27, 24], textColor: [255, 255, 255], fontStyle: 'bold' },
     alternateRowStyles:{ fillColor: [247, 246, 243] },
