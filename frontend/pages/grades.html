@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grades — Acadêmico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <style>
+    /* ── Class selector bar ────────────────────────── */
+    .class-selector-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      padding: var(--sp-4) var(--sp-5);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: var(--sp-6);
+    }
+    .class-selector-bar label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .class-selector-bar select {
+      flex: 1;
+      max-width: 420px;
+    }
+    .class-selector-bar .class-meta {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      font-size: 12px;
+      color: var(--text-tertiary);
+      flex-shrink: 0;
+    }
+
+    /* ── Report table ──────────────────────────────── */
+    .report-wrap {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .report-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--sp-4) var(--sp-5);
+      border-bottom: 1px solid var(--border-default);
+      background: var(--bg-canvas);
+    }
+
+    .report-header__title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .report-header__meta {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    /* Report table: student + one col per assessment type + average */
+    .report-table { width: 100%; border-collapse: collapse; }
+
+    .report-table th {
+      padding: var(--sp-3) var(--sp-4);
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      background: var(--bg-canvas);
+      border-bottom: 1px solid var(--border-default);
+      white-space: nowrap;
+    }
+    .report-table th.grade-col { text-align: center; }
+
+    .report-table td {
+      padding: var(--sp-3) var(--sp-4);
+      border-bottom: 1px solid var(--border-default);
+      vertical-align: middle;
+      font-size: 13px;
+    }
+    .report-table tr:last-child td { border-bottom: none; }
+    .report-table tr:hover td { background: #FAFAF8; }
+
+    .report-table .grade-cell {
+      text-align: center;
+      position: relative;
+    }
+
+    /* Grade pill inside cell */
+    .grade-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+    .grade-pill.has-grade {
+      background: var(--bg-raised);
+      color: var(--text-primary);
+    }
+    .grade-pill.has-grade:hover {
+      background: var(--border-default);
+    }
+    .grade-pill.no-grade {
+      background: transparent;
+      color: var(--text-tertiary);
+      border: 1.5px dashed var(--border-default);
+      cursor: pointer;
+    }
+    .grade-pill.no-grade:hover {
+      border-color: var(--color-amber);
+      color: #8A5E10;
+      background: var(--color-amber-bg);
+    }
+
+    /* Grade colour by score */
+    .grade-pill.high { background: var(--color-green-bg); color: var(--color-green); }
+    .grade-pill.mid  { background: var(--color-amber-bg); color: #8A5E10; }
+    .grade-pill.low  { background: var(--color-red-bg);   color: var(--color-red); }
+
+    /* Average column */
+    .avg-cell {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      text-align: right;
+      padding-right: var(--sp-5) !important;
+    }
+    .avg-cell.high { color: var(--color-green); }
+    .avg-cell.mid  { color: #8A5E10; }
+    .avg-cell.low  { color: var(--color-red); }
+    .avg-cell.empty { color: var(--text-tertiary); }
+
+    /* Student info cell */
+    .student-cell { min-width: 180px; }
+    .student-name { font-weight: 500; color: var(--text-primary); }
+    .student-code {
+      font-size: 11px; color: var(--text-tertiary);
+      font-family: var(--font-mono); margin-top: 1px;
+    }
+
+    /* ── Grade launch / edit modal ─────────────────── */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* ── Student view: class grade cards ───────────── */
+    .grade-class-list { display: flex; flex-direction: column; gap: var(--sp-6); }
+
+    .grade-class-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .grade-class-card__header {
+      padding: var(--sp-4) var(--sp-5);
+      border-bottom: 1px solid var(--border-default);
+      background: var(--bg-canvas);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .grade-class-card__name {
+      font-size: 14px; font-weight: 600;
+      color: var(--text-primary);
+    }
+    .grade-class-card__course {
+      font-size: 12px; color: var(--text-tertiary); margin-top: 1px;
+    }
+
+    /* Average badge on card header */
+    .avg-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    .avg-badge__value {
+      font-size: 22px; font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.3px;
+      line-height: 1;
+    }
+    .avg-badge__label {
+      font-size: 10px; color: var(--text-tertiary);
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .avg-badge.high .avg-badge__value { color: var(--color-green); }
+    .avg-badge.mid  .avg-badge__value { color: #8A5E10; }
+    .avg-badge.low  .avg-badge__value { color: var(--color-red); }
+    .avg-badge.none .avg-badge__value { color: var(--text-tertiary); }
+
+    /* Assessment type rows inside student card */
+    .assessment-row {
+      display: flex;
+      align-items: center;
+      padding: var(--sp-3) var(--sp-5);
+      border-bottom: 1px solid var(--border-default);
+      gap: var(--sp-4);
+    }
+    .assessment-row:last-child { border-bottom: none; }
+
+    .assessment-row__type {
+      font-size: 12px; font-weight: 500;
+      color: var(--text-secondary);
+      min-width: 140px;
+      flex-shrink: 0;
+    }
+
+    /* Grade bar */
+    .grade-bar-wrap { flex: 1; display: flex; align-items: center; gap: var(--sp-3); }
+    .grade-bar-track {
+      flex: 1; height: 5px;
+      background: var(--bg-raised);
+      border-radius: 99px; overflow: hidden;
+    }
+    .grade-bar-fill {
+      height: 100%; border-radius: 99px;
+      background: var(--color-green);
+      transition: width 0.7s cubic-bezier(0.16,1,0.3,1);
+    }
+    .grade-bar-fill.mid { background: var(--color-amber); }
+    .grade-bar-fill.low { background: var(--color-red); }
+
+    .grade-score {
+      font-size: 13px; font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      font-family: var(--font-mono);
+      min-width: 54px; text-align: right;
+      color: var(--text-primary);
+    }
+    .assessment-row__date {
+      font-size: 11px; color: var(--text-tertiary);
+      font-family: var(--font-mono); flex-shrink: 0;
+    }
+
+    /* ── Toast ─────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 999;
+      background: var(--text-primary); color: var(--text-inverse);
+      padding: 10px 16px; border-radius: var(--radius-lg);
+      font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg);
+      display: flex; align-items: center; gap: var(--sp-2);
+      transform: translateY(8px); opacity: 0;
+      transition: opacity var(--transition-base), transform var(--transition-base);
+      pointer-events: none;
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); }
+    .toast.error   { background: var(--color-red); }
+
+    /* ── Skeleton ──────────────────────────────────── */
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position:  600px 0; }
+    }
+    .skel {
+      display: inline-block; border-radius: var(--radius-sm);
+      background: linear-gradient(
+        90deg, var(--bg-raised) 25%, var(--border-default) 50%, var(--bg-raised) 75%
+      );
+      background-size: 600px 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+
+    /* ── Grade detail popover ──────────────────────── */
+    .grade-popover {
+      position: fixed;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: var(--sp-4);
+      z-index: 500;
+      width: 220px;
+      display: none;
+    }
+    .grade-popover.open { display: block; }
+    .grade-popover__type {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--text-tertiary); margin-bottom: var(--sp-2);
+    }
+    .grade-popover__score {
+      font-size: 28px; font-weight: 600;
+      letter-spacing: -0.5px; font-variant-numeric: tabular-nums;
+      color: var(--text-primary); line-height: 1;
+    }
+    .grade-popover__max {
+      font-size: 13px; color: var(--text-tertiary); margin-left: 3px;
+    }
+    .grade-popover__notes {
+      font-size: 12px; color: var(--text-secondary);
+      line-height: 1.5; margin-top: var(--sp-2);
+      border-top: 1px solid var(--border-default);
+      padding-top: var(--sp-2);
+    }
+    .grade-popover__actions {
+      display: flex; gap: var(--sp-2);
+      margin-top: var(--sp-3);
+      border-top: 1px solid var(--border-default);
+      padding-top: var(--sp-3);
+    }
+  </style>
+</head>
+<body>
+
+<div id="icon-sprite" style="display:none"></div>
+<div id="sidebar-backdrop"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:199;"
+     onclick="document.getElementById('sidebar').classList.remove('open')"></div>
+
+<div class="app">
+
+  <!-- ── Sidebar ──────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__logo">
+        <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
+          <path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="sidebar__name">Acadêmico</span>
+      <span class="sidebar__edition">Beta</span>
+    </div>
+    <nav class="sidebar__nav" id="sidebar-nav"></nav>
+    <div id="sidebar-institution-switcher"></div>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__avatar" id="sidebar-avatar">--</div>
+        <div class="sidebar__user-info">
+          <div class="sidebar__user-name" id="sidebar-user-name">Loading…</div>
+          <div class="sidebar__user-role"  id="sidebar-user-role">—</div>
+        </div>
+        <button class="sidebar__logout" id="logout-btn" title="Sign out">
+          <svg width="16" height="16"><use href="#icon-logout"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────── -->
+  <div class="main">
+    <header class="topbar">
+      <button class="topbar__icon-btn" id="menu-toggle" aria-label="Menu" style="display:none">
+        <svg width="16" height="16"><use href="#icon-menu"/></svg>
+      </button>
+      <nav class="topbar__breadcrumb" id="topbar-breadcrumb"></nav>
+      <label class="topbar__search">
+        <svg width="14" height="14"><use href="#icon-search"/></svg>
+        <input type="search" data-i18n-placeholder="ui.searchTopbar"
+               placeholder="Pesquisar…" autocomplete="off"/>
+      </label>
+      <div class="topbar__actions">
+        <button class="topbar__icon-btn" data-i18n-title="ui.notifications"
+                aria-label="Notifications">
+          <svg width="16" height="16"><use href="#icon-bell"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="page">
+
+      <div class="page-header">
+        <div class="page-header__left">
+          <h1 class="page-header__title" data-i18n="grades.title">Notas</h1>
+          <p class="page-header__subtitle" id="subtitle">Loading…</p>
+        </div>
+      </div>
+
+      <!-- Content injected by role -->
+      <div id="content-area"></div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ── Grade launch / edit modal ──────────────────── -->
+<div class="modal-backdrop" id="modal" role="dialog" aria-modal="true"
+     aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2 class="t-heading" id="modal-title">Launch grade</h2>
+        <p style="font-size:12px;color:var(--text-tertiary);margin-top:2px" id="modal-subtitle"></p>
+      </div>
+      <button class="btn btn-ghost btn-icon" id="modal-close" aria-label="Close">
+        <svg width="14" height="14"><use href="#icon-close"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="f-type">Assessment type</label>
+          <select class="form-select" id="f-type" disabled>
+            <option value="continuous">Continuous Assessment</option>
+            <option value="exam">Exam</option>
+            <option value="practical">Practical Work</option>
+            <option value="project">Project</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-date">
+            Assessment date <span style="color:var(--color-red)">*</span>
+          </label>
+          <input class="form-input" type="date" id="f-date"/>
+          <span class="form-error" id="e-date"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="f-value">
+            Grade <span style="color:var(--color-red)">*</span>
+          </label>
+          <input class="form-input" type="number" id="f-value"
+                 placeholder="14" min="0" step="0.01"/>
+          <span class="form-error" id="e-value"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-max">
+            Out of <span style="color:var(--color-red)">*</span>
+          </label>
+          <input class="form-input" type="number" id="f-max"
+                 placeholder="20" min="0.01" step="0.01" value="20"/>
+          <span class="form-error" id="e-max"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="f-notes">Notes</label>
+        <textarea class="form-textarea" id="f-notes" rows="2"
+                  placeholder="Optional remarks…" style="min-height:64px"></textarea>
+      </div>
+      <div class="alert alert-error" id="modal-error" style="display:none"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+      <button class="btn btn-primary"   id="modal-save">
+        <span id="modal-save-label">Launch grade</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Grade popover (click on existing grade) ────── -->
+<div class="grade-popover" id="grade-popover">
+  <div class="grade-popover__type" id="pop-type">—</div>
+  <div>
+    <span class="grade-popover__score" id="pop-score">—</span>
+    <span class="grade-popover__max"   id="pop-max"></span>
+  </div>
+  <div class="grade-popover__notes" id="pop-notes" style="display:none"></div>
+  <div class="grade-popover__actions">
+    <button class="btn btn-secondary btn-sm flex-1" id="pop-edit-btn">
+      <svg width="12" height="12"><use href="#icon-edit"/></svg> Edit
+    </button>
+    <button class="btn btn-danger btn-sm" id="pop-delete-btn">
+      <svg width="12" height="12"><use href="#icon-trash"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ── Toast ─────────────────────────────────────── -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <use href="#icon-check"/>
+  </svg>
+  <span id="toast-text"></span>
+</div>
+
+<script type="module">
+import { initLayout, setBreadcrumb } from '../js/layout.js';
+import { grades, classes } from '../js/api.js';
+
+// ── Bootstrap ──────────────────────────────────────
+const user = initLayout('grades');
+if (!user) throw new Error('unauthenticated');
+
+setBreadcrumb([{ label: 'Grades', current: true }]);
+
+fetch('../components/icons.html')
+  .then(r => r.text())
+  .then(h => { document.getElementById('icon-sprite').innerHTML = h; });
+
+const menuBtn = document.getElementById('menu-toggle');
+const sidebar  = document.getElementById('sidebar');
+menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
+window.addEventListener('resize', () => {
+  menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
+});
+menuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+// ── Role flags ─────────────────────────────────────
+const isAdmin   = user.role === 'admin';
+const isTrainer = user.role === 'trainer';
+const isStudent = user.role === 'student';
+const canWrite  = isAdmin || isTrainer;
+
+// ── State ──────────────────────────────────────────
+const ASSESSMENT_TYPES = ['continuous','exam','practical','project','other'];
+const TYPE_LABELS = {
+  continuous: 'Continuous', exam: 'Exam',
+  practical: 'Practical', project: 'Project', other: 'Other',
+};
+
+let selectedClassId   = null;
+let currentReport     = [];   // [{enrollment_id, student, grades, average}]
+let editingGradeId    = null; // null = launch new
+let pendingEnrollment = null; // {id, studentName} for launch
+let pendingType       = null; // assessment_type for launch
+
+// ── Toast ──────────────────────────────────────────
+let toastTimer;
+function showToast(msg, isError = false) {
+  const el = document.getElementById('toast');
+  clearTimeout(toastTimer);
+  document.getElementById('toast-text').textContent = msg;
+  el.classList.toggle('error', isError);
+  el.classList.add('visible');
+  toastTimer = setTimeout(() => el.classList.remove('visible'), 3500);
+}
+
+// ── Helpers ────────────────────────────────────────
+function fmtDate(iso) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleDateString('en-GB',
+    { day:'2-digit', month:'short', year:'numeric' }); }
+  catch { return iso; }
+}
+
+function gradeColor(pct) {
+  if (pct >= 60) return 'high';
+  if (pct >= 40) return 'mid';
+  return 'low';
+}
+
+function avgColor(avg, max = 20) {
+  if (!avg || isNaN(avg)) return 'empty';
+  const pct = (parseFloat(avg) / max) * 100;
+  return gradeColor(pct);
+}
+
+
+// ══════════════════════════════════════════════════
+//  STUDENT VIEW
+// ══════════════════════════════════════════════════
+async function renderStudentView() {
+  const area = document.getElementById('content-area');
+
+  // Skeleton
+  area.innerHTML = `
+    <div class="grade-class-list">
+      ${[1,2].map(() => `
+        <div class="grade-class-card">
+          <div class="grade-class-card__header">
+            <div>
+              <div class="skel" style="height:15px;width:180px"></div>
+              <div class="skel" style="height:11px;width:100px;margin-top:6px"></div>
+            </div>
+            <div class="skel" style="height:28px;width:48px;border-radius:4px"></div>
+          </div>
+          ${[1,2,3].map(() => `
+            <div class="assessment-row">
+              <div class="skel" style="height:12px;width:110px"></div>
+              <div style="flex:1;display:flex;align-items:center;gap:12px">
+                <div class="skel" style="flex:1;height:5px;border-radius:99px"></div>
+                <div class="skel" style="height:13px;width:50px"></div>
+              </div>
+            </div>`).join('')}
+        </div>`).join('')}
+    </div>`;
+
+  try {
+    const data = await grades.myGrades();
+    const groups = Array.isArray(data) ? data : (data.results ?? []);
+
+    document.getElementById('subtitle').textContent =
+      `Your grades across ${groups.length} class${groups.length !== 1 ? 'es' : ''}`;
+
+    if (!groups.length) {
+      area.innerHTML = `
+        <div class="empty-state" style="padding:var(--sp-16) var(--sp-8)">
+          <svg class="empty-state__icon" viewBox="0 0 16 16" fill="none"
+               stroke="currentColor" stroke-width="1.5">
+            <path d="M8 1.5 10 6h4.5L11 9l1.5 4.5L8 11l-4.5 2.5L5 9 1.5 6H6L8 1.5Z"/>
+          </svg>
+          <div class="empty-state__title">No grades yet</div>
+          <p class="empty-state__desc">Your trainer hasn't submitted any grades yet.</p>
+        </div>`;
+      return;
+    }
+
+    area.innerHTML = `<div class="grade-class-list">
+      ${groups.map(group => {
+        const avg    = parseFloat(group.average) || 0;
+        const avgPct = (avg / 20) * 100;
+        const avgCls = avgColor(avg, 20);
+        const gradeMap = {};
+        (group.grades ?? []).forEach(g => { gradeMap[g.assessment_type] = g; });
+        const hasGrades = Object.keys(gradeMap).length > 0;
+
+        return `
+          <div class="grade-class-card">
+            <div class="grade-class-card__header">
+              <div>
+                <div class="grade-class-card__name">${group.class_name}</div>
+                <div class="grade-class-card__course">
+                  ${group.course_name} ·
+                  <span style="color:var(--text-secondary)">${group.trainer_name}</span>
+                </div>
+              </div>
+              <div class="avg-badge ${avgCls}">
+                <div class="avg-badge__value">
+                  ${hasGrades ? avg.toFixed(1) : '—'}
+                </div>
+                <div class="avg-badge__label">avg / 20</div>
+              </div>
+            </div>
+            ${ASSESSMENT_TYPES.map(type => {
+              const g = gradeMap[type];
+              if (!g) return '';
+              const val  = parseFloat(g.value);
+              const max  = parseFloat(g.max_value);
+              const pct  = Math.min((val / max) * 100, 100);
+              const norm = (val / max) * 20;
+              const cls  = gradeColor(pct);
+              return `
+                <div class="assessment-row">
+                  <div class="assessment-row__type">${TYPE_LABELS[type]}</div>
+                  <div class="grade-bar-wrap">
+                    <div class="grade-bar-track">
+                      <div class="grade-bar-fill ${cls}" style="width:${pct}%"></div>
+                    </div>
+                    <div class="grade-score">${val.toFixed(1)}/${max.toFixed(0)}</div>
+                  </div>
+                  <div class="assessment-row__date">${fmtDate(g.assessed_at)}</div>
+                </div>`;
+            }).filter(Boolean).join('')}
+            ${!hasGrades ? `
+              <div style="padding:var(--sp-4) var(--sp-5);font-size:13px;
+                          color:var(--text-tertiary);font-style:italic">
+                No grades submitted yet.
+              </div>` : ''}
+          </div>`;
+      }).join('')}
+    </div>`;
+  } catch (err) {
+    area.innerHTML = `
+      <div class="empty-state" style="padding:var(--sp-16) var(--sp-8)">
+        <svg class="empty-state__icon" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="6.5"/>
+          <path d="M8 5v3.5M8 11v.5"/>
+        </svg>
+        <div class="empty-state__title">Could not load grades</div>
+        <p class="empty-state__desc">${err.message}</p>
+        <button class="btn btn-secondary mt-4" onclick="renderStudentView()">Try again</button>
+      </div>`;
+  }
+}
+
+
+// ══════════════════════════════════════════════════
+//  TRAINER / ADMIN VIEW
+// ══════════════════════════════════════════════════
+async function renderStaffView() {
+  const area = document.getElementById('content-area');
+
+  // Skeleton for class selector
+  area.innerHTML = `
+    <div class="class-selector-bar">
+      <label>Class</label>
+      <div class="skel" style="flex:1;max-width:420px;height:36px;border-radius:6px"></div>
+    </div>
+    <div class="report-wrap">
+      <div class="report-header">
+        <div class="skel" style="height:14px;width:160px"></div>
+      </div>
+      <div style="padding:var(--sp-12) var(--sp-6);text-align:center;
+                  color:var(--text-tertiary);font-size:13px">
+        Select a class to view the grade report.
+      </div>
+    </div>`;
+
+  // Load classes list
+  let classList = [];
+  try {
+    const data = await classes.list({ page_size: 100 });
+    classList = data.results ?? [];
+  } catch { classList = []; }
+
+  document.getElementById('subtitle').textContent =
+    canWrite ? 'Launch and manage grades per class.' : 'View grade reports.';
+
+  if (!classList.length) {
+    area.innerHTML = `
+      <div class="empty-state" style="padding:var(--sp-16) var(--sp-8)">
+        <svg class="empty-state__icon" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.5">
+          <rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/>
+          <path d="M1.5 7h13"/>
+        </svg>
+        <div class="empty-state__title">No classes available</div>
+        <p class="empty-state__desc">Create a class first before managing grades.</p>
+        <a href="classes.html" class="btn btn-primary mt-4">Go to Classes</a>
+      </div>`;
+    return;
+  }
+
+  // Build selector
+  area.innerHTML = `
+    <div class="class-selector-bar">
+      <label for="class-select">Class</label>
+      <select class="form-select" id="class-select" style="max-width:420px">
+        <option value="">Select a class…</option>
+        ${classList.map(cl => `
+          <option value="${cl.id}">
+            ${cl.name} — ${cl.course?.name ?? ''} (${cl.status})
+          </option>`).join('')}
+      </select>
+      <div class="class-meta" id="class-meta" style="display:none">
+        <span id="meta-trainer"></span>
+        <span id="meta-dates"></span>
+      </div>
+    </div>
+    <div id="report-area">
+      <div class="report-wrap">
+        <div style="padding:var(--sp-12) var(--sp-6);text-align:center;
+                    color:var(--text-tertiary);font-size:13px">
+          <svg style="width:32px;height:32px;margin:0 auto var(--sp-3);opacity:0.3"
+               viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M8 1.5 10 6h4.5L11 9l1.5 4.5L8 11l-4.5 2.5L5 9 1.5 6H6L8 1.5Z"/>
+          </svg>
+          Select a class above to load the grade report.
+        </div>
+      </div>
+    </div>`;
+
+  // Auto-select first class
+  const sel = document.getElementById('class-select');
+  sel.addEventListener('change', () => {
+    selectedClassId = sel.value || null;
+    const cl = classList.find(c => c.id === selectedClassId);
+    if (cl) {
+      document.getElementById('class-meta').style.display = 'flex';
+      document.getElementById('meta-trainer').textContent =
+        cl.trainer?.full_name ?? '';
+      document.getElementById('meta-dates').textContent =
+        `${cl.start_date ?? ''} → ${cl.end_date ?? ''}`;
+    } else {
+      document.getElementById('class-meta').style.display = 'none';
+    }
+    if (selectedClassId) loadReport(selectedClassId);
+    else document.getElementById('report-area').innerHTML = `
+      <div class="report-wrap">
+        <div style="padding:var(--sp-12) var(--sp-6);text-align:center;
+                    color:var(--text-tertiary);font-size:13px">
+          Select a class above to load the grade report.
+        </div>
+      </div>`;
+  });
+
+  // Pre-select first
+  if (classList.length) {
+    sel.value = classList[0].id;
+    sel.dispatchEvent(new Event('change'));
+  }
+}
+
+// ── Load & render report ───────────────────────────
+async function loadReport(classId) {
+  const area = document.getElementById('report-area');
+  area.innerHTML = `
+    <div class="report-wrap">
+      <div class="report-header">
+        <div class="skel" style="height:14px;width:140px"></div>
+      </div>
+      <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+        ${[1,2,3,4].map(() => `
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="skel" style="height:13px;width:160px"></div>
+            ${ASSESSMENT_TYPES.map(() =>
+              `<div class="skel" style="height:22px;width:52px;border-radius:4px"></div>`
+            ).join('')}
+            <div class="skel" style="height:13px;width:44px;margin-left:auto"></div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  try {
+    const report = await grades.report(classId);
+    currentReport = Array.isArray(report) ? report : (report.results ?? []);
+    renderReport(currentReport);
+  } catch (err) {
+    area.innerHTML = `
+      <div class="report-wrap">
+        <div class="empty-state" style="padding:var(--sp-10) var(--sp-6)">
+          <svg class="empty-state__icon" viewBox="0 0 16 16" fill="none"
+               stroke="currentColor" stroke-width="1.5">
+            <circle cx="8" cy="8" r="6.5"/>
+            <path d="M8 5v3.5M8 11v.5"/>
+          </svg>
+          <div class="empty-state__title">Could not load report</div>
+          <p class="empty-state__desc">${err.message}</p>
+          <button class="btn btn-secondary mt-4"
+                  onclick="loadReport('${classId}')">Retry</button>
+        </div>
+      </div>`;
+  }
+}
+
+function renderReport(report) {
+  const area = document.getElementById('report-area');
+
+  if (!report.length) {
+    area.innerHTML = `
+      <div class="report-wrap">
+        <div class="empty-state" style="padding:var(--sp-10) var(--sp-6)">
+          <svg class="empty-state__icon" viewBox="0 0 16 16" fill="none"
+               stroke="currentColor" stroke-width="1.5">
+            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+            <path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5"/>
+          </svg>
+          <div class="empty-state__title">No students enrolled</div>
+          <p class="empty-state__desc">Enrol students in this class to start tracking grades.</p>
+          <a href="classes.html" class="btn btn-secondary mt-4">Go to Classes</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Determine which assessment types are present in this class
+  const presentTypes = new Set();
+  report.forEach(row => (row.grades ?? []).forEach(g => presentTypes.add(g.assessment_type)));
+  const activeTypes = ASSESSMENT_TYPES.filter(t => presentTypes.has(t));
+
+  const colWidth = Math.floor(340 / Math.max(activeTypes.length, 1));
+
+  area.innerHTML = `
+    <div class="report-wrap">
+      <div class="report-header">
+        <div class="report-header__title">Grade Report</div>
+        <div class="report-header__meta">${report.length} students</div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th class="student-cell">Student</th>
+              ${activeTypes.map(t =>
+                `<th class="grade-col" style="width:${colWidth}px">${TYPE_LABELS[t]}</th>`
+              ).join('')}
+              ${canWrite ? ASSESSMENT_TYPES.filter(t => !presentTypes.has(t)).map(t =>
+                `<th class="grade-col" style="width:${colWidth}px;opacity:0.5">${TYPE_LABELS[t]}</th>`
+              ).join('') : ''}
+              <th style="text-align:right;padding-right:var(--sp-5)">Average</th>
+            </tr>
+          </thead>
+          <tbody id="report-tbody"></tbody>
+        </table>
+      </div>
+    </div>`;
+
+  const tbody = document.getElementById('report-tbody');
+
+  // All types to show (present ones + empty ones if canWrite)
+  const allTypes = canWrite
+    ? ASSESSMENT_TYPES
+    : activeTypes;
+
+  tbody.innerHTML = report.map(row => {
+    const gradeMap = {};
+    (row.grades ?? []).forEach(g => { gradeMap[g.assessment_type] = g; });
+    const avg    = parseFloat(row.average) || 0;
+    const avgCls = avgColor(avg, 20);
+    const isDropped = row.enrollment_status === 'dropped';
+
+    return `
+      <tr data-enrollment="${row.enrollment_id}"
+          style="${isDropped ? 'opacity:0.5' : ''}">
+        <td class="student-cell">
+          <div class="student-name">${row.student?.full_name ?? '—'}</div>
+          <div class="student-code">${row.student?.student_code ?? ''}</div>
+          ${isDropped ? `<span class="badge badge-red" style="margin-top:3px">Dropped</span>` : ''}
+        </td>
+        ${allTypes.map(type => {
+          const g = gradeMap[type];
+          if (g) {
+            const val  = parseFloat(g.value);
+            const max  = parseFloat(g.max_value);
+            const pct  = (val / max) * 100;
+            const cls  = gradeColor(pct);
+            return `
+              <td class="grade-cell">
+                <button class="grade-pill has-grade ${cls}"
+                        data-grade-id="${g.id}"
+                        data-enrollment="${row.enrollment_id}"
+                        data-type="${type}"
+                        title="${TYPE_LABELS[type]}: ${val}/${max}">
+                  ${val.toFixed(1)}/${max.toFixed(0)}
+                </button>
+              </td>`;
+          }
+          // No grade yet
+          if (canWrite && !isDropped) {
+            return `
+              <td class="grade-cell">
+                <button class="grade-pill no-grade"
+                        data-enrollment="${row.enrollment_id}"
+                        data-student="${row.student?.full_name ?? ''}"
+                        data-type="${type}"
+                        title="Click to launch ${TYPE_LABELS[type]} grade">
+                  + grade
+                </button>
+              </td>`;
+          }
+          return `<td class="grade-cell" style="color:var(--text-tertiary);font-size:12px">—</td>`;
+        }).join('')}
+        <td class="avg-cell ${avg > 0 ? avgCls : 'empty'}">
+          ${avg > 0 ? avg.toFixed(2) + '<span style="font-size:10px;opacity:0.6">/20</span>' : '—'}
+        </td>
+      </tr>`;
+  }).join('');
+
+  // Bind grade pill clicks
+  tbody.querySelectorAll('.grade-pill.has-grade').forEach(btn =>
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openPopover(btn);
+    }));
+
+  if (canWrite) {
+    tbody.querySelectorAll('.grade-pill.no-grade').forEach(btn =>
+      btn.addEventListener('click', () => {
+        openLaunchModal({
+          enrollmentId:  btn.dataset.enrollment,
+          studentName:   btn.dataset.student,
+          assessmentType: btn.dataset.type,
+        });
+      }));
+  }
+}
+
+// ── Grade popover ──────────────────────────────────
+let currentGradeId = null;
+const popover = document.getElementById('grade-popover');
+
+function openPopover(btn) {
+  const gradeId = btn.dataset.gradeId;
+  currentGradeId = gradeId;
+
+  // Position near the button
+  const rect = btn.getBoundingClientRect();
+  popover.style.top  = `${rect.bottom + 8 + window.scrollY}px`;
+  popover.style.left = `${Math.max(8, rect.left - 60)}px`;
+
+  // Fill from report data
+  let foundGrade = null;
+  for (const row of currentReport) {
+    foundGrade = (row.grades ?? []).find(g => g.id === gradeId);
+    if (foundGrade) break;
+  }
+
+  if (!foundGrade) { grades.get(gradeId).then(fillPopover); }
+  else fillPopover(foundGrade);
+
+  popover.classList.add('open');
+}
+
+function fillPopover(g) {
+  document.getElementById('pop-type').textContent  = TYPE_LABELS[g.assessment_type] ?? g.assessment_type;
+  document.getElementById('pop-score').textContent = parseFloat(g.value).toFixed(1);
+  document.getElementById('pop-max').textContent   = `/${parseFloat(g.max_value).toFixed(0)}`;
+  const notesEl = document.getElementById('pop-notes');
+  if (g.notes) {
+    notesEl.textContent = g.notes;
+    notesEl.style.display = 'block';
+  } else {
+    notesEl.style.display = 'none';
+  }
+
+  if (canWrite) {
+    document.getElementById('pop-edit-btn').style.display   = 'flex';
+    document.getElementById('pop-delete-btn').style.display = 'flex';
+  } else {
+    document.getElementById('pop-edit-btn').style.display   = 'none';
+    document.getElementById('pop-delete-btn').style.display = 'none';
+  }
+}
+
+document.getElementById('pop-edit-btn').addEventListener('click', () => {
+  closePopover();
+  openEditModal(currentGradeId);
+});
+
+document.getElementById('pop-delete-btn').addEventListener('click', () => {
+  closePopover();
+  handleDeleteGrade(currentGradeId);
+});
+
+function closePopover() { popover.classList.remove('open'); currentGradeId = null; }
+document.addEventListener('click', e => {
+  if (!e.target.closest('#grade-popover') && !e.target.closest('.grade-pill.has-grade'))
+    closePopover();
+});
+
+// ── Launch grade modal ─────────────────────────────
+const modal      = document.getElementById('modal');
+const modalTitle = document.getElementById('modal-title');
+const saveLabel  = document.getElementById('modal-save-label');
+const saveBtn    = document.getElementById('modal-save');
+const modalError = document.getElementById('modal-error');
+
+function openLaunchModal({ enrollmentId, studentName, assessmentType }) {
+  editingGradeId    = null;
+  pendingEnrollment = { id: enrollmentId, studentName };
+  pendingType       = assessmentType;
+
+  modalTitle.textContent = 'Launch grade';
+  document.getElementById('modal-subtitle').textContent =
+    `${studentName} · ${TYPE_LABELS[assessmentType]}`;
+  saveLabel.textContent = 'Launch grade';
+
+  const typeSelect = document.getElementById('f-type');
+  typeSelect.value   = assessmentType;
+  typeSelect.disabled = true; // fixed — type determined by cell clicked
+
+  document.getElementById('f-date').value  = new Date().toISOString().split('T')[0];
+  document.getElementById('f-value').value = '';
+  document.getElementById('f-max').value   = '20';
+  document.getElementById('f-notes').value = '';
+
+  clearModalErrors();
+  modalError.style.display = 'none';
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('f-value').focus(), 80);
+}
+
+function openEditModal(gradeId) {
+  editingGradeId    = gradeId;
+  pendingEnrollment = null;
+  pendingType       = null;
+
+  modalTitle.textContent = 'Edit grade';
+  document.getElementById('modal-subtitle').textContent = '';
+  saveLabel.textContent = 'Save changes';
+
+  grades.get(gradeId).then(g => {
+    document.getElementById('f-type').value  = g.assessment_type;
+    document.getElementById('f-type').disabled = true;
+    document.getElementById('f-date').value  = g.assessed_at  ?? '';
+    document.getElementById('f-value').value = parseFloat(g.value).toFixed(2);
+    document.getElementById('f-max').value   = parseFloat(g.max_value).toFixed(2);
+    document.getElementById('f-notes').value = g.notes ?? '';
+  });
+
+  clearModalErrors();
+  modalError.style.display = 'none';
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('f-value').focus(), 80);
+}
+
+function closeModal() { modal.classList.remove('open'); editingGradeId = null; pendingEnrollment = null; }
+
+document.getElementById('modal-close').addEventListener('click',  closeModal);
+document.getElementById('modal-cancel').addEventListener('click', closeModal);
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closePopover(); } });
+
+function clearModalErrors() {
+  ['f-date','f-value','f-max'].forEach(id => document.getElementById(id)?.classList.remove('error'));
+  ['e-date','e-value','e-max'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = ''; el.style.display = 'none'; }
+  });
+}
+
+function showFieldErr(fId, eId, msg) {
+  document.getElementById(fId)?.classList.add('error');
+  const el = document.getElementById(eId);
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+saveBtn.addEventListener('click', async () => {
+  clearModalErrors();
+  modalError.style.display = 'none';
+
+  const date  = document.getElementById('f-date').value;
+  const val   = parseFloat(document.getElementById('f-value').value);
+  const max   = parseFloat(document.getElementById('f-max').value);
+  const notes = document.getElementById('f-notes').value.trim();
+
+  let valid = true;
+  if (!date)      { showFieldErr('f-date','e-date','Date is required.'); valid = false; }
+  if (isNaN(val) || val < 0)
+    { showFieldErr('f-value','e-value','Enter a valid grade (≥ 0).'); valid = false; }
+  if (isNaN(max) || max <= 0)
+    { showFieldErr('f-max','e-max','Max value must be greater than 0.'); valid = false; }
+  if (valid && val > max)
+    { showFieldErr('f-value','e-value','Grade cannot exceed the maximum.'); valid = false; }
+  if (!valid) return;
+
+  saveBtn.disabled = true;
+  saveLabel.textContent = editingGradeId ? 'Saving…' : 'Launching…';
+
+  try {
+    if (editingGradeId) {
+      await grades.update(editingGradeId, {
+        value: val.toFixed(2),
+        max_value: max.toFixed(2),
+        assessed_at: date,
+        notes,
+      });
+      showToast('Grade updated.');
+    } else {
+      await grades.launch({
+        enrollment_id:   pendingEnrollment.id,
+        assessment_type: pendingType,
+        value:           val.toFixed(2),
+        max_value:       max.toFixed(2),
+        assessed_at:     date,
+        notes,
+      });
+      showToast('Grade launched.');
+    }
+    closeModal();
+    if (selectedClassId) loadReport(selectedClassId);
+  } catch (err) {
+    modalError.textContent = err.message ?? 'Something went wrong.';
+    modalError.style.display = 'flex';
+  } finally {
+    saveBtn.disabled = false;
+    saveLabel.textContent = editingGradeId ? 'Save changes' : 'Launch grade';
+  }
+});
+
+// ── Delete grade ───────────────────────────────────
+async function handleDeleteGrade(gradeId) {
+  if (!confirm('Delete this grade? This cannot be undone.')) return;
+  try {
+    await grades.delete(gradeId);
+    showToast('Grade deleted.');
+    if (selectedClassId) loadReport(selectedClassId);
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+// ── Route by role ──────────────────────────────────
+if (isStudent) {
+  renderStudentView();
+} else {
+  renderStaffView();
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n-title="privacy.badge">Privacidade — Acadêmico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-canvas:      #F7F6F3;
+      --bg-surface:     #FFFFFF;
+      --bg-raised:      #F0EEE9;
+      --text-primary:   #181714;
+      --text-secondary: #6B6860;
+      --text-tertiary:  #9C9A93;
+      --text-inverse:   #F5F3EE;
+      --border-default: #E4E2DC;
+      --border-strong:  #C8C5BC;
+      --color-amber:    #E8A838;
+      --color-amber-bg: #FFF8EC;
+      --sidebar-bg:     #1C1B18;
+      --sidebar-text:   #8C8A83;
+      --font-ui:        'DM Sans', system-ui, sans-serif;
+      --radius-md:      6px;
+      --radius-lg:      12px;
+      --transition-fast: 120ms ease;
+      --max-w:          1120px;
+    }
+
+    html { font-size: 15px; -webkit-font-smoothing: antialiased; }
+    body  { font-family: var(--font-ui); background: var(--bg-canvas); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
+    a     { color: inherit; text-decoration: none; }
+
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+
+    /* ── Navbar ── */
+    .navbar { position: sticky; top: 0; z-index: 100; background: var(--sidebar-bg); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .navbar__inner { display: flex; align-items: center; height: 60px; gap: 32px; }
+    .navbar__brand { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+    .navbar__logo { width: 28px; height: 28px; background: var(--color-amber); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .navbar__logo svg { width: 13px; height: 13px; color: #1C1100; }
+    .navbar__name { font-size: 15px; font-weight: 600; color: var(--text-inverse); letter-spacing: -0.2px; }
+    .navbar__edition { font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-amber); background: rgba(232,168,56,0.12); padding: 2px 6px; border-radius: 4px; }
+    .navbar__nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+    .navbar__nav a { padding: 6px 12px; font-size: 13.5px; color: var(--sidebar-text); border-radius: 5px; transition: color var(--transition-fast), background var(--transition-fast); }
+    .navbar__nav a:hover { color: var(--text-inverse); background: rgba(255,255,255,0.05); }
+    .navbar__actions { display: flex; align-items: center; gap: 8px; }
+    .lang-switcher { display: flex; align-items: center; background: rgba(255,255,255,0.06); border-radius: 5px; overflow: hidden; }
+    .lang-switcher button { background: none; border: none; cursor: pointer; padding: 5px 9px; font-family: var(--font-ui); font-size: 12px; font-weight: 500; color: var(--sidebar-text); transition: color var(--transition-fast), background var(--transition-fast); letter-spacing: 0.03em; }
+    .lang-switcher button.active { color: var(--text-inverse); background: rgba(255,255,255,0.1); }
+    .lang-switcher button:hover:not(.active) { color: var(--text-inverse); }
+    .btn-login { display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border: none; border-radius: var(--radius-md); font-family: var(--font-ui); font-size: 13.5px; font-weight: 500; background: var(--color-amber); color: #1C1100; cursor: pointer; transition: background var(--transition-fast); }
+    .btn-login:hover { background: #D4962E; }
+
+    /* ── Page header ── */
+    .page-header { background: var(--bg-surface); border-bottom: 1px solid var(--border-default); padding: 72px 0 64px; text-align: center; }
+    .badge-label { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: var(--color-amber-bg); border: 1px solid #F3D68A; border-radius: 999px; font-size: 12px; font-weight: 500; color: #7A5A00; margin-bottom: 20px; }
+    .badge-label .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--color-amber); }
+    .page-header__title { font-size: clamp(28px, 5vw, 46px); font-weight: 700; letter-spacing: -1px; line-height: 1.15; max-width: 680px; margin: 0 auto 18px; }
+    .page-header__subtitle { font-size: 16px; line-height: 1.65; color: var(--text-secondary); max-width: 520px; margin: 0 auto; }
+
+    /* ── Content ── */
+    .page-content { flex: 1; padding: 72px 0 80px; }
+    .prose-card {
+      max-width: 720px; margin: 0 auto;
+      background: var(--bg-surface); border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg); padding: 48px 52px;
+    }
+    @media (max-width: 600px) { .prose-card { padding: 32px 24px; } }
+
+    .coming-soon {
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; gap: 20px;
+    }
+    .coming-soon__icon {
+      width: 56px; height: 56px;
+      background: var(--color-amber-bg); border: 1px solid #F3D68A;
+      border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    }
+    .coming-soon__icon svg { width: 24px; height: 24px; color: #7A5A00; }
+    .coming-soon__title { font-size: 18px; font-weight: 600; }
+    .coming-soon__text { font-size: 14px; color: var(--text-secondary); line-height: 1.7; max-width: 460px; }
+    .coming-soon__text a { color: var(--color-amber); }
+    .coming-soon__text a:hover { text-decoration: underline; }
+    .coming-soon__updated { font-size: 12px; color: var(--text-tertiary); margin-top: 8px; }
+
+    /* ── Footer ── */
+    .footer { background: var(--sidebar-bg); border-top: 1px solid rgba(255,255,255,0.06); }
+    .footer__top { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 48px; padding: 56px 0 48px; }
+    @media (max-width: 700px) { .footer__top { grid-template-columns: 1fr; gap: 32px; } }
+    .footer__brand-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .footer__logo { width: 24px; height: 24px; background: var(--color-amber); border-radius: 5px; display: flex; align-items: center; justify-content: center; }
+    .footer__logo svg { width: 11px; height: 11px; color: #1C1100; }
+    .footer__name { font-size: 14px; font-weight: 600; color: var(--text-inverse); }
+    .footer__tagline { font-size: 13px; color: var(--sidebar-text); line-height: 1.55; max-width: 240px; }
+    .footer__col-title { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--sidebar-text); margin-bottom: 14px; }
+    .footer__links { display: flex; flex-direction: column; gap: 10px; }
+    .footer__links a { font-size: 13px; color: var(--sidebar-text); transition: color var(--transition-fast); }
+    .footer__links a:hover { color: var(--text-inverse); }
+    .footer__bottom { border-top: 1px solid rgba(255,255,255,0.06); padding: 20px 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .footer__copy { font-size: 12px; color: var(--sidebar-text); }
+  </style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<header class="navbar">
+  <div class="container">
+    <nav class="navbar__inner">
+      <a href="../index.html" class="navbar__brand">
+        <div class="navbar__logo">
+          <svg viewBox="0 0 14 14" fill="none">
+            <path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <span class="navbar__name">Acadêmico</span>
+        <span class="navbar__edition">Beta</span>
+      </a>
+      <nav class="navbar__nav">
+        <a href="../index.html#features" data-i18n="nav.features">Funcionalidades</a>
+        <a href="../index.html#how"      data-i18n="nav.how">Como funciona</a>
+      </nav>
+      <div class="navbar__actions">
+        <div class="lang-switcher" role="group" aria-label="Idioma / Language">
+          <button type="button" data-lang-btn="pt" onclick="switchLang('pt')">PT</button>
+          <button type="button" data-lang-btn="en" onclick="switchLang('en')">EN</button>
+        </div>
+        <a href="./login.html" class="btn-login" data-i18n="nav.login">Entrar</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="container">
+    <div class="badge-label">
+      <span class="dot"></span>
+      <span data-i18n="privacy.badge">Política de Privacidade</span>
+    </div>
+    <h1 class="page-header__title" data-i18n="privacy.title">A sua privacidade importa</h1>
+    <p class="page-header__subtitle" data-i18n="privacy.subtitle">
+      Esta página descreve como o Acadêmico recolhe, utiliza e protege os seus dados pessoais.
+    </p>
+  </div>
+</div>
+
+<!-- ── Content ── -->
+<main class="page-content">
+  <div class="container">
+    <div class="prose-card">
+      <div class="coming-soon">
+        <div class="coming-soon__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>
+          </svg>
+        </div>
+        <h2 class="coming-soon__title" data-i18n="privacy.title">A sua privacidade importa</h2>
+        <p class="coming-soon__text">
+          <span data-i18n="privacy.notice">A política de privacidade completa está a ser preparada e será publicada em breve. Entretanto, se tiver questões sobre como tratamos os seus dados, contacte-nos em</span>
+          &nbsp;<a href="mailto:geral@pynerd.ao">geral@pynerd.ao</a>.
+        </p>
+        <p class="coming-soon__updated" id="updated-date"></p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ── Footer ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div>
+        <div class="footer__brand-row">
+          <div class="footer__logo">
+            <svg viewBox="0 0 14 14" fill="none">
+              <path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z" fill="currentColor"/>
+            </svg>
+          </div>
+          <span class="footer__name">Acadêmico</span>
+        </div>
+        <p class="footer__tagline" data-i18n="footer.tagline">Gestão académica simples e eficaz para Angola.</p>
+      </div>
+      <div>
+        <div class="footer__col-title" data-i18n="footer.product">Produto</div>
+        <div class="footer__links">
+          <a href="../index.html#features" data-i18n="footer.features">Funcionalidades</a>
+          <a href="#"                      data-i18n="footer.changelog">Novidades</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title" data-i18n="footer.company">Empresa</div>
+        <div class="footer__links">
+          <a href="./about.html"   data-i18n="footer.about">Sobre nós</a>
+          <a href="./contact.html" data-i18n="footer.contact">Contacto</a>
+          <a href="./privacy.html" data-i18n="footer.privacy">Privacidade</a>
+          <a href="./terms.html"   data-i18n="footer.legal">Termos de Uso</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span class="footer__copy" data-i18n="footer.copyright">© 2026 PyNerd Development. Todos os direitos reservados.</span>
+      <div class="lang-switcher" role="group" aria-label="Idioma / Language">
+        <button type="button" data-lang-btn="pt" onclick="switchLang('pt')">PT</button>
+        <button type="button" data-lang-btn="en" onclick="switchLang('en')">EN</button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="module">
+  import { applyTranslations, setLocale, getLocale, t } from '../js/i18n.js';
+  function updateLangBtns(locale) {
+    document.querySelectorAll('[data-lang-btn]').forEach(b =>
+      b.classList.toggle('active', b.dataset.langBtn === locale));
+  }
+  function setUpdated() {
+    const el = document.getElementById('updated-date');
+    if (el) el.textContent = `${t('privacy.updated')}: Abril 2026`;
+  }
+  window.switchLang = (lang) => { setLocale(lang); updateLangBtns(lang); applyTranslations(); setUpdated(); };
+  applyTranslations();
+  updateLangBtns(getLocale());
+  setUpdated();
+</script>
+
+</body>
+</html>

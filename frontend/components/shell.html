@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Acadêmico</title>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+</head>
+<body>
+
+<!-- Icon sprite -->
+<div id="icon-sprite" style="display:none"></div>
+
+<!-- Mobile backdrop -->
+<div id="sidebar-backdrop" style="
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:199;
+  transition:opacity 0.2s;
+" onclick="document.getElementById('sidebar').classList.remove('open')"></div>
+
+<div class="app">
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+
+    <!-- Brand -->
+    <div class="sidebar__brand">
+      <div class="sidebar__logo" aria-hidden="true">
+        <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z"
+                fill="currentColor" stroke="#1C1B18" stroke-width="0.5"/>
+        </svg>
+      </div>
+      <span class="sidebar__name">Acadêmico</span>
+      <span class="sidebar__edition">Beta</span>
+    </div>
+
+    <!-- Navigation (rendered by layout.js) -->
+    <nav class="sidebar__nav" id="sidebar-nav" aria-label="Main navigation">
+      <!-- injected by JS -->
+    </nav>
+
+    <!-- User footer -->
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__avatar" id="sidebar-avatar" aria-hidden="true">AU</div>
+        <div class="sidebar__user-info">
+          <div class="sidebar__user-name" id="sidebar-user-name">Loading…</div>
+          <div class="sidebar__user-role"  id="sidebar-user-role">—</div>
+        </div>
+        <button class="sidebar__logout" id="logout-btn"
+                title="Sign out" aria-label="Sign out">
+          <svg width="16" height="16" aria-hidden="true"><use href="#icon-logout"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main area ───────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <!-- Mobile menu -->
+      <button class="topbar__icon-btn" id="menu-toggle"
+              aria-label="Open navigation"
+              style="display:none"> <!-- shown via CSS on mobile -->
+        <svg width="16" height="16" aria-hidden="true"><use href="#icon-menu"/></svg>
+      </button>
+
+      <!-- Breadcrumb -->
+      <nav class="topbar__breadcrumb" id="topbar-breadcrumb" aria-label="Breadcrumb">
+        <span class="topbar__breadcrumb-item current">Dashboard</span>
+      </nav>
+
+      <!-- Search -->
+      <label class="topbar__search" aria-label="Global search">
+        <svg width="14" height="14" aria-hidden="true"><use href="#icon-search"/></svg>
+        <input type="search" placeholder="Search anything…" id="global-search"
+               autocomplete="off"/>
+      </label>
+
+      <!-- Actions -->
+      <div class="topbar__actions">
+        <button class="topbar__icon-btn" aria-label="Notifications"
+                title="Notifications">
+          <svg width="16" height="16" aria-hidden="true"><use href="#icon-bell"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page content injected here -->
+    <main class="page" id="page-content">
+      <!-- page-specific content goes here -->
+    </main>
+
+  </div><!-- /.main -->
+</div><!-- /.app -->
+
+<!-- Load icons sprite asynchronously -->
+<script>
+  fetch('../components/icons.html')
+    .then(r => r.text())
+    .then(html => {
+      document.getElementById('icon-sprite').innerHTML = html;
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Perfil — Acadêmico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <style>
+    .profile-layout {
+      max-width: 680px;
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-5);
+      padding: var(--sp-6);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--sp-6);
+    }
+
+    .profile-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--color-amber-bg);
+      color: #8A5E10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      flex-shrink: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .profile-header-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .profile-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--sp-1);
+    }
+
+    .profile-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      flex-wrap: wrap;
+    }
+
+    .profile-badge {
+      display: inline-flex;
+      align-items: center;
+      height: 20px;
+      padding: 0 var(--sp-2);
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      background: var(--color-blue-bg);
+      color: var(--color-blue);
+    }
+
+    .profile-institution {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: var(--sp-4);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-4);
+    }
+    @media (max-width: 540px) { .info-grid { grid-template-columns: 1fr; } }
+
+    .info-item {}
+
+    .info-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--sp-1);
+    }
+
+    .info-value {
+      font-size: 13.5px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .info-value.mono {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+
+    .info-value.muted {
+      color: var(--text-tertiary);
+      font-weight: 400;
+    }
+
+    .card + .card { margin-top: var(--sp-5); }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-1);
+      margin-bottom: var(--sp-5);
+    }
+
+    .field-hint {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: var(--sp-1);
+    }
+
+    .form-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+    }
+
+    .save-feedback {
+      font-size: 13px;
+      color: var(--color-green);
+      display: none;
+    }
+
+    .save-feedback.visible { display: inline; }
+  </style>
+</head>
+<body>
+
+<div id="icon-sprite" style="display:none"></div>
+
+<div id="sidebar-backdrop" style="
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.4);z-index:199;
+" onclick="document.getElementById('sidebar').classList.remove('open')"></div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__logo">
+        <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
+          <path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="sidebar__name">Acadêmico</span>
+      <span class="sidebar__edition">Beta</span>
+    </div>
+    <nav class="sidebar__nav" id="sidebar-nav"></nav>
+    <div id="sidebar-institution-switcher"></div>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__avatar" id="sidebar-avatar">--</div>
+        <div class="sidebar__user-info">
+          <div class="sidebar__user-name" id="sidebar-user-name">Loading…</div>
+          <div class="sidebar__user-role" id="sidebar-user-role">—</div>
+        </div>
+        <button class="sidebar__logout" id="logout-btn" title="Sign out">
+          <svg width="16" height="16"><use href="#icon-logout"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="topbar__icon-btn" id="menu-toggle" aria-label="Menu" style="display:none">
+        <svg width="16" height="16"><use href="#icon-menu"/></svg>
+      </button>
+      <nav class="topbar__breadcrumb" id="topbar-breadcrumb">
+        <span class="topbar__breadcrumb-item current">Perfil</span>
+      </nav>
+      <label class="topbar__search">
+        <svg width="14" height="14"><use href="#icon-search"/></svg>
+        <input type="search" data-i18n-placeholder="ui.searchTopbar" placeholder="Pesquisar…" autocomplete="off"/>
+      </label>
+      <div class="topbar__actions">
+        <button class="topbar__icon-btn" aria-label="Notifications">
+          <svg width="16" height="16"><use href="#icon-bell"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="page" id="page-root">
+      <div class="profile-layout">
+        <!-- Skeleton while loading -->
+        <div id="profile-skeleton">
+          <div class="profile-header">
+            <div class="skeleton" style="width:64px;height:64px;border-radius:50%"></div>
+            <div style="flex:1">
+              <div class="skeleton" style="height:18px;width:200px;margin-bottom:8px"></div>
+              <div class="skeleton" style="height:14px;width:140px"></div>
+            </div>
+          </div>
+          <div class="card" style="padding:var(--sp-6)">
+            <div class="skeleton" style="height:12px;width:120px;margin-bottom:20px"></div>
+            <div class="info-grid">
+              <div><div class="skeleton" style="height:10px;width:60px;margin-bottom:8px"></div><div class="skeleton" style="height:14px;width:160px"></div></div>
+              <div><div class="skeleton" style="height:10px;width:60px;margin-bottom:8px"></div><div class="skeleton" style="height:14px;width:100px"></div></div>
+              <div><div class="skeleton" style="height:10px;width:60px;margin-bottom:8px"></div><div class="skeleton" style="height:14px;width:130px"></div></div>
+              <div><div class="skeleton" style="height:10px;width:60px;margin-bottom:8px"></div><div class="skeleton" style="height:14px;width:90px"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actual content -->
+        <div id="profile-content" style="display:none"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script type="module">
+import { initLayout, setBreadcrumb } from '../js/layout.js';
+import { auth, students, trainers, session } from '../js/api.js';
+import { t } from '../js/i18n.js';
+
+const user = initLayout('profile');
+if (!user) throw new Error('unauthenticated');
+
+setBreadcrumb([{ label: t('profile.title'), current: true }]);
+
+const roleLabels = {
+  admin:   t('ui.role.admin'),
+  trainer: t('ui.role.trainer'),
+  student: t('ui.role.student'),
+};
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function initials(name) {
+  return (name || '')
+    .split(' ')
+    .map(w => w[0]?.toUpperCase() ?? '')
+    .slice(0, 2)
+    .join('') || '?';
+}
+
+async function loadProfile() {
+  const [meResult, profileResult] = await Promise.allSettled([
+    auth.me(),
+    user.role === 'student' ? students.me() :
+    user.role === 'trainer' ? trainers.me()  : Promise.resolve(null),
+  ]);
+
+  if (meResult.status === 'rejected') {
+    showError(t('profile.err.load'));
+    return;
+  }
+
+  const me      = meResult.value;
+  const profile = profileResult.status === 'fulfilled' ? profileResult.value : null;
+  const code    = profile?.student_code ?? profile?.trainer_code ?? null;
+
+  render(me, code);
+}
+
+function render(me, code) {
+  const displayName  = me.full_name?.trim() || me.email?.split('@')[0] || '—';
+  const displayEmail = me.email || '';
+  const membership   = session.getActiveMembership();
+
+  document.getElementById('profile-skeleton').style.display = 'none';
+  const content = document.getElementById('profile-content');
+  content.style.display = 'block';
+
+  content.innerHTML = `
+    <!-- Header card -->
+    <div class="profile-header">
+      <div class="profile-avatar">${initials(displayName)}</div>
+      <div class="profile-header-info">
+        <div class="profile-name">${displayName}</div>
+        <div class="profile-meta">
+          <span class="profile-badge">${roleLabels[user.role] ?? user.role}</span>
+          <span class="profile-institution">${membership?.institution_name ?? '—'}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personal info (read-only) -->
+    <div class="card">
+      <div style="padding:var(--sp-6)">
+        <div class="section-title">${t('profile.personal')}</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">${t('profile.name')}</div>
+            <div class="info-value">${displayName}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">${t('profile.role')}</div>
+            <div class="info-value">${roleLabels[user.role] ?? user.role}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">${t('profile.institution')}</div>
+            <div class="info-value">${membership?.institution_name ?? '—'}</div>
+          </div>
+          ${code ? `
+          <div class="info-item">
+            <div class="info-label">${t('profile.code')}</div>
+            <div class="info-value mono">${code}</div>
+          </div>` : ''}
+          <div class="info-item">
+            <div class="info-label">${t('profile.since')}</div>
+            <div class="info-value">${formatDate(me.created_at)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account (editable) -->
+    <div class="card" style="margin-top:var(--sp-5)">
+      <div style="padding:var(--sp-6)">
+        <div class="section-title">${t('profile.account')}</div>
+        <form id="email-form">
+          <div class="field-group">
+            <label class="form-label" for="email-input">${t('profile.email.label')}</label>
+            <input
+              class="form-control"
+              type="email"
+              id="email-input"
+              placeholder="${t('profile.email.placeholder')}"
+              value="${displayEmail}"
+              autocomplete="email"
+            />
+            <span class="field-hint">${t('profile.email.hint')}</span>
+            <span id="email-error" class="field-error" style="display:none"></span>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="save-btn">
+              <span class="btn-label">${t('profile.save')}</span>
+            </button>
+            <span class="save-feedback" id="save-feedback">${t('profile.saved')}</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('email-form').addEventListener('submit', handleSave);
+}
+
+async function handleSave(e) {
+  e.preventDefault();
+
+  const emailInput  = document.getElementById('email-input');
+  const errorEl     = document.getElementById('email-error');
+  const saveBtn     = document.getElementById('save-btn');
+  const feedbackEl  = document.getElementById('save-feedback');
+
+  errorEl.style.display = 'none';
+  feedbackEl.classList.remove('visible');
+
+  const email = emailInput.value.trim();
+  if (!email) {
+    errorEl.textContent = t('val.required');
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  saveBtn.disabled = true;
+  saveBtn.querySelector('.btn-label').textContent = t('ui.saving');
+
+  try {
+    const updated = await auth.updateMe({ email });
+
+    // Persist updated email in session
+    const storedUser = session.getUser();
+    if (storedUser) {
+      session.set(
+        session.getAccess(),
+        session.getRefresh(),
+        { ...storedUser, email: updated.email },
+        session.getMemberships(),
+        session.getActiveMembership(),
+      );
+    }
+
+    feedbackEl.classList.add('visible');
+    setTimeout(() => feedbackEl.classList.remove('visible'), 3000);
+  } catch (err) {
+    errorEl.textContent = err.detail || t('profile.err.save');
+    errorEl.style.display = 'block';
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.querySelector('.btn-label').textContent = t('profile.save');
+  }
+}
+
+function showError(msg) {
+  document.getElementById('profile-skeleton').style.display = 'none';
+  const content = document.getElementById('profile-content');
+  content.style.display = 'block';
+  content.innerHTML = `
+    <div class="card" style="padding:var(--sp-10);text-align:center;color:var(--text-tertiary)">
+      <p>${msg}</p>
+    </div>`;
+}
+
+loadProfile();
+</script>
+
+<script>
+  fetch('../components/icons.html')
+    .then(r => r.text())
+    .then(html => { document.getElementById('icon-sprite').innerHTML = html; });
+</script>
+</body>
+</html>

@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Relatórios — Acadêmico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <style>
+    /* ── Class selector ─────────────────────────────── */
+    .selector-bar {
+      display: flex; align-items: center; gap: var(--sp-3);
+      padding: var(--sp-4) var(--sp-5);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: var(--sp-5);
+      flex-wrap: wrap;
+    }
+    .selector-bar label {
+      font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); white-space: nowrap;
+    }
+    .selector-bar select { flex: 1; max-width: 420px; }
+    .selector-bar .sel-meta {
+      margin-left: auto; display: flex; align-items: center;
+      gap: var(--sp-3); font-size: 12px; color: var(--text-tertiary);
+    }
+
+    /* ── Stats row ──────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--sp-4);
+      margin-bottom: var(--sp-5);
+    }
+    @media (max-width: 700px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    .stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-4) var(--sp-5);
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-card__label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--text-tertiary);
+      margin-bottom: var(--sp-2);
+    }
+    .stat-card__value {
+      font-size: 26px; font-weight: 600; letter-spacing: -0.5px;
+      font-variant-numeric: tabular-nums; line-height: 1;
+      color: var(--text-primary);
+    }
+    .stat-card__value.high { color: var(--color-green); }
+    .stat-card__value.mid  { color: #8A5E10; }
+    .stat-card__value.low  { color: var(--color-red); }
+    .stat-card__sub {
+      font-size: 11px; color: var(--text-tertiary); margin-top: var(--sp-1);
+    }
+
+    /* ── Report panels ──────────────────────────────── */
+    .report-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      margin-bottom: var(--sp-5);
+    }
+    .report-panel__header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--sp-4) var(--sp-5);
+      border-bottom: 1px solid var(--border-default);
+      background: var(--bg-canvas);
+    }
+    .report-panel__title {
+      font-size: 13px; font-weight: 600; color: var(--text-primary);
+    }
+    .report-panel__sub {
+      font-size: 12px; color: var(--text-tertiary);
+    }
+    .report-panel__body { padding: var(--sp-5); }
+
+    /* ── Chart ──────────────────────────────────────── */
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    /* ── Grade table ────────────────────────────────── */
+    .grade-table-wrap { overflow-x: auto; }
+    .grade-table {
+      width: 100%; border-collapse: collapse;
+    }
+    .grade-table th {
+      padding: var(--sp-3) var(--sp-4);
+      text-align: left; font-size: 11px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-tertiary); background: var(--bg-canvas);
+      border-bottom: 1px solid var(--border-default);
+      white-space: nowrap;
+    }
+    .grade-table th.center { text-align: center; }
+    .grade-table th.right  { text-align: right; padding-right: var(--sp-5); }
+    .grade-table td {
+      padding: var(--sp-3) var(--sp-4);
+      border-bottom: 1px solid var(--border-default);
+      font-size: 13px; vertical-align: middle;
+    }
+    .grade-table tr:last-child td { border-bottom: none; }
+    .grade-table tr:hover td { background: #FAFAF8; }
+    .grade-table .cell-center { text-align: center; }
+    .grade-table .cell-right  { text-align: right; padding-right: var(--sp-5); }
+
+    .student-name { font-weight: 500; color: var(--text-primary); }
+    .student-code { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); margin-top: 1px; }
+
+    .grade-chip {
+      display: inline-block; padding: 2px 8px;
+      border-radius: 4px; font-size: 12px; font-weight: 600;
+      font-variant-numeric: tabular-nums; font-family: var(--font-mono);
+    }
+    .grade-chip.high { background: var(--color-green-bg); color: var(--color-green); }
+    .grade-chip.mid  { background: var(--color-amber-bg); color: #8A5E10; }
+    .grade-chip.low  { background: var(--color-red-bg);   color: var(--color-red); }
+    .grade-chip.none { background: var(--bg-raised); color: var(--text-tertiary); font-weight: 400; }
+
+    .avg-cell {
+      font-weight: 600; font-variant-numeric: tabular-nums;
+      font-family: var(--font-mono); font-size: 13px;
+      text-align: right; padding-right: var(--sp-5) !important;
+    }
+    .avg-cell.high { color: var(--color-green); }
+    .avg-cell.mid  { color: #8A5E10; }
+    .avg-cell.low  { color: var(--color-red); }
+    .avg-cell.empty { color: var(--text-tertiary); }
+
+    /* ── Student view — class cards ─────────────────── */
+    .my-class-list { display: flex; flex-direction: column; gap: var(--sp-5); }
+
+    .my-class-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm); overflow: hidden;
+    }
+    .my-class-card__header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--sp-4) var(--sp-5);
+      border-bottom: 1px solid var(--border-default);
+      background: var(--bg-canvas);
+    }
+    .my-class-card__name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .my-class-card__meta { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+
+    .avg-badge { display: flex; flex-direction: column; align-items: flex-end; }
+    .avg-badge__val {
+      font-size: 22px; font-weight: 600;
+      font-variant-numeric: tabular-nums; letter-spacing: -0.3px; line-height: 1;
+    }
+    .avg-badge__lbl { font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; }
+    .avg-badge.high .avg-badge__val { color: var(--color-green); }
+    .avg-badge.mid  .avg-badge__val { color: #8A5E10; }
+    .avg-badge.low  .avg-badge__val { color: var(--color-red); }
+    .avg-badge.none .avg-badge__val { color: var(--text-tertiary); }
+
+    .assess-row {
+      display: flex; align-items: center;
+      padding: var(--sp-3) var(--sp-5);
+      border-bottom: 1px solid var(--border-default);
+      gap: var(--sp-4);
+    }
+    .assess-row:last-child { border-bottom: none; }
+    .assess-row__type {
+      font-size: 12px; font-weight: 500; color: var(--text-secondary);
+      min-width: 140px; flex-shrink: 0;
+    }
+    .bar-wrap { flex: 1; display: flex; align-items: center; gap: var(--sp-3); }
+    .bar-track { flex: 1; height: 5px; background: var(--bg-raised); border-radius: 99px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 99px; background: var(--color-green); transition: width 0.7s cubic-bezier(0.16,1,0.3,1); }
+    .bar-fill.mid { background: var(--color-amber); }
+    .bar-fill.low { background: var(--color-red); }
+    .bar-score {
+      font-size: 13px; font-weight: 600;
+      font-variant-numeric: tabular-nums; font-family: var(--font-mono);
+      min-width: 54px; text-align: right; color: var(--text-primary);
+    }
+    .assess-row__date { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); flex-shrink: 0; }
+
+    /* ── Skeleton ────────────────────────────────────── */
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position:  600px 0; }
+    }
+    .skel {
+      display: inline-block; border-radius: var(--radius-sm);
+      background: linear-gradient(90deg, var(--bg-raised) 25%, var(--border-default) 50%, var(--bg-raised) 75%);
+      background-size: 600px 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+
+    /* ── Print styles ────────────────────────────────── */
+    @media print {
+      .sidebar, .topbar__actions, #menu-toggle,
+      .selector-bar, .topbar__search,
+      .topbar__breadcrumb { display: none !important; }
+      .main { margin-left: 0 !important; }
+      .page { padding: var(--sp-4) !important; }
+      .stats-row { page-break-inside: avoid; }
+      .report-panel { page-break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+      .my-class-card { page-break-inside: avoid; box-shadow: none; }
+      body { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="icon-sprite" style="display:none"></div>
+<div id="sidebar-backdrop"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:199;"
+     onclick="document.getElementById('sidebar').classList.remove('open')"></div>
+
+<div class="app">
+
+  <!-- ── Sidebar ──────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__logo">
+        <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
+          <path d="M7 1L12.5 4V10L7 13L1.5 10V4L7 1Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="sidebar__name">Acadêmico</span>
+      <span class="sidebar__edition">Beta</span>
+    </div>
+    <nav class="sidebar__nav" id="sidebar-nav"></nav>
+    <div id="sidebar-institution-switcher"></div>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__avatar" id="sidebar-avatar">--</div>
+        <div class="sidebar__user-info">
+          <div class="sidebar__user-name" id="sidebar-user-name">Loading…</div>
+          <div class="sidebar__user-role"  id="sidebar-user-role">—</div>
+        </div>
+        <button class="sidebar__logout" id="logout-btn" title="Sign out">
+          <svg width="16" height="16"><use href="#icon-logout"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────── -->
+  <div class="main">
+    <header class="topbar">
+      <button class="topbar__icon-btn" id="menu-toggle" aria-label="Menu" style="display:none">
+        <svg width="16" height="16"><use href="#icon-menu"/></svg>
+      </button>
+      <nav class="topbar__breadcrumb" id="topbar-breadcrumb"></nav>
+      <label class="topbar__search">
+        <svg width="14" height="14"><use href="#icon-search"/></svg>
+        <input type="search" placeholder="Pesquisar…" autocomplete="off"
+               data-i18n-placeholder="ui.searchTopbar"/>
+      </label>
+      <div class="topbar__actions">
+        <button class="topbar__icon-btn" data-i18n-title="ui.notifications"
+                aria-label="Notifications">
+          <svg width="16" height="16"><use href="#icon-bell"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="page">
+      <div class="page-header">
+        <div class="page-header__left">
+          <h1 class="page-header__title" data-i18n="report.title">Relatórios</h1>
+          <p class="page-header__subtitle" id="page-subtitle"></p>
+        </div>
+        <div class="page-header__actions" id="page-actions" style="display:none">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-csv">
+            <svg width="13" height="13"><use href="#icon-download"/></svg>
+            <span data-i18n="report.btn.csv">Exportar CSV</span>
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-pdf">
+            <svg width="13" height="13"><use href="#icon-download"/></svg>
+            <span id="btn-pdf-label" data-i18n="report.btn.pdf">Exportar PDF</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-print" onclick="window.print()">
+            <svg width="13" height="13"><use href="#icon-print"/></svg>
+            <span data-i18n="report.btn.print">Imprimir</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="content-area"></div>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.1/dist/jspdf.plugin.autotable.min.js"></script>
+<script type="module">
+import { initLayout, setBreadcrumb } from '../js/layout.js';
+import { t, applyTranslations } from '../js/i18n.js';
+import { grades, classes } from '../js/api.js';
+
+// ── Bootstrap ──────────────────────────────────────
+const user = initLayout('reports');
+if (!user) throw new Error('unauthenticated');
+
+setBreadcrumb([{ label: t('report.title'), current: true }]);
+
+fetch('../components/icons.html')
+  .then(r => r.text())
+  .then(h => { document.getElementById('icon-sprite').innerHTML = h; });
+
+const menuBtn = document.getElementById('menu-toggle');
+const sidebar  = document.getElementById('sidebar');
+menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
+window.addEventListener('resize', () => {
+  menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
+});
+menuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+// ── Constants ──────────────────────────────────────
+const ASSESSMENT_TYPES = ['continuous', 'exam', 'practical', 'project', 'other'];
+
+function typeLabel(type) {
+  return t(`report.assessment.${type}`) || type;
+}
+
+function gradeColor(pct) {
+  if (pct >= 60) return 'high';
+  if (pct >= 40) return 'mid';
+  return 'low';
+}
+
+function avgColor(avg) {
+  if (!avg || isNaN(parseFloat(avg))) return 'empty';
+  const pct = (parseFloat(avg) / 20) * 100;
+  return gradeColor(pct);
+}
+
+function chartColor(avg) {
+  const c = avgColor(avg);
+  if (c === 'high') return { bg: 'rgba(45,125,79,0.8)',  border: '#2D7D4F' };
+  if (c === 'mid')  return { bg: 'rgba(232,168,56,0.8)', border: '#C48A1A' };
+  return               { bg: 'rgba(192,57,43,0.8)',  border: '#C0392B' };
+}
+
+// ── Chart instance tracker ─────────────────────────
+let activeChart = null;
+
+function destroyChart() {
+  if (activeChart) { activeChart.destroy(); activeChart = null; }
+}
+
+// ── Download state ─────────────────────────────────
+const dl = {
+  type:        null,   // 'class' | 'student'
+  rows:        [],     // class report rows OR student groups
+  activeTypes: [],     // assessment types present (class view)
+  className:   '',
+  courseName:  '',
+};
+
+// ── Download utilities ─────────────────────────────
+function slugify(s) {
+  return s.toLowerCase().replace(/[^\w]+/g, '-').replace(/^-|-$/g, '');
+}
+function today() { return new Date().toISOString().split('T')[0]; }
+
+function triggerDownload(content, filename, mime) {
+  const blob = new Blob(['﻿' + content], { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function pdfColor(pct) {
+  if (pct >= 60) return [45, 125, 79];
+  if (pct >= 40) return [138, 94, 16];
+  return [192, 57, 43];
+}
+
+// ══════════════════════════════════════════════════
+//  ADMIN / TRAINER VIEW
+// ══════════════════════════════════════════════════
+async function renderStaffView() {
+  document.getElementById('page-subtitle').textContent = t('report.subtitle.admin');
+
+  const area = document.getElementById('content-area');
+  area.innerHTML = `
+    <div class="selector-bar">
+      <label>${t('report.class_label')}</label>
+      <div class="skel" style="flex:1;max-width:420px;height:36px;border-radius:6px"></div>
+    </div>
+    <div id="report-body">
+      ${emptyPrompt(t('report.select_prompt'))}
+    </div>`;
+
+  let classList = [];
+  try {
+    const data = await classes.list({ page_size: 100 });
+    classList = data.results ?? [];
+  } catch { classList = []; }
+
+  if (!classList.length) {
+    area.innerHTML = emptyState(
+      '#icon-classes', t('report.empty.no_classes'),
+      `<a href="classes.html" class="btn btn-primary mt-4">${t('nav.item.classes')}</a>`
+    );
+    return;
+  }
+
+  area.innerHTML = `
+    <div class="selector-bar">
+      <label for="class-sel">${t('report.class_label')}</label>
+      <select class="form-select" id="class-sel" style="max-width:420px">
+        <option value="">${t('report.class_placeholder')}</option>
+        ${classList.map(cl => `
+          <option value="${cl.id}">
+            ${cl.name} — ${cl.course?.name ?? ''} (${cl.status})
+          </option>`).join('')}
+      </select>
+      <div class="sel-meta" id="sel-meta" style="display:none">
+        <span id="meta-trainer"></span>
+        <span id="meta-dates"></span>
+      </div>
+    </div>
+    <div id="report-body">
+      ${emptyPrompt(t('report.select_prompt'))}
+    </div>`;
+
+  const sel = document.getElementById('class-sel');
+  sel.addEventListener('change', () => {
+    const classId = sel.value;
+    const cl = classList.find(c => c.id === classId);
+    if (cl) {
+      dl.className   = cl.name;
+      dl.courseName  = cl.course?.name ?? '';
+      dl.trainerName = cl.trainer?.full_name ?? '';
+      document.getElementById('sel-meta').style.display = 'flex';
+      document.getElementById('meta-trainer').textContent = cl.trainer?.full_name ?? '';
+      document.getElementById('meta-dates').textContent =
+        `${cl.start_date ?? ''} → ${cl.end_date ?? ''}`;
+    } else {
+      document.getElementById('sel-meta').style.display = 'none';
+    }
+    if (classId) loadClassReport(classId);
+    else document.getElementById('report-body').innerHTML = emptyPrompt(t('report.select_prompt'));
+  });
+
+  // Pre-select first class
+  sel.value = classList[0].id;
+  sel.dispatchEvent(new Event('change'));
+}
+
+async function loadClassReport(classId) {
+  const body = document.getElementById('report-body');
+  destroyChart();
+
+  body.innerHTML = `
+    <div class="stats-row">
+      ${[1,2,3,4].map(() => `
+        <div class="stat-card">
+          <div class="skel" style="height:11px;width:80px"></div>
+          <div class="skel" style="height:26px;width:60px;margin-top:8px"></div>
+        </div>`).join('')}
+    </div>
+    <div class="report-panel">
+      <div class="report-panel__header">
+        <div class="skel" style="height:13px;width:180px"></div>
+      </div>
+      <div class="report-panel__body" style="height:200px">
+        <div class="skel" style="height:100%;width:100%;border-radius:6px"></div>
+      </div>
+    </div>`;
+
+  try {
+    const report = await grades.report(classId);
+    const rows = Array.isArray(report) ? report : (report.results ?? []);
+    renderClassReport(rows);
+  } catch (err) {
+    body.innerHTML = emptyState('#icon-grades', err.message);
+  }
+}
+
+function renderClassReport(rows) {
+  const body = document.getElementById('report-body');
+  destroyChart();
+
+  if (!rows.length) {
+    document.getElementById('page-actions').style.display = 'none';
+    body.innerHTML = emptyState('#icon-students', t('report.empty.no_students'));
+    return;
+  }
+
+  // ── Stats ──────────────────────────────────────────
+  const active = rows.filter(r => r.enrollment_status !== 'dropped');
+  const avgs   = active.map(r => parseFloat(r.average)).filter(a => a > 0);
+  const classAvg  = avgs.length ? (avgs.reduce((s, a) => s + a, 0) / avgs.length) : null;
+  const highest   = avgs.length ? Math.max(...avgs) : null;
+  const lowest    = avgs.length ? Math.min(...avgs) : null;
+
+  function statVal(v, decimals = 2) {
+    return v !== null ? v.toFixed(decimals) : '—';
+  }
+
+  // ── Active assessment types ────────────────────────
+  const presentTypes = new Set();
+  rows.forEach(r => (r.grades ?? []).forEach(g => presentTypes.add(g.assessment_type)));
+  const activeTypes = ASSESSMENT_TYPES.filter(t => presentTypes.has(t));
+
+  // ── Chart data ─────────────────────────────────────
+  const chartLabels = rows.map(r => r.student?.full_name ?? '—');
+  const chartData   = rows.map(r => parseFloat(r.average) || 0);
+  const chartColors = chartData.map(a => chartColor(a));
+
+  body.innerHTML = `
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-card__label">${t('report.stat.students')}</div>
+        <div class="stat-card__value">${rows.length}</div>
+        <div class="stat-card__sub">${active.length} active</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__label">${t('report.stat.class_avg')}</div>
+        <div class="stat-card__value ${avgColor(classAvg)}">${statVal(classAvg)}</div>
+        <div class="stat-card__sub">${t('report.chart.scale')}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__label">${t('report.stat.highest')}</div>
+        <div class="stat-card__value high">${statVal(highest)}</div>
+        <div class="stat-card__sub">&nbsp;</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__label">${t('report.stat.lowest')}</div>
+        <div class="stat-card__value ${avgColor(lowest)}">${statVal(lowest)}</div>
+        <div class="stat-card__sub">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="report-panel">
+      <div class="report-panel__header">
+        <div class="report-panel__title">${t('report.chart.title')}</div>
+        <div class="report-panel__sub">${t('report.chart.scale')}</div>
+      </div>
+      <div class="report-panel__body">
+        <div class="chart-wrap" style="height:${Math.max(180, rows.length * 36)}px">
+          <canvas id="report-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-panel">
+      <div class="report-panel__header">
+        <div class="report-panel__title">${t('report.table.student')}</div>
+        <div class="report-panel__sub">${rows.length} ${rows.length === 1 ? 'student' : 'students'}</div>
+      </div>
+      <div class="grade-table-wrap">
+        <table class="grade-table">
+          <thead>
+            <tr>
+              <th>${t('report.table.student')}</th>
+              ${activeTypes.map(tp => `<th class="center">${typeLabel(tp)}</th>`).join('')}
+              <th class="right">${t('report.table.average')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => {
+              const gradeMap = {};
+              (row.grades ?? []).forEach(g => { gradeMap[g.assessment_type] = g; });
+              const avg     = parseFloat(row.average) || 0;
+              const avgCls  = avgColor(avg > 0 ? avg : null);
+              const dropped = row.enrollment_status === 'dropped';
+              return `
+                <tr style="${dropped ? 'opacity:0.55' : ''}">
+                  <td>
+                    <div class="student-name">${row.student?.full_name ?? '—'}</div>
+                    <div class="student-code">${row.student?.student_code ?? ''}</div>
+                    ${dropped ? `<span class="badge badge-red" style="margin-top:3px">${t('report.status.dropped')}</span>` : ''}
+                  </td>
+                  ${activeTypes.map(tp => {
+                    const g = gradeMap[tp];
+                    if (!g) return `<td class="cell-center"><span class="grade-chip none">—</span></td>`;
+                    const val = parseFloat(g.value);
+                    const max = parseFloat(g.max_value);
+                    const pct = (val / max) * 100;
+                    const cls = gradeColor(pct);
+                    return `<td class="cell-center">
+                      <span class="grade-chip ${cls}" title="${val.toFixed(1)}/${max.toFixed(0)}">
+                        ${val.toFixed(1)}/${max.toFixed(0)}
+                      </span>
+                    </td>`;
+                  }).join('')}
+                  <td class="avg-cell ${avg > 0 ? avgCls : 'empty'}">
+                    ${avg > 0 ? avg.toFixed(2) + '<span style="font-size:10px;opacity:0.6">/20</span>' : '—'}
+                  </td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+
+  document.getElementById('page-actions').style.display = 'flex';
+  Object.assign(dl, { type: 'class', rows, activeTypes });
+
+  // ── Render Chart.js ────────────────────────────────
+  const ctx = document.getElementById('report-chart').getContext('2d');
+  activeChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: chartLabels,
+      datasets: [{
+        label: t('report.stat.class_avg'),
+        data: chartData,
+        backgroundColor: chartColors.map(c => c.bg),
+        borderColor:     chartColors.map(c => c.border),
+        borderWidth: 1,
+        borderRadius: 4,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.x.toFixed(2)} / 20`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          min: 0, max: 20,
+          ticks: {
+            font: { family: 'DM Mono, monospace', size: 11 },
+            color: '#A09D96',
+          },
+          grid: { color: '#EAE8E4' },
+        },
+        y: {
+          ticks: {
+            font: { family: 'DM Sans, sans-serif', size: 12 },
+            color: '#706D65',
+          },
+          grid: { display: false },
+        },
+      },
+    },
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  STUDENT VIEW
+// ══════════════════════════════════════════════════
+async function renderStudentView() {
+  document.getElementById('page-subtitle').textContent = t('report.subtitle.student');
+
+  const area = document.getElementById('content-area');
+  area.innerHTML = `
+    <div class="stats-row" style="grid-template-columns:repeat(2,1fr)">
+      ${[1,2].map(() => `
+        <div class="stat-card">
+          <div class="skel" style="height:11px;width:80px"></div>
+          <div class="skel" style="height:26px;width:60px;margin-top:8px"></div>
+        </div>`).join('')}
+    </div>
+    <div class="report-panel">
+      <div class="report-panel__header">
+        <div class="skel" style="height:13px;width:180px"></div>
+      </div>
+      <div class="report-panel__body" style="height:160px">
+        <div class="skel" style="height:100%;width:100%;border-radius:6px"></div>
+      </div>
+    </div>`;
+
+  try {
+    const data = await grades.myGrades();
+    const groups = Array.isArray(data) ? data : (data.results ?? []);
+    destroyChart();
+
+    if (!groups.length) {
+      area.innerHTML = emptyState('#icon-grades', t('report.empty.my_no_grades'));
+      return;
+    }
+
+    const avgs = groups.map(g => parseFloat(g.average)).filter(a => a > 0);
+    const overallAvg = avgs.length ? (avgs.reduce((s, a) => s + a, 0) / avgs.length) : null;
+
+    const chartLabels = groups.map(g => g.class_name);
+    const chartData   = groups.map(g => parseFloat(g.average) || 0);
+    const chartColors = chartData.map(a => chartColor(a));
+
+    area.innerHTML = `
+      <div class="stats-row" style="grid-template-columns:repeat(2,1fr);max-width:480px">
+        <div class="stat-card">
+          <div class="stat-card__label">${t('nav.item.classes')}</div>
+          <div class="stat-card__value">${groups.length}</div>
+          <div class="stat-card__sub">${t(groups.length === 1 ? 'report.my_classes' : 'report.my_classes_plural')}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">${t('report.overall_avg')}</div>
+          <div class="stat-card__value ${avgColor(overallAvg)}">
+            ${overallAvg !== null ? overallAvg.toFixed(2) : '—'}
+          </div>
+          <div class="stat-card__sub">${t('report.chart.scale')}</div>
+        </div>
+      </div>
+
+      <div class="report-panel">
+        <div class="report-panel__header">
+          <div class="report-panel__title">${t('report.chart.my_title')}</div>
+          <div class="report-panel__sub">${t('report.chart.scale')}</div>
+        </div>
+        <div class="report-panel__body">
+          <div class="chart-wrap" style="height:${Math.max(160, groups.length * 44)}px">
+            <canvas id="my-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="my-class-list" id="my-class-list"></div>`;
+
+    document.getElementById('page-actions').style.display = 'flex';
+    Object.assign(dl, { type: 'student', rows: groups });
+
+    // Chart
+    const ctx = document.getElementById('my-chart').getContext('2d');
+    activeChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartLabels,
+        datasets: [{
+          label: t('report.stat.class_avg'),
+          data: chartData,
+          backgroundColor: chartColors.map(c => c.bg),
+          borderColor:     chartColors.map(c => c.border),
+          borderWidth: 1,
+          borderRadius: 4,
+        }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x.toFixed(2)} / 20` } } },
+        scales: {
+          x: { min: 0, max: 20,
+            ticks: { font: { family: 'DM Mono, monospace', size: 11 }, color: '#A09D96' },
+            grid: { color: '#EAE8E4' } },
+          y: {
+            ticks: { font: { family: 'DM Sans, sans-serif', size: 12 }, color: '#706D65' },
+            grid: { display: false } },
+        },
+      },
+    });
+
+    // Class cards
+    const list = document.getElementById('my-class-list');
+    list.innerHTML = groups.map(group => {
+      const avg    = parseFloat(group.average) || 0;
+      const avgCls = avgColor(avg > 0 ? avg : null);
+      const gradeMap = {};
+      (group.grades ?? []).forEach(g => { gradeMap[g.assessment_type] = g; });
+      const hasGrades = Object.keys(gradeMap).length > 0;
+
+      return `
+        <div class="my-class-card">
+          <div class="my-class-card__header">
+            <div>
+              <div class="my-class-card__name">${group.class_name}</div>
+              <div class="my-class-card__meta">
+                ${group.course_name} ·
+                <span style="color:var(--text-secondary)">${group.trainer_name}</span>
+              </div>
+            </div>
+            <div class="avg-badge ${avgCls}">
+              <div class="avg-badge__val">${hasGrades ? avg.toFixed(1) : '—'}</div>
+              <div class="avg-badge__lbl">avg / 20</div>
+            </div>
+          </div>
+          ${hasGrades ? ASSESSMENT_TYPES.map(tp => {
+            const g = gradeMap[tp];
+            if (!g) return '';
+            const val = parseFloat(g.value);
+            const max = parseFloat(g.max_value);
+            const pct = Math.min((val / max) * 100, 100);
+            const cls = gradeColor(pct);
+            return `
+              <div class="assess-row">
+                <div class="assess-row__type">${typeLabel(tp)}</div>
+                <div class="bar-wrap">
+                  <div class="bar-track">
+                    <div class="bar-fill ${cls}" style="width:${pct}%"></div>
+                  </div>
+                  <div class="bar-score">${val.toFixed(1)}/${max.toFixed(0)}</div>
+                </div>
+                <div class="assess-row__date">${g.assessed_at ?? ''}</div>
+              </div>`;
+          }).filter(Boolean).join('') : `
+            <div style="padding:var(--sp-4) var(--sp-5);font-size:13px;
+                        color:var(--text-tertiary);font-style:italic">
+              ${t('report.empty.no_grades')}
+            </div>`}
+        </div>`;
+    }).join('');
+
+  } catch (err) {
+    area.innerHTML = emptyState('#icon-grades', err.message);
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  DOWNLOADS — CLASS REPORT
+// ══════════════════════════════════════════════════
+function downloadClassCSV() {
+  const { rows, activeTypes, className } = dl;
+  const sep = ',';
+  const header = [
+    `"${t('report.table.student')}"`, '"Code"',
+    ...activeTypes.map(tp => `"${typeLabel(tp)}"`),
+    `"${t('report.table.average')} /20"`,
+  ].join(sep);
+
+  const lines = [header, ...rows.map(row => {
+    const gmap = {};
+    (row.grades ?? []).forEach(g => { gmap[g.assessment_type] = g; });
+    const avg = parseFloat(row.average);
+    return [
+      `"${row.student?.full_name ?? ''}"`,
+      `"${row.student?.student_code ?? ''}"`,
+      ...activeTypes.map(tp => {
+        const g = gmap[tp];
+        return g ? `${parseFloat(g.value).toFixed(2)}/${parseFloat(g.max_value).toFixed(0)}` : '-';
+      }),
+      avg > 0 ? avg.toFixed(2) : '-',
+    ].join(sep);
+  })];
+
+  triggerDownload(lines.join('\n'), `grades-${slugify(className)}-${today()}.csv`, 'text/csv;charset=utf-8;');
+}
+
+function downloadClassPDF() {
+  const { rows, activeTypes, className, courseName, trainerName } = dl;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+  // ── Header ─────────────────────────────────────────
+  doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+  doc.text('Grade Report', 14, 18);
+  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.setTextColor(120, 120, 120);
+  const headerLines = [
+    courseName ? `${t('nav.item.courses')}: ${courseName}` : null,
+    `${t('nav.item.classes')}: ${className}`,
+    trainerName ? `${t('nav.item.trainers').replace(/s$/,'')}: ${trainerName}` : null,
+    new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' }),
+  ].filter(Boolean);
+  headerLines.forEach((line, i) => doc.text(line, 14, 27 + i * 6));
+  const headerEndY = 27 + headerLines.length * 6;
+  doc.setTextColor(0, 0, 0);
+
+  // ── Stats line ─────────────────────────────────────
+  const active = rows.filter(r => r.enrollment_status !== 'dropped');
+  const avgs   = active.map(r => parseFloat(r.average)).filter(a => a > 0);
+  const cAvg   = avgs.length ? avgs.reduce((s, a) => s + a, 0) / avgs.length : null;
+  doc.setFontSize(9); doc.setTextColor(110, 110, 110);
+  const statsLine = [
+    `Students: ${rows.length}`,
+    cAvg !== null ? `Class avg: ${cAvg.toFixed(2)}/20` : '',
+    avgs.length    ? `Highest: ${Math.max(...avgs).toFixed(2)}` : '',
+    avgs.length    ? `Lowest: ${Math.min(...avgs).toFixed(2)}`  : '',
+  ].filter(Boolean).join('   |   ');
+  doc.text(statsLine, 14, headerEndY);
+  doc.setTextColor(0, 0, 0);
+
+  // ── Table ──────────────────────────────────────────
+  const head = [[
+    { content: t('report.table.student'), styles: { halign: 'left' } },
+    { content: 'Code',                    styles: { halign: 'left' } },
+    ...activeTypes.map(tp => ({ content: typeLabel(tp), styles: { halign: 'center' } })),
+    { content: `${t('report.table.average')} /20`,      styles: { halign: 'right' } },
+  ]];
+
+  const body = rows.map(row => {
+    const gmap = {};
+    (row.grades ?? []).forEach(g => { gmap[g.assessment_type] = g; });
+    const avg     = parseFloat(row.average);
+    const dropped = row.enrollment_status === 'dropped';
+    return [
+      { content: row.student?.full_name ?? '—',    styles: { fontStyle: dropped ? 'italic' : 'normal' } },
+      { content: row.student?.student_code ?? '—', styles: { font: 'courier', fontSize: 8 } },
+      ...activeTypes.map(tp => {
+        const g = gmap[tp];
+        if (!g) return { content: '—', styles: { halign: 'center', textColor: [180, 180, 180] } };
+        const val = parseFloat(g.value), max = parseFloat(g.max_value);
+        const pct = (val / max) * 100;
+        return { content: `${val.toFixed(1)}/${max.toFixed(0)}`, styles: { halign: 'center', fontStyle: 'bold', textColor: pdfColor(pct) } };
+      }),
+      {
+        content: avg > 0 ? avg.toFixed(2) : '—',
+        styles: { halign: 'right', fontStyle: 'bold', textColor: avg > 0 ? pdfColor((avg / 20) * 100) : [180, 180, 180] },
+      },
+    ];
+  });
+
+  doc.autoTable({
+    head, body, startY: headerEndY + 6,
+    styles:            { fontSize: 9, cellPadding: 2.5 },
+    headStyles:        { fillColor: [28, 27, 24], textColor: [255, 255, 255], fontStyle: 'bold' },
+    alternateRowStyles:{ fillColor: [247, 246, 243] },
+    columnStyles:      { 0: { cellWidth: 48 }, 1: { cellWidth: 26 } },
+    margin:            { left: 14, right: 14 },
+  });
+
+  // ── Footer ─────────────────────────────────────────
+  const pages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) {
+    doc.setPage(i); doc.setFontSize(8); doc.setTextColor(170, 170, 170);
+    doc.text(
+      `Acadêmico — ${className} — Page ${i} of ${pages}`,
+      14, doc.internal.pageSize.height - 8
+    );
+  }
+
+  doc.save(`grades-${slugify(className)}-${today()}.pdf`);
+}
+
+// ══════════════════════════════════════════════════
+//  DOWNLOADS — STUDENT VIEW
+// ══════════════════════════════════════════════════
+function downloadStudentCSV() {
+  const { rows: groups } = dl;
+  const sep = ',';
+  const header = ['"Class"', '"Course"', '"Trainer"', '"Assessment Type"', '"Grade"', '"Max"', '"Date"', '"Average /20"'].join(sep);
+  const lines  = [header];
+
+  groups.forEach(group => {
+    const avg = parseFloat(group.average) || 0;
+    (group.grades ?? []).forEach(g => {
+      lines.push([
+        `"${group.class_name}"`,
+        `"${group.course_name}"`,
+        `"${group.trainer_name}"`,
+        `"${typeLabel(g.assessment_type)}"`,
+        parseFloat(g.value).toFixed(2),
+        parseFloat(g.max_value).toFixed(0),
+        g.assessed_at ?? '',
+        avg > 0 ? avg.toFixed(2) : '-',
+      ].join(sep));
+    });
+  });
+
+  triggerDownload(lines.join('\n'), `my-grades-${today()}.csv`, 'text/csv;charset=utf-8;');
+}
+
+function downloadStudentPDF() {
+  const { rows: groups } = dl;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+  doc.text('My Academic Report', 14, 18);
+  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.setTextColor(120, 120, 120);
+  doc.text(new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' }), 14, 26);
+  doc.setTextColor(0, 0, 0);
+
+  let y = 34;
+  groups.forEach((group, idx) => {
+    if (idx > 0) y += 4;
+    if (y > 250) { doc.addPage(); y = 14; }
+
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+    doc.text(group.class_name, 14, y); y += 6;
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.setTextColor(130, 130, 130);
+    doc.text(`${group.course_name} · ${group.trainer_name}`, 14, y);
+    doc.setTextColor(0, 0, 0); y += 4;
+
+    const avg = parseFloat(group.average) || 0;
+    const tableBody = (group.grades ?? []).map(g => {
+      const val = parseFloat(g.value), max = parseFloat(g.max_value);
+      const pct = (val / max) * 100;
+      return [
+        { content: typeLabel(g.assessment_type) },
+        { content: `${val.toFixed(1)} / ${max.toFixed(0)}`, styles: { halign: 'center', fontStyle: 'bold', textColor: pdfColor(pct) } },
+        { content: g.assessed_at ?? '—', styles: { halign: 'right', textColor: [140, 140, 140] } },
+      ];
+    });
+    tableBody.push([
+      { content: t('report.table.average'), styles: { fontStyle: 'bold' } },
+      { content: avg > 0 ? `${avg.toFixed(2)} / 20` : '—', styles: { halign: 'center', fontStyle: 'bold', textColor: avg > 0 ? pdfColor((avg / 20) * 100) : [160, 160, 160] } },
+      { content: '' },
+    ]);
+
+    doc.autoTable({
+      head: [['Assessment', 'Grade', 'Date']],
+      body: tableBody,
+      startY: y,
+      styles:            { fontSize: 9, cellPadding: 2 },
+      headStyles:        { fillColor: [28, 27, 24], textColor: [255, 255, 255] },
+      alternateRowStyles:{ fillColor: [247, 246, 243] },
+      margin:            { left: 14, right: 14 },
+    });
+    y = doc.lastAutoTable.finalY + 6;
+  });
+
+  doc.save(`my-grades-${today()}.pdf`);
+}
+
+// ── Button listeners ───────────────────────────────
+document.getElementById('btn-csv').addEventListener('click', () => {
+  if (dl.type === 'class')   downloadClassCSV();
+  else if (dl.type === 'student') downloadStudentCSV();
+});
+
+document.getElementById('btn-pdf').addEventListener('click', () => {
+  const btn   = document.getElementById('btn-pdf');
+  const label = document.getElementById('btn-pdf-label');
+  btn.disabled = true;
+  label.textContent = t('report.btn.generating');
+  try {
+    if (dl.type === 'class')        downloadClassPDF();
+    else if (dl.type === 'student') downloadStudentPDF();
+  } finally {
+    setTimeout(() => {
+      btn.disabled = false;
+      label.textContent = t('report.btn.pdf');
+    }, 400);
+  }
+});
+
+// ── Helpers ────────────────────────────────────────
+function emptyPrompt(msg) {
+  return `
+    <div class="report-panel">
+      <div style="padding:var(--sp-12) var(--sp-6);text-align:center;
+                  color:var(--text-tertiary);font-size:13px">
+        <svg style="width:32px;height:32px;margin:0 auto var(--sp-3);opacity:0.3"
+             viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <use href="#icon-reports"/>
+        </svg>
+        ${msg}
+      </div>
+    </div>`;
+}
+
+function emptyState(iconId, msg, extra = '') {
+  return `
+    <div class="empty-state" style="padding:var(--sp-16) var(--sp-8)">
+      <svg class="empty-state__icon" viewBox="0 0 16 16" fill="none"
+           stroke="currentColor" stroke-width="1.5">
+        <use href="${iconId}"/>
+      </svg>
+      <div class="empty-state__title">${msg}</div>
+      ${extra}
+    </div>`;
+}
+
+// ── Route by role ──────────────────────────────────
+if (user.role === 'student') {
+  renderStudentView();
+} else {
+  renderStaffView();
+}
+</script>
+
+</body>
+</html>

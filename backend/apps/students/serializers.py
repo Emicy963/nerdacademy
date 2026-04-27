@@ -1,0 +1,68 @@
+from rest_framework import serializers
+from .models import Student
+
+
+class StudentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Student
+        fields = [
+            "id",
+            "institution",
+            "full_name",
+            "student_code",
+            "birth_date",
+            "phone",
+            "address",
+            "is_active",
+            "enrolled_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "institution", "enrolled_at", "updated_at"]
+
+
+class StudentCreateSerializer(serializers.ModelSerializer):
+    # Optional — auto-generated from institution prefix if omitted
+    student_code = serializers.CharField(required=False, allow_blank=True, default="")
+    # Optional — if provided, a User account is created and linked automatically
+    email = serializers.EmailField(required=False, allow_blank=True, default="")
+
+    class Meta:
+        model = Student
+        fields = ["full_name", "student_code", "birth_date", "phone", "address", "email"]
+
+    def validate_student_code(self, value):
+        return value.strip().upper() if value and value.strip() else ""
+
+
+class StudentUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Student
+        fields = ["full_name", "birth_date", "phone", "address", "is_active"]
+
+
+class StudentPublicSerializer(serializers.ModelSerializer):
+    institution_name = serializers.CharField(source="institution.name", read_only=True)
+
+    class Meta:
+        model = Student
+        fields = [
+            "id",
+            "full_name",
+            "student_code",
+            "institution_name",
+            "birth_date",
+            "phone",
+            "is_active",
+        ]
+        read_only_fields = fields
+
+
+class StudentSummarySerializer(serializers.ModelSerializer):
+    """Compact read-only serializer for embedding in other responses."""
+
+    class Meta:
+        model = Student
+        fields = ["id", "full_name", "student_code"]
+        read_only_fields = fields
