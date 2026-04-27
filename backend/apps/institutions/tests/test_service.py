@@ -1,5 +1,6 @@
 """
-Tests for InstitutionService: creation, slug uniqueness, update, retrieval.
+Tests for InstitutionService: creation, slug uniqueness, update, retrieval,
+self-service registration.
 """
 
 import pytest
@@ -197,3 +198,63 @@ class TestInstitutionServiceCodeGeneration:
         trainer_code = InstitutionService.generate_trainer_code(inst, year=2026)
         assert student_code == "CIN20260001"
         assert trainer_code == "CINF20260001"
+
+
+@pytest.mark.django_db
+class TestInstitutionServiceRegister:
+
+    def test_register_creates_institution_user_membership(self, db):
+        from apps.accounts.models import Membership
+
+        result = InstitutionService.register(
+            institution_name="Escola Teste",
+            admin_name="Admin Silva",
+            email="admin@escola.ao",
+            password="strongpass123",
+        )
+
+        assert "access" in result
+        assert "refresh" in result
+        assert result["user"]["full_name"] == "Admin Silva"
+        assert result["user"]["email"] == "admin@escola.ao"
+        assert result["must_change_password"] is False
+        assert len(result["memberships"]) == 1
+        assert result["memberships"][0]["role"] == "admin"
+        membership = Membership.objects.get(id=result["memberships"][0]["id"])
+        assert membership.institution.name == "Escola Teste"
+
+    def test_register_derives_unique_slug_on_collision(self, db):
+        from apps.institutions.models import Institution
+
+        InstitutionService.register(
+            institution_name="Escola Teste",
+            admin_name="Admin A",
+            email="a@escola.ao",
+            password="strongpass123",
+        )
+        InstitutionService.register(
+            institution_name="Escola Teste",
+            admin_name="Admin B",
+            email="b@escola.ao",
+            password="strongpass123",
+        )
+
+        slugs = list(Institution.objects.values_list("slug", flat=True))
+        assert len(set(slugs)) == 2
+
+    def test_register_duplicate_email_raises(self, db):
+        from rest_framework.exceptions import ValidationError
+
+        InstitutionService.register(
+            institution_name="Escola A",
+            admin_name="Admin A",
+            email="dup@escola.ao",
+            password="strongpass123",
+        )
+        with pytest.raises(ValidationError):
+            InstitutionService.register(
+                institution_name="Escola B",
+                admin_name="Admin B",
+                email="dup@escola.ao",
+                password="strongpass123",
+            )

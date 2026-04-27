@@ -322,4 +322,14 @@ export const notifications = {
 export const institutions = {
   me:     ()     => apiFetch('/institutions/me/'),
   update: (data) => apiFetch('/institutions/me/', { method: 'PATCH', body: JSON.stringify(data) }),
+
+  register: (data) =>
+    fetch(`${API_BASE}/institutions/register/`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(data),
+    }).then(async res => {
+      if (!res.ok) throw await parseError(res);
+      return res.json();
+    }),
 };

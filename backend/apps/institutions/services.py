@@ -105,6 +105,52 @@ class InstitutionService:
         seq = InstitutionService._next_seq(pattern, existing)
         return f"{pattern}{seq:04d}"
 
+    # ── Self-service registration ──────────────────────────────────
+
+    @staticmethod
+    def register(institution_name: str, admin_name: str, email: str, password: str) -> dict:
+        """
+        Public self-service signup. Atomically creates:
+          Institution → User (admin) → Membership → JWT tokens.
+        """
+        from django.db import transaction
+        from django.utils.text import slugify
+        from rest_framework_simplejwt.tokens import RefreshToken
+        from apps.accounts.services import UserService, MembershipService
+        from apps.accounts.serializers import UserMeSerializer, MembershipSerializer
+
+        with transaction.atomic():
+            base_slug = slugify(institution_name) or "institution"
+            slug, counter = base_slug, 2
+            while Institution.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+
+            institution = InstitutionService.create_institution(
+                name=institution_name,
+                slug=slug,
+            )
+            user = UserService.create_user(
+                email=email,
+                password=password,
+                full_name=admin_name,
+                must_change_password=False,
+            )
+            membership = MembershipService.create_membership(
+                user=user,
+                institution=institution,
+                role="admin",
+            )
+
+            refresh = RefreshToken.for_user(user)
+            return {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": UserMeSerializer(user).data,
+                "must_change_password": False,
+                "memberships": MembershipSerializer([membership], many=True).data,
+            }
+
     # ── Private helpers ────────────────────────────────────────────
 
     @staticmethod

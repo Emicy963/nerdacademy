@@ -1,7 +1,7 @@
 # Acadêmico — Visão Técnica da Plataforma
 
 > Documento de referência técnica. Actualizado a cada feature relevante adicionada à plataforma.
-> Última actualização: 2026-04-27 (v0.4.5)
+> Última actualização: 2026-04-27 (v0.4.6)
 
 ---
 
@@ -212,7 +212,8 @@ Comuns em Angola. O sistema cria um email placeholder `{codigo}@local.academico`
 
 | Método | Endpoint | Acesso | Descrição |
 | --- | --- | --- | --- |
-| GET | `/me/` | Auth | Dados da instituição activa |
+| POST | `/register/` | Público | Auto-registo: cria instituição + admin + tokens |
+| GET/PATCH | `/me/` | Auth | Dados da instituição activa; PATCH actualiza campos |
 
 ### Estudantes — `/api/students/`
 
@@ -336,6 +337,7 @@ frontend/
     ├── grades.html          ← Gestão de notas (trainer/admin)
     ├── reports.html         ← Relatórios com gráficos (Chart.js) e impressão
     ├── profile.html         ← Perfil do utilizador (ver info + editar email)
+    ├── register.html        ← Auto-registo de nova instituição (público)
     ├── forgot-password.html ← Pedido de recuperação de senha (público)
     ├── reset-password.html  ← Definir nova senha via token (público)
     ├── about.html           ← Sobre (estática)
@@ -397,7 +399,7 @@ Utiliza `Django send_mail`. Em desenvolvimento usa o backend de consola (imprime
 backend/
 └── apps/
     ├── accounts/tests/      ← 29 testes de serviço
-    ├── institutions/tests/  ← 10 testes de serviço
+    ├── institutions/tests/  ← 13 testes de serviço
     ├── students/tests/      ← 21 testes de serviço
     ├── trainers/tests/      ← 19 testes de serviço
     ├── courses/tests/       ← 15 testes de serviço
@@ -442,9 +444,10 @@ python -m http.server 3000
 | Página de perfil (ver/editar email) | Concluído (v0.4.2) |
 | Recuperação de senha por email | Concluído (v0.4.3) |
 | Notificações in-app | Concluído (v0.4.4) |
-| Relatórios com gráficos | Concluído (v0.4.5) |
-| Controlo de presenças (sessões de aula) | Planeado (baixa prioridade) |
-| Deploy (VPS, Nginx, HTTPS, CI/CD) | Planeado (sem data) |
+| Relatórios com gráficos + exportação CSV/PDF | Concluído (v0.4.5) |
+| Auto-registo de instituição (self-service) | Concluído (v0.4.6) |
+| Infra de deploy (Railway + Vercel + CI/CD) | Concluído (v0.4.6) |
+| Controlo de presenças (sessões de aula) | Arquivado (baixa prioridade) |
 
 ---
 
@@ -462,7 +465,8 @@ Ver [CHANGELOG.md](CHANGELOG.md) para detalhes completos por versão.
 | v0.4.2 | 2026-04-27 | Página de perfil, PATCH /auth/me/ para editar email |
 | v0.4.3 | 2026-04-27 | Recuperação de senha por email (token Django, silent 200) |
 | v0.4.4 | 2026-04-27 | Notificações in-app (enrollment/grade triggers, painel no topbar) |
-| v0.4.5 | 2026-04-27 | Página de relatórios com Chart.js, stats e impressão |
+| v0.4.5 | 2026-04-27 | Página de relatórios com Chart.js, stats, impressão e export CSV/PDF |
+| v0.4.6 | 2026-04-27 | Auto-registo de instituição, infra de deploy (Railway + Vercel + CI/CD) |
 
 ---
 

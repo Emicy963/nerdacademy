@@ -30,3 +30,10 @@ class InstitutionUpdateSerializer(serializers.ModelSerializer):
 
     def validate_institution_prefix(self, value):
         return value.strip().upper() if value else ""
+
+
+class InstitutionRegistrationSerializer(serializers.Serializer):
+    institution_name = serializers.CharField(max_length=255)
+    admin_name       = serializers.CharField(max_length=255)
+    email            = serializers.EmailField()
+    password         = serializers.CharField(min_length=8, write_only=True)

@@ -10,6 +10,46 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.4.6] — 2026-04-27
+
+### Added
+
+- Self-service institution registration:
+  - `POST /api/institutions/register/` — public endpoint; atomically creates
+    Institution + admin User + Membership inside `transaction.atomic()`,
+    auto-derives a unique URL slug from the institution name, and returns JWT
+    tokens so the new admin is immediately logged in
+  - `InstitutionService.register()` — service method handling the full signup flow
+  - `InstitutionRegistrationSerializer` — validates `institution_name`,
+    `admin_name`, `email`, `password` (min 8 chars)
+  - `register.html` — public sign-up page; two-panel layout matching login;
+    lang switcher; password visibility toggle; on success stores session and
+    redirects to the dashboard
+  - `institutions.register()` added to `api.js`
+  - `register.*` i18n keys added in PT and EN
+  - 3 service-level tests: happy-path creation, slug deduplication on collision,
+    duplicate-email guard
+- Deploy infrastructure:
+  - `backend/Dockerfile` updated to Python 3.13, `collectstatic` moved out of
+    build layer to runtime
+  - `backend/entrypoint.sh` — runs migrate, collectstatic, then Gunicorn at
+    container start; respects `PORT` and `GUNICORN_WORKERS` env vars
+  - `backend/core/settings/production.py` — WhiteNoise middleware injected,
+    `dj-database-url` parses `DATABASE_URL` (Railway), `SECURE_SSL_REDIRECT`
+    replaced with `SECURE_PROXY_SSL_HEADER` to avoid Railway redirect loops
+  - `backend/requirements/production.txt` — added `whitenoise[brotli]==6.9.0`
+    and `dj-database-url==2.3.0`
+  - `backend/railway.toml` — Railway build/deploy config with health-check
+  - `backend/nginx/nginx.conf` — Nginx reverse-proxy config for VPS deployments
+  - `vercel.json` (project root) — Vercel config for static frontend; rewrites
+    `/api/*` to the Railway backend URL (requires manual `REPLACE_WITH_RAILWAY_URL`)
+  - `.github/workflows/ci.yml` — GitHub Actions CI: runs pytest on push/PR to
+    main and develop using SQLite (development settings)
+  - `GET /api/health/` — unauthenticated health-check endpoint returning
+    `{"status": "ok"}` for Railway and uptime monitors
+
+---
+
 ## [0.4.5] — 2026-04-27
 
 ### Added

@@ -187,6 +187,20 @@ const TRANSLATIONS = {
     'reset.err.short':     'Mínimo 8 caracteres.',
     'reset.err.match':     'As palavras-passe não coincidem.',
 
+    // ── Register page ────────────────────────────────────
+    'register.title':            'Criar conta',
+    'register.subtitle':         'Configure a sua instituição académica',
+    'register.institution_name': 'Nome da instituição',
+    'register.admin_name':       'Seu nome completo',
+    'register.email':            'Email de administrador',
+    'register.password':         'Palavra-passe',
+    'register.password_confirm': 'Confirmar palavra-passe',
+    'register.submit':           'Criar conta',
+    'register.submitting':       'A criar…',
+    'register.login_link':       'Já tem conta? Iniciar sessão',
+    'register.err.match':        'As palavras-passe não coincidem.',
+    'register.err.generic':      'Erro ao criar conta. Tente novamente.',
+
     // ── Students page ────────────────────────────────────
     'students.title':         'Alunos',
     'students.new':           'Novo aluno',
@@ -646,6 +660,20 @@ const TRANSLATIONS = {
     'reset.err.link':      'This link is invalid or has expired. Please request a new one.',
     'reset.err.short':     'Minimum 8 characters.',
     'reset.err.match':     'Passwords do not match.',
+
+    // ── Register page ────────────────────────────────────
+    'register.title':            'Create account',
+    'register.subtitle':         'Set up your academic institution',
+    'register.institution_name': 'Institution name',
+    'register.admin_name':       'Your full name',
+    'register.email':            'Administrator email',
+    'register.password':         'Password',
+    'register.password_confirm': 'Confirm password',
+    'register.submit':           'Create account',
+    'register.submitting':       'Creating…',
+    'register.login_link':       'Already have an account? Sign in',
+    'register.err.match':        'Passwords do not match.',
+    'register.err.generic':      'Failed to create account. Please try again.',
 
     // ── Students page ────────────────────────────────────
     'students.title':         'Students',
