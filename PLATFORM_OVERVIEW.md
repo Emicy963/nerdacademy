@@ -1,7 +1,7 @@
 # Acadêmico — Visão Técnica da Plataforma
 
 > Documento de referência técnica. Actualizado a cada feature relevante adicionada à plataforma.
-> Última actualização: 2026-04-27 (v0.4.x)
+> Última actualização: 2026-04-27 (v0.4.4)
 
 ---
 
@@ -16,7 +16,7 @@ O modelo de negócio é multi-tenant: a mesma instalação do software serve vá
 ## Stack Tecnológica
 
 | Camada | Tecnologia | Versão |
-|---|---|---|
+| --- | --- | --- |
 | Runtime (backend) | Python | 3.13 |
 | Framework web | Django | 5.0.6 |
 | API REST | Django REST Framework | 3.15.2 |
@@ -79,7 +79,8 @@ backend/
     ├── trainers/            ← Perfis de formadores
     ├── courses/             ← Cursos
     ├── classes/             ← Turmas e Inscrições (Enrollment)
-    └── grades/              ← Notas e avaliações
+    ├── grades/              ← Notas e avaliações
+    └── notifications/       ← Notificações in-app por utilizador
 ```
 
 Cada app segue a mesma estrutura interna: `models.py` → `serializers.py` → `services.py` → `views.py` → `urls.py` → `tests/`.
@@ -93,7 +94,7 @@ Cada app segue a mesma estrutura interna: `models.py` → `serializers.py` → `
 ### User (`users`)
 
 | Campo | Tipo | Notas |
-|---|---|---|
+| --- | --- | --- |
 | `id` | UUID | Chave primária |
 | `email` | EmailField único | Campo de login (USERNAME_FIELD). Utilizadores sem email real recebem placeholder `{code}@local.academico` |
 | `full_name` | CharField | Gerido pelo admin |
@@ -104,7 +105,7 @@ Cada app segue a mesma estrutura interna: `models.py` → `serializers.py` → `
 ### Membership (`memberships`)
 
 | Campo | Notas |
-|---|---|
+| --- | --- |
 | `user` + `institution` + `role` | Constraint de unicidade |
 | `role` | `admin` / `trainer` / `student` |
 | `is_active` | Pode ser revogada sem eliminar o utilizador |
@@ -136,6 +137,23 @@ Liga um Student a uma Class. Estados: `active` / `dropped` / `completed`. Um est
 ### Grade (`grades`)
 
 Nota ligada a um Enrollment. Tipos de avaliação: `continuous` / `exam` / `practical` / `project` / `other`. Escala configurável (`value` / `max_value`). Apenas uma nota por tipo de avaliação por enrollment (constraint único).
+
+### Notification (`notifications`)
+
+| Campo | Tipo | Notas |
+| --- | --- | --- |
+| `id` | UUID | Chave primária |
+| `user` | FK → User | Destinatário da notificação |
+| `type` | CharField | `enrollment` / `grade` / `system` |
+| `title` | CharField | Título curto da notificação |
+| `message` | TextField | Corpo (opcional) |
+| `is_read` | Boolean | `False` por defeito |
+| `created_at` | DateTimeField | Preenchido automaticamente |
+
+**Triggers automáticos:**
+
+- Inscrição num aluno: notifica o formador responsável pela turma
+- Nota lançada: notifica o aluno
 
 ---
 
@@ -180,24 +198,26 @@ Comuns em Angola. O sistema cria um email placeholder `{codigo}@local.academico`
 ### Autenticação — `/api/auth/`
 
 | Método | Endpoint | Acesso | Descrição |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | POST | `/login/` | Público | Login por email ou código |
 | POST | `/refresh/` | Público | Renovar access token |
 | POST | `/logout/` | Auth | Invalidar refresh token |
-| GET | `/me/` | Auth | Dados do utilizador autenticado |
+| GET/PATCH | `/me/` | Auth | Dados do utilizador; PATCH actualiza email |
 | GET | `/memberships/` | Auth | Listar Memberships activas |
 | POST | `/change-password/` | Auth | Alterar palavra-passe |
+| POST | `/password-reset/` | Público | Link de reset de senha por email |
+| POST | `/password-reset/confirm/` | Público | Validar token e definir senha |
 
 ### Instituições — `/api/institutions/`
 
 | Método | Endpoint | Acesso | Descrição |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | GET | `/me/` | Auth | Dados da instituição activa |
 
 ### Estudantes — `/api/students/`
 
 | Método | Endpoint | Acesso | Descrição |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | GET | `/` | Admin/Trainer | Listar estudantes |
 | POST | `/` | Admin | Criar estudante |
 | GET | `/me/` | Student | O meu perfil |
@@ -207,7 +227,7 @@ Comuns em Angola. O sistema cria um email placeholder `{codigo}@local.academico`
 ### Formadores — `/api/trainers/`
 
 | Método | Endpoint | Acesso | Descrição |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | GET | `/` | Admin | Listar formadores |
 | POST | `/` | Admin | Criar formador |
 | GET | `/me/` | Trainer | O meu perfil |
@@ -218,7 +238,7 @@ Comuns em Angola. O sistema cria um email placeholder `{codigo}@local.academico`
 ### Cursos — `/api/courses/`
 
 | Método | Endpoint | Acesso | Descrição |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | GET | `/` | Auth | Listar cursos |
 | POST | `/` | Admin | Criar curso |
 | GET/PATCH/DELETE | `/<id>/` | Admin | Detalhe, editar, desactivar |
@@ -227,7 +247,7 @@ Comuns em Angola. O sistema cria um email placeholder `{codigo}@local.academico`
 ### Turmas — `/api/classes/`
 
 | Método | Endpoint | Acesso | Descrição |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | GET | `/` | Auth | Listar turmas |
 | POST | `/` | Admin | Criar turma |
 | GET | `/my-enrollments/` | Student | As minhas inscrições |
@@ -239,13 +259,21 @@ Comuns em Angola. O sistema cria um email placeholder `{codigo}@local.academico`
 ### Notas — `/api/grades/`
 
 | Método | Endpoint | Acesso | Descrição |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | GET | `/` | Auth | Listar notas |
 | POST | `/` | Trainer/Admin | Criar nota |
 | GET | `/report/` | Admin/Trainer | Relatório de notas |
 | GET | `/my-grades/` | Student | As minhas notas |
 | PATCH/DELETE | `/<id>/` | Trainer/Admin | Editar/eliminar nota |
 | GET | `/enrollment/<eid>/` | Auth | Notas de um enrollment |
+
+### Notificações — `/api/notifications/`
+
+| Método | Endpoint | Acesso | Descrição |
+| --- | --- | --- | --- |
+| GET | `/` | Auth | Lista recente + contagem de não lidas |
+| POST | `/<id>/read/` | Auth | Marcar uma notificação como lida |
+| POST | `/read-all/` | Auth | Marcar todas as notificações como lidas |
 
 ### Envelope de resposta padrão
 
@@ -276,7 +304,7 @@ O `InstitutionService` gera automaticamente os códigos de estudante e formador:
 ## Gestão de Palavras-passe
 
 | Cenário | Comportamento |
-|---|---|
+| --- | --- |
 | Criar student/trainer com email | Senha aleatória (`secrets.token_urlsafe(8)`), email de boas-vindas enviado |
 | Criar student/trainer sem email | Senha `pass123`, sem email enviado |
 | Admin reset de senha | Nova senha aleatória, email enviado, `must_change_password = True` |
@@ -306,6 +334,9 @@ frontend/
     ├── courses.html         ← Gestão de cursos (admin)
     ├── classes.html         ← Gestão de turmas (admin/trainer)
     ├── grades.html          ← Gestão de notas (trainer/admin)
+    ├── profile.html         ← Perfil do utilizador (ver info + editar email)
+    ├── forgot-password.html ← Pedido de recuperação de senha (público)
+    ├── reset-password.html  ← Definir nova senha via token (público)
     ├── about.html           ← Sobre (estática)
     ├── contact.html         ← Contacto (estática)
     ├── privacy.html         ← Privacidade (estática)
@@ -335,7 +366,7 @@ Sistema de traduções PT/EN. Exporta `t(key)` para uso em JavaScript e `applyTr
 ### Estado de Sessão (localStorage)
 
 | Chave | Conteúdo |
-|---|---|
+| --- | --- |
 | `academico_token` | JWT access token |
 | `academico_refresh` | JWT refresh token |
 | `academico_institution` | UUID da instituição activa |
@@ -350,9 +381,10 @@ Sistema de traduções PT/EN. Exporta `t(key)` para uso em JavaScript e `applyTr
 ## Emails Automáticos
 
 | Trigger | Destinatário | Conteúdo |
-|---|---|---|
+| --- | --- | --- |
 | Criar student/trainer com email | Novo utilizador | Boas-vindas + código + senha temporária |
 | Admin reset de senha | Utilizador | Nova senha temporária |
+| Recuperação de senha (auto-serviço) | Utilizador | Link de reset válido 24h |
 
 Utiliza `Django send_mail`. Em desenvolvimento usa o backend de consola (imprime no terminal). Em produção usa SMTP (Gmail ou outro configurado em `.env`).
 
@@ -363,16 +395,18 @@ Utiliza `Django send_mail`. Em desenvolvimento usa o backend de consola (imprime
 ```
 backend/
 └── apps/
-    ├── accounts/tests/      ← 23 testes de serviço
+    ├── accounts/tests/      ← 29 testes de serviço
     ├── institutions/tests/  ← 10 testes de serviço
     ├── students/tests/      ← 21 testes de serviço
     ├── trainers/tests/      ← 19 testes de serviço
     ├── courses/tests/       ← 15 testes de serviço
     ├── classes/tests/       ← 23 testes de serviço
-    └── grades/tests/        ← 19 testes de serviço
+    ├── grades/tests/        ← 19 testes de serviço
+    └── notifications/tests/ ← 7 testes de serviço
 ```
 
-**Total:** 130+ testes de serviço + testes HTTP de todos os endpoints (94 adicionados na v0.3.0). Todos os testes passam a zero falhas.
+**Total:** 143+ testes de serviço + testes HTTP de todos os endpoints
+(94 adicionados na v0.3.0). Todos os testes passam a zero falhas.
 
 **Executar:**
 ```bash
@@ -403,11 +437,11 @@ python -m http.server 3000
 ## Funcionalidades Pendentes
 
 | Feature | Estado |
-|---|---|
-| Página de perfil (ver/editar email) | Planeado — próxima prioridade |
-| Recuperação de senha por email | Planeado |
-| Notificações in-app | Planeado |
-| Relatórios com gráficos e exportação PDF | Planeado |
+| --- | --- |
+| Página de perfil (ver/editar email) | Concluído (v0.4.2) |
+| Recuperação de senha por email | Concluído (v0.4.3) |
+| Notificações in-app | Concluído (v0.4.4) |
+| Relatórios com gráficos e exportação PDF | Planeado — próxima prioridade |
 | Controlo de presenças (sessões de aula) | Planeado (baixa prioridade) |
 | Deploy (VPS, Nginx, HTTPS, CI/CD) | Planeado (sem data) |
 
@@ -418,12 +452,15 @@ python -m http.server 3000
 Ver [CHANGELOG.md](CHANGELOG.md) para detalhes completos por versão.
 
 | Versão | Data | Destaques |
-|---|---|---|
+| --- | --- | --- |
 | v0.1.0 | 2026-02-05 | Estrutura base, todos os modelos, API inicial |
 | v0.2.0 | 2026-03-09 | Services layer, paginação, testes, frontend completo |
 | v0.3.0 | 2026-03-28 | Multi-tenancy (Membership), MembershipJWTAuthentication, 94 testes HTTP |
 | v0.4.0 | 2026-04-21 | Geração de códigos, must_change_password, reset de senha, welcome emails |
-| v0.4.x | 2026-04-27 | i18n PT/EN, login por código, páginas estáticas (about/contact/privacy/terms) |
+| v0.4.1 | 2026-04-27 | i18n PT/EN, login por código, páginas estáticas (about/contact/privacy/terms) |
+| v0.4.2 | 2026-04-27 | Página de perfil, PATCH /auth/me/ para editar email |
+| v0.4.3 | 2026-04-27 | Recuperação de senha por email (token Django, silent 200) |
+| v0.4.4 | 2026-04-27 | Notificações in-app (enrollment/grade triggers, painel no topbar) |
 
 ---
 

@@ -10,6 +10,34 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.4.4] — 2026-04-27
+
+### Added
+
+- In-app notification system:
+  - `Notification` model (`apps.notifications`) — UUID PK, user FK, type
+    (enrollment / grade / system), title, message, is_read, created_at
+  - `NotificationService` — `create`, `list_recent`, `unread_count`,
+    `mark_read`, `mark_all_read`, `notify_enrollment`, `notify_grade`
+  - Enrollment trigger: trainer is notified when a student is enrolled in
+    one of their classes
+  - Grade trigger: student is notified when a grade is submitted for their
+    enrollment
+  - `GET /api/notifications/` — returns `{ unread_count, results[] }`
+  - `POST /api/notifications/<id>/read/` — mark single notification as read
+  - `POST /api/notifications/read-all/` — mark all notifications as read
+  - 7 service-level tests covering creation, ordering, scoping, unread count,
+    and mark-read operations
+- Frontend notification panel in the topbar:
+  - Bell button gets a live unread-count badge
+  - Dropdown panel renders recent notifications with human-readable timestamps
+  - Polling every 60 seconds to refresh unread count
+  - "Mark all as read" action inside the panel
+  - `notifications` API object added to `api.js`
+  - i18n keys for the panel added in PT and EN
+
+---
+
 ## [0.4.3] — 2026-04-27
 
 ### Added

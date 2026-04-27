@@ -311,6 +311,13 @@ export const grades = {
   byEnrollment: (enrollmentId) => apiFetch(`/grades/enrollment/${enrollmentId}/`),
 };
 
+// ── Notifications ────────────────────────────────────────────────
+export const notifications = {
+  list:        ()   => apiFetch('/notifications/'),
+  markRead:    (id) => apiFetch(`/notifications/${id}/read/`, { method: 'POST' }),
+  markAllRead: ()   => apiFetch('/notifications/read-all/',   { method: 'POST' }),
+};
+
 // ── Institutions ──────────────────────────────────────────────────
 export const institutions = {
   me:     ()     => apiFetch('/institutions/me/'),

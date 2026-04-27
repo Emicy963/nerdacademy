@@ -177,6 +177,10 @@ class EnrollmentService:
             raise ValidationError(
                 {"student": "This student is already enrolled in this class."}
             )
+
+        from apps.notifications.services import NotificationService
+        NotificationService.notify_enrollment(enrollment)
+
         return enrollment
 
     @staticmethod

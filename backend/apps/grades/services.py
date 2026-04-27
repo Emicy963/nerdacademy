@@ -100,6 +100,9 @@ class GradeService:
                 }
             )
 
+        from apps.notifications.services import NotificationService
+        NotificationService.notify_grade(grade)
+
         return grade
 
     @staticmethod
