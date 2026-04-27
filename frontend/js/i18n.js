@@ -98,6 +98,24 @@ const TRANSLATIONS = {
     'chpw.err.short':    'Mínimo 8 caracteres.',
     'chpw.err.match':    'As palavras-passe não coincidem.',
 
+    // ── Profile page ─────────────────────────────────────
+    'profile.title':           'O meu perfil',
+    'profile.personal':        'Informação pessoal',
+    'profile.account':         'Conta',
+    'profile.name':            'Nome completo',
+    'profile.code':            'Código',
+    'profile.institution':     'Instituição',
+    'profile.role':            'Papel',
+    'profile.since':           'Membro desde',
+    'profile.email.label':     'Email',
+    'profile.email.hint':      'O email é o teu identificador de login.',
+    'profile.email.none':      'Sem email definido',
+    'profile.email.placeholder': 'email@exemplo.com',
+    'profile.save':            'Guardar alterações',
+    'profile.saved':           'Email actualizado com sucesso.',
+    'profile.err.load':        'Não foi possível carregar o perfil.',
+    'profile.err.save':        'Não foi possível guardar as alterações.',
+
     // ── Students page ────────────────────────────────────
     'students.title':         'Alunos',
     'students.new':           'Novo aluno',
@@ -468,6 +486,24 @@ const TRANSLATIONS = {
     'chpw.err.old':      'Current password is required.',
     'chpw.err.short':    'Minimum 8 characters.',
     'chpw.err.match':    'Passwords do not match.',
+
+    // ── Profile page ─────────────────────────────────────
+    'profile.title':           'My profile',
+    'profile.personal':        'Personal information',
+    'profile.account':         'Account',
+    'profile.name':            'Full name',
+    'profile.code':            'Code',
+    'profile.institution':     'Institution',
+    'profile.role':            'Role',
+    'profile.since':           'Member since',
+    'profile.email.label':     'Email',
+    'profile.email.hint':      'Email is your login identifier.',
+    'profile.email.none':      'No email set',
+    'profile.email.placeholder': 'email@example.com',
+    'profile.save':            'Save changes',
+    'profile.saved':           'Email updated successfully.',
+    'profile.err.load':        'Could not load profile.',
+    'profile.err.save':        'Could not save changes.',
 
     // ── Students page ────────────────────────────────────
     'students.title':         'Students',

@@ -10,6 +10,64 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.4.2] — 2026-04-27
+
+### Added
+
+- `GET /api/auth/me/` now also handles `PATCH` — authenticated users can update
+  their own email; `full_name` remains read-only (managed exclusively by admins)
+- `UserService.update_me(user, email)` — validates uniqueness excluding the
+  current user, then persists the new email
+- `UserUpdateMeSerializer` — single-field serializer accepting `email`
+- Profile page (`/pages/profile.html`) — shows user info (name, code,
+  institution, role, member since) and provides a form to update email;
+  accessible from the sidebar user footer link for all roles
+- `auth.updateMe(data)` added to `api.js`
+- `sidebar__user-link` in `layout.js` — avatar and name in the sidebar footer
+  are now a clickable link to the profile page; injected once by `renderUser()`
+- i18n keys for the profile page added in both PT and EN locales
+
+### Fixed
+
+- `test_create_student_without_email` and `test_create_trainer_without_email`
+  updated to reflect v0.4.1 behaviour: user account is always created, password
+  is `pass123` when no email is provided
+
+---
+
+## [0.4.1] — 2026-04-27
+
+### Added
+
+- Internationalisation (i18n) system — PT and EN locales across the entire
+  frontend; `i18n.js` exports `t(key)` for use in JS and drives `data-i18n`
+  attribute rendering via `applyTranslations()`; locale persisted in
+  `localStorage` under `academico_locale`
+- Landing page (`index.html`) redesigned as a real public page with hero,
+  feature cards, role showcase, and footer; supports PT/EN lang switcher
+- Static pages: `about.html`, `contact.html`, `privacy.html`, `terms.html`;
+  footer links on the landing page now point to these pages
+- Code-based login: `POST /api/auth/login/` now accepts a student or trainer
+  code (no `@` character) in the `email` field; `CustomTokenObtainPairSerializer`
+  resolves the code to the corresponding user before simplejwt authentication
+- Users without an email address now always get a user account on creation;
+  placeholder email format `{code}@local.academico` is used internally and
+  never exposed to the client; initial password is `pass123`
+- Dashboard (`dashboard.html`) fully translated — all strings moved from
+  hardcoded JS template literals to `t()` calls (admin, trainer, and student
+  views)
+
+### Changed
+
+- `UserMeSerializer` masks placeholder emails: returns `""` when email ends
+  with `@local.academico`
+- Login input changed from `type="email"` to `type="text"` to accept both
+  email addresses and alphanumeric codes
+- `UserService.create_managed_user()` now accepts a `code` parameter; password
+  strategy depends on whether a real email is provided
+
+---
+
 ## [0.4.0] — 2026-04-21
 
 ### Added
@@ -65,7 +123,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   `request.membership.institution` throughout; fixed `get_student_by_user` and
   `get_trainer_by_user` calls that were missing the `institution` argument
 - `backend/create_institution.py`: rewritten to use `UserService.create_user()`
-  + `MembershipService.create_membership()` — the old call passed `institution`
+  and `MembershipService.create_membership()` — the old call passed `institution`
   and `role` arguments that no longer exist on `UserService`
 - `frontend/js/layout.js`: `initLogout()` now calls `auth.logout()` so the
   refresh token is blacklisted on the backend; previously only called

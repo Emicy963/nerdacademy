@@ -90,6 +90,33 @@ class TestUserServiceUpdate:
 
 
 @pytest.mark.django_db
+class TestUserServiceUpdateMe:
+
+    def test_update_email_success(self, db):
+        user = UserFactory(email="old@academico.ao")
+        updated = UserService.update_me(user, "new@academico.ao")
+        assert updated.email == "new@academico.ao"
+
+    def test_update_email_persisted(self, db):
+        user = UserFactory(email="persist@academico.ao")
+        UserService.update_me(user, "updated@academico.ao")
+        user.refresh_from_db()
+        assert user.email == "updated@academico.ao"
+
+    def test_update_email_duplicate_raises(self, db):
+        UserFactory(email="taken@academico.ao")
+        user = UserFactory(email="mine@academico.ao")
+        with pytest.raises(ValidationError) as exc:
+            UserService.update_me(user, "taken@academico.ao")
+        assert "email" in exc.value.detail
+
+    def test_update_email_same_value_allowed(self, db):
+        user = UserFactory(email="same@academico.ao")
+        updated = UserService.update_me(user, "same@academico.ao")
+        assert updated.email == "same@academico.ao"
+
+
+@pytest.mark.django_db
 class TestUserServicePassword:
 
     def test_change_password_success(self, db):

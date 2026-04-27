@@ -130,6 +130,19 @@ export function renderUser(user) {
   nameEl.textContent  = displayName;
   roleEl.textContent  = roleLabel;
   if (avatarEl) avatarEl.textContent = initials;
+
+  // Wrap avatar + user-info in a profile link (only once)
+  const userEl = nameEl.closest('.sidebar__user');
+  if (userEl && !userEl.querySelector('.sidebar__user-link')) {
+    const link = document.createElement('a');
+    link.href = '/pages/profile.html';
+    link.className = 'sidebar__user-link';
+    link.title = t('profile.title') || 'Profile';
+    const userInfoEl = nameEl.parentElement;
+    userEl.insertBefore(link, avatarEl);
+    link.appendChild(avatarEl);
+    link.appendChild(userInfoEl);
+  }
 }
 
 // ── Breadcrumb ────────────────────────────────────────────────────

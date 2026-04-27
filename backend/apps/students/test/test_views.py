@@ -60,7 +60,7 @@ class TestStudentListCreateView:
         client = make_auth_client(admin_user, institution)
         resp = client.post(self.URL, {"full_name": "Sem Email"})
         assert resp.status_code == 201
-        assert "temp_password" not in resp.json()
+        assert resp.json().get("temp_password") == "pass123"
 
     def test_trainer_cannot_create_student(self, db, institution, trainer_user):
         client = make_auth_client(trainer_user, institution)

@@ -213,6 +213,16 @@
   text-transform: capitalize;
 }
 
+.sidebar__user-link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
 .sidebar__logout {
   width: 16px;
   height: 16px;

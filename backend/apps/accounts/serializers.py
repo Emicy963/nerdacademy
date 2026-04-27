@@ -103,6 +103,10 @@ class UserCreateSerializer(serializers.Serializer):
     role      = serializers.ChoiceField(choices=Membership.Role.choices)
 
 
+class UserUpdateMeSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True, min_length=8)

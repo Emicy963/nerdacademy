@@ -209,6 +209,10 @@ export const auth = {
     return apiFetch('/auth/me/');
   },
 
+  async updateMe(data) {
+    return apiFetch('/auth/me/', { method: 'PATCH', body: JSON.stringify(data) });
+  },
+
   async changePassword(old_password, new_password) {
     return apiFetch('/auth/change-password/', {
       method: 'POST',

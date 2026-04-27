@@ -81,6 +81,15 @@ class UserService:
         return user
 
     @staticmethod
+    def update_me(user: User, email: str) -> User:
+        email = User.objects.normalize_email(email)
+        if User.objects.filter(email=email).exclude(id=user.id).exists():
+            raise ValidationError({"email": "A user with this email already exists."})
+        user.email = email
+        user.save(update_fields=["email"])
+        return user
+
+    @staticmethod
     def change_password(user: User, old_password: str, new_password: str) -> User:
         if not user.check_password(old_password):
             raise ValidationError({"old_password": "Incorrect password."})

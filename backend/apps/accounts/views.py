@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import UserMeSerializer, MembershipSerializer, ChangePasswordSerializer
+from .serializers import UserMeSerializer, MembershipSerializer, ChangePasswordSerializer, UserUpdateMeSerializer
 from .services import UserService
 
 
@@ -34,6 +34,15 @@ class MeView(APIView):
 
     def get(self, request):
         return Response(UserMeSerializer(request.user).data)
+
+    def patch(self, request):
+        serializer = UserUpdateMeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            user = UserService.update_me(request.user, serializer.validated_data["email"])
+        except Exception as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(UserMeSerializer(user).data)
 
 
 class MembershipsView(APIView):

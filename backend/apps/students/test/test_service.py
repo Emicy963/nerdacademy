@@ -81,12 +81,13 @@ class TestStudentServiceCreate:
         assert student.user.must_change_password is True
         assert temp_password is not None and len(temp_password) > 0
 
-    def test_create_student_without_email_returns_no_password(self, institution):
+    def test_create_student_without_email_uses_generic_password(self, institution):
         student, temp_password = StudentService.create_student(
             institution=institution, full_name="Sem Email"
         )
-        assert student.user is None
-        assert temp_password is None
+        assert student.user is not None
+        assert temp_password == "pass123"
+        assert student.user.email.endswith("@local.academico")
 
 
 @pytest.mark.django_db
