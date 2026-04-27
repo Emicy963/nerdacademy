@@ -10,6 +10,28 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.4.5] — 2026-04-27
+
+### Added
+
+- Reports page (`/pages/reports.html`) — read-only analytics view separate
+  from grade management:
+  - **Admin / Trainer view:** class selector → 4 summary stat cards
+    (students, class average, highest, lowest) → Chart.js horizontal bar
+    chart (average per student, colour-coded green/amber/red) → full grade
+    table (one column per assessment type present in that class)
+  - **Student view:** overall stats (classes enrolled, overall average) →
+    Chart.js horizontal bar chart (average per class) → per-class grade
+    cards with progress bars for each assessment type
+  - Print button triggers `window.print()` with CSS print rules that hide
+    nav and controls
+  - Chart.js 4.4 loaded from CDN
+- `icon-reports` (bar chart) and `icon-print` added to `icons.html`
+- "Relatórios / Reports" nav item added to the Academic section (all roles)
+- `nav.item.reports` and `report.*` i18n keys added in PT and EN
+
+---
+
 ## [0.4.4] — 2026-04-27
 
 ### Added

@@ -1,7 +1,7 @@
 # Acadêmico — Visão Técnica da Plataforma
 
 > Documento de referência técnica. Actualizado a cada feature relevante adicionada à plataforma.
-> Última actualização: 2026-04-27 (v0.4.4)
+> Última actualização: 2026-04-27 (v0.4.5)
 
 ---
 
@@ -334,6 +334,7 @@ frontend/
     ├── courses.html         ← Gestão de cursos (admin)
     ├── classes.html         ← Gestão de turmas (admin/trainer)
     ├── grades.html          ← Gestão de notas (trainer/admin)
+    ├── reports.html         ← Relatórios com gráficos (Chart.js) e impressão
     ├── profile.html         ← Perfil do utilizador (ver info + editar email)
     ├── forgot-password.html ← Pedido de recuperação de senha (público)
     ├── reset-password.html  ← Definir nova senha via token (público)
@@ -441,7 +442,7 @@ python -m http.server 3000
 | Página de perfil (ver/editar email) | Concluído (v0.4.2) |
 | Recuperação de senha por email | Concluído (v0.4.3) |
 | Notificações in-app | Concluído (v0.4.4) |
-| Relatórios com gráficos e exportação PDF | Planeado — próxima prioridade |
+| Relatórios com gráficos | Concluído (v0.4.5) |
 | Controlo de presenças (sessões de aula) | Planeado (baixa prioridade) |
 | Deploy (VPS, Nginx, HTTPS, CI/CD) | Planeado (sem data) |
 
@@ -461,6 +462,7 @@ Ver [CHANGELOG.md](CHANGELOG.md) para detalhes completos por versão.
 | v0.4.2 | 2026-04-27 | Página de perfil, PATCH /auth/me/ para editar email |
 | v0.4.3 | 2026-04-27 | Recuperação de senha por email (token Django, silent 200) |
 | v0.4.4 | 2026-04-27 | Notificações in-app (enrollment/grade triggers, painel no topbar) |
+| v0.4.5 | 2026-04-27 | Página de relatórios com Chart.js, stats e impressão |
 
 ---
 

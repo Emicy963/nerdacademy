@@ -28,6 +28,8 @@ const NAV_ITEMS = [
     items: [
       { id: 'grades', labelKey: 'nav.item.grades', icon: 'grades',
         href: '/pages/grades.html', roles: ['admin', 'trainer', 'student'] },
+      { id: 'reports', labelKey: 'nav.item.reports', icon: 'reports',
+        href: '/pages/reports.html', roles: ['admin', 'trainer', 'student'] },
     ]
   },
 ];
