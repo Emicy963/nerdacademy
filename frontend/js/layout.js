@@ -173,8 +173,14 @@ export function initMobileToggle() {
   const backdrop = document.getElementById('sidebar-backdrop');
   if (!menuBtn || !sidebar) return;
 
-  const open  = () => { sidebar.classList.add('open');    backdrop?.classList.add('visible');    };
-  const close = () => { sidebar.classList.remove('open'); backdrop?.classList.remove('visible'); };
+  const open  = () => {
+    sidebar.classList.add('open');
+    if (backdrop) backdrop.style.display = 'block';
+  };
+  const close = () => {
+    sidebar.classList.remove('open');
+    if (backdrop) backdrop.style.display = 'none';
+  };
 
   menuBtn.addEventListener('click', open);
   backdrop?.addEventListener('click', close);
@@ -463,6 +469,11 @@ export function initLayout(activeNavId) {
   window.addEventListener('localechange', () => {
     renderNav(activeNavId, user.role);
     applyTranslations();
+  });
+
+  // Reveal the app shell (prevents flash of unformatted content)
+  requestAnimationFrame(() => {
+    document.querySelector('.app')?.classList.add('is-ready');
   });
 
   return user;

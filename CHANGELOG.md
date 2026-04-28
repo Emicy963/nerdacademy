@@ -10,6 +10,41 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.4.7] — 2026-04-28
+
+### Fixed
+
+- **Frontend — Flash of content**: `.app` shell is now hidden (`opacity:0`) until
+  `initLayout()` completes, then fades in via CSS transition — prevents the raw
+  JS template literals from being visible before scripts run
+- **Frontend — Mobile menu**: removed duplicate `click` event listener that was
+  cancelling the sidebar open action on all app pages; fixed `initMobileToggle()`
+  to directly set `display` on the backdrop overlay instead of a broken class-based
+  approach — mobile menu now opens and closes correctly
+- **Frontend — Dashboard locale switch**: wrapping role-router in `rerenderDashboard()`
+  and listening to `localechange` means switching language now re-renders all
+  dynamically-generated content without a page reload
+- **Frontend — Dashboard greeting name**: `displayName()` now uses `full_name`
+  instead of email prefix
+- **Frontend — Students & Trainers detail panel**: all hardcoded English labels
+  ("Status", "Phone", "Date of birth", "Address", "Enrolled on", "Specialization",
+  "Hired on", "Bio", "Edit", "Deactivate", "Inactive", "Not provided") replaced
+  with `t()` calls — panel language follows the active locale
+- **Frontend — Filter pills**: "Active only" / "Inactive only" pills now use i18n
+  keys; pills re-render on `localechange`
+- **Frontend — Deactivate confirmation**: replaced `window.confirm()` with an
+  inline confirmation row in the detail panel footer (students and trainers)
+- **Frontend — Landing page CTAs**: hero "Começar agora" button and CTA-band
+  "Criar conta gratuita" now link to `register.html` instead of `login.html`
+- **Frontend — Login page**: added "Criar conta" link in the auth footer
+- **Backend — LOGGING**: added structured `LOGGING` config to `settings/base.py`;
+  Django + django.request at WARNING, app loggers at INFO — all output to console
+  with timestamp/module/level format
+- **i18n**: added `login.signup`, `trainers.err.detail`, `trainers.deactivate.confirm`
+  keys (PT + EN)
+
+---
+
 ## [0.4.6] — 2026-04-27
 
 ### Added
