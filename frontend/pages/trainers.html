@@ -479,20 +479,20 @@ if (!user) throw new Error('unauthenticated');
 if (user.role !== 'admin') { window.location.href = 'dashboard.html'; }
 
 setBreadcrumb([{ label: $t('trainers.title'), current: true }]);
-window.addEventListener('localechange', () =>
-  setBreadcrumb([{ label: t('trainers.title'), current: true }]));
+window.addEventListener('localechange', () => {
+  setBreadcrumb([{ label: $t('trainers.title'), current: true }]);
+  updateFilterPills();
+});
 
 fetch('../components/icons.html')
   .then(r => r.text())
   .then(h => { document.getElementById('icon-sprite').innerHTML = h; });
 
 const menuBtn = document.getElementById('menu-toggle');
-const sidebar  = document.getElementById('sidebar');
 menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
 window.addEventListener('resize', () => {
   menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
 });
-menuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
 
 // ── State ──────────────────────────────────────────
 let currentPage  = 1;
@@ -641,9 +641,9 @@ function renderError(msg) {
           <circle cx="8" cy="8" r="6.5"/>
           <path d="M8 5v3.5M8 11v.5"/>
         </svg>
-        <div class="empty-state__title">Could not load trainers</div>
+        <div class="empty-state__title">${$t('trainers.err.load')}</div>
         <p class="empty-state__desc">${msg}</p>
-        <button class="btn btn-secondary mt-4" onclick="loadTrainers()">Try again</button>
+        <button class="btn btn-secondary mt-4" onclick="loadTrainers()">${$t('ui.tryAgain')}</button>
       </div>
     </td></tr>`;
 }
@@ -718,9 +718,9 @@ function updateFilterPills() {
   const container = document.getElementById('filter-pills');
   const pills = [];
   if (filterActive === 'true')
-    pills.push({ label: 'Active only',   clear: () => { filterActive = ''; document.getElementById('filter-status').value = ''; } });
+    pills.push({ label: $t('ui.activeOnly'),   clear: () => { filterActive = ''; document.getElementById('filter-status').value = ''; } });
   if (filterActive === 'false')
-    pills.push({ label: 'Inactive only', clear: () => { filterActive = ''; document.getElementById('filter-status').value = ''; } });
+    pills.push({ label: $t('ui.inactiveOnly'), clear: () => { filterActive = ''; document.getElementById('filter-status').value = ''; } });
   container.innerHTML = pills.map((p, i) => `
     <span class="filter-pill">
       ${p.label}
@@ -774,7 +774,7 @@ function openDetailPanel(id) {
 
     document.getElementById('tab-info').innerHTML = `
       <div class="detail-field">
-        <div class="detail-field__label">Status</div>
+        <div class="detail-field__label">${$t('ui.status')}</div>
         <div class="detail-field__value">
           <span class="badge ${t.is_active ? 'badge-green' : 'badge-red'}">
             ${t.is_active ? $t('ui.active') : $t('ui.inactive')}
@@ -782,38 +782,38 @@ function openDetailPanel(id) {
         </div>
       </div>
       <div class="detail-field">
-        <div class="detail-field__label">Specialization</div>
+        <div class="detail-field__label">${$t('ui.specialization')}</div>
         <div class="detail-field__value">
-          ${t.specialization || '<span class="detail-field__empty">Not provided</span>'}
+          ${t.specialization || `<span class="detail-field__empty">${$t('ui.notProvided')}</span>`}
         </div>
       </div>
       <div class="detail-field">
-        <div class="detail-field__label">Phone</div>
+        <div class="detail-field__label">${$t('ui.phone')}</div>
         <div class="detail-field__value">
           ${t.phone
             ? `<a href="tel:${t.phone}" style="color:var(--color-blue)">${t.phone}</a>`
-            : '<span class="detail-field__empty">Not provided</span>'}
+            : `<span class="detail-field__empty">${$t('ui.notProvided')}</span>`}
         </div>
       </div>
       <div class="detail-field">
-        <div class="detail-field__label">Bio</div>
+        <div class="detail-field__label">${$t('ui.bio')}</div>
         <div class="detail-field__value" style="font-size:13px;line-height:1.65;color:var(--text-secondary)">
-          ${t.bio || '<span class="detail-field__empty">No bio added</span>'}
+          ${t.bio || `<span class="detail-field__empty">${$t('ui.notProvided')}</span>`}
         </div>
       </div>
       <div class="detail-field">
-        <div class="detail-field__label">Hired on</div>
+        <div class="detail-field__label">${$t('ui.hiredOn')}</div>
         <div class="detail-field__value">${fmtDate(t.hired_at)}</div>
       </div>`;
 
     document.getElementById('panel-footer').innerHTML = `
       <button class="btn btn-secondary flex-1" id="panel-edit-btn">
         <svg width="13" height="13"><use href="#icon-edit"/></svg>
-        Edit
+        ${$t('ui.edit')}
       </button>
       ${t.is_active
-        ? `<button class="btn btn-danger" id="panel-deactivate-btn">Deactivate</button>`
-        : `<span class="badge badge-red" style="margin:auto 0">Inactive</span>`}`;
+        ? `<button class="btn btn-danger" id="panel-deactivate-btn">${$t('ui.deactivate')}</button>`
+        : `<span class="badge badge-red" style="margin:auto 0">${$t('ui.inactive')}</span>`}`;
 
     document.getElementById('panel-edit-btn')
       ?.addEventListener('click', () => openModal(t.id));
@@ -822,7 +822,7 @@ function openDetailPanel(id) {
 
   }).catch(() => {
     document.getElementById('tab-info').innerHTML =
-      `<p class="t-body-sm">Could not load trainer details.</p>`;
+      `<p class="t-body-sm">${$t('trainers.err.detail')}</p>`;
   });
 }
 
@@ -847,7 +847,7 @@ async function loadClassesTab(trainerId) {
             <rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/>
             <path d="M1.5 7h13"/>
           </svg>
-          <div class="empty-state__title" style="font-size:13px">No classes assigned</div>
+          <div class="empty-state__title" style="font-size:13px">${$t('trainers.classes.empty')}</div>
         </div>`;
       return;
     }
@@ -906,15 +906,38 @@ document.addEventListener('keydown', e => {
 
 // ── Deactivate ─────────────────────────────────────
 async function handleDeactivate(id, name) {
-  if (!confirm(`Deactivate "${name}"?\nThey will be marked as inactive.`)) return;
-  try {
-    await trainers.deactivate(id);
-    showToast(`${name} has been deactivated.`);
-    closeDetailPanel();
-    loadTrainers(currentPage);
-  } catch (err) {
-    showToast(err.message, true);
-  }
+  const footerEl = document.getElementById('panel-footer');
+  const deactivateBtn = document.getElementById('panel-deactivate-btn');
+  if (!deactivateBtn || !footerEl) return;
+
+  deactivateBtn.disabled = true;
+
+  const confirmEl = document.createElement('div');
+  confirmEl.className = 'deactivate-confirm visible';
+  confirmEl.innerHTML = `
+    <span style="flex:1;font-size:12px">${$t('trainers.deactivate.confirm').replace('{name}', name).split('\n')[0]}</span>
+    <button class="btn btn-secondary btn-sm" id="deactivate-cancel">${$t('ui.cancel')}</button>
+    <button class="btn btn-danger btn-sm"    id="deactivate-yes">${$t('ui.deactivate')}</button>`;
+  footerEl.appendChild(confirmEl);
+
+  document.getElementById('deactivate-cancel').addEventListener('click', () => {
+    confirmEl.remove();
+    deactivateBtn.disabled = false;
+  });
+
+  document.getElementById('deactivate-yes').addEventListener('click', async () => {
+    document.getElementById('deactivate-yes').disabled = true;
+    try {
+      await trainers.deactivate(id);
+      showToast($t('trainers.toast.deactivated').replace('{name}', name));
+      closeDetailPanel();
+      loadTrainers(currentPage);
+    } catch (err) {
+      confirmEl.remove();
+      deactivateBtn.disabled = false;
+      showToast(err.message, true);
+    }
+  });
 }
 
 // ── Create / Edit modal ────────────────────────────

@@ -129,6 +129,7 @@ const TRANSLATIONS = {
     'login.err.no_membership':   'A sua conta não tem membros activos. Contacte o administrador.',
     'login.err.generic':         'Algo correu mal. Tente novamente.',
     'login.footer':         '© 2026 PyNerd Development',
+    'login.signup':         'Criar conta',
 
     // ── Change password ──────────────────────────────────
     'chpw.title':        'Alterar palavra-passe',
@@ -253,6 +254,8 @@ const TRANSLATIONS = {
     'trainers.toast.updated': 'Formador actualizado com sucesso.',
     'trainers.toast.deactivated': '{name} foi desactivado.',
     'trainers.err.load':      'Não foi possível carregar os formadores',
+    'trainers.err.detail':    'Não foi possível carregar os detalhes do formador.',
+    'trainers.deactivate.confirm': 'Desactivar "{name}"?\nO formador ficará inactivo.',
     'trainers.bio.hint':      'Opcional. Visível no perfil do formador.',
     'trainers.status.label':  'Estado',
     'trainers.status.active': 'Activo',
@@ -603,6 +606,7 @@ const TRANSLATIONS = {
     'login.err.no_membership':   'Your account has no active memberships. Contact your administrator.',
     'login.err.generic':         'Something went wrong. Please try again.',
     'login.footer':         '© 2026 PyNerd Development',
+    'login.signup':         'Create account',
 
     // ── Change password ──────────────────────────────────
     'chpw.title':        'Change your password',
@@ -727,6 +731,8 @@ const TRANSLATIONS = {
     'trainers.toast.updated': 'Trainer updated successfully.',
     'trainers.toast.deactivated': '{name} has been deactivated.',
     'trainers.err.load':      'Could not load trainers',
+    'trainers.err.detail':    'Could not load trainer details.',
+    'trainers.deactivate.confirm': 'Deactivate "{name}"?\nThe trainer will be marked as inactive.',
     'trainers.bio.hint':      'Optional. Shown on trainer profile.',
     'trainers.status.label':  'Status',
     'trainers.status.active': 'Active',

@@ -292,21 +292,17 @@ import { t } from '../js/i18n.js';
 const user = initLayout('dashboard');
 if (!user) throw new Error('unauthenticated');
 
-setBreadcrumb([{ label: t('dash.title'), current: true }]);
-
 // Load icons sprite
 fetch('../components/icons.html')
   .then(r => r.text())
   .then(h => { document.getElementById('icon-sprite').innerHTML = h; });
 
-// Mobile menu toggle
+// Mobile menu toggle visibility (open/close handled by initMobileToggle in layout.js)
 const menuBtn = document.getElementById('menu-toggle');
-const sidebar  = document.getElementById('sidebar');
 menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
 window.addEventListener('resize', () => {
   menuBtn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
 });
-menuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
 
 // ── Helpers ────────────────────────────────────────────
 const root = document.getElementById('page-root');
@@ -319,8 +315,9 @@ function greeting() {
 }
 
 function displayName(u) {
-  return (u?.email ?? 'User').split('@')[0].replace(/[._]/g, ' ')
-    .replace(/\b\w/g, c => c.toUpperCase());
+  return u?.full_name?.trim()
+    || (u?.email ? u.email.split('@')[0].replace(/[._]/g, ' ')
+        .replace(/\b\w/g, c => c.toUpperCase()) : 'User');
 }
 
 // Skeleton stat card HTML
@@ -872,27 +869,33 @@ async function renderStudent() {
 // ══════════════════════════════════════════════════════
 //  Role router
 // ══════════════════════════════════════════════════════
-try {
-  switch (user.role) {
-    case 'admin':   await renderAdmin();   break;
-    case 'trainer': await renderTrainer(); break;
-    case 'student': await renderStudent(); break;
-    default:        await renderAdmin();
+async function rerenderDashboard() {
+  setBreadcrumb([{ label: t('dash.title'), current: true }]);
+  try {
+    switch (user.role) {
+      case 'admin':   await renderAdmin();   break;
+      case 'trainer': await renderTrainer(); break;
+      case 'student': await renderStudent(); break;
+      default:        await renderAdmin();
+    }
+  } catch (err) {
+    console.error('Dashboard error:', err);
+    root.innerHTML = `
+      <div class="empty-state" style="margin-top:var(--sp-16)">
+        <svg class="empty-state__icon" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="6.5"/>
+          <path d="M8 5v3.5M8 11v.5"/>
+        </svg>
+        <div class="empty-state__title">${t('dash.error.title')}</div>
+        <p class="empty-state__desc">${err.message ?? t('ui.error.generic')}</p>
+        <button class="btn btn-secondary mt-4" onclick="location.reload()">${t('ui.tryAgain')}</button>
+      </div>`;
   }
-} catch (err) {
-  console.error('Dashboard error:', err);
-  root.innerHTML = `
-    <div class="empty-state" style="margin-top:var(--sp-16)">
-      <svg class="empty-state__icon" viewBox="0 0 16 16" fill="none"
-           stroke="currentColor" stroke-width="1.5">
-        <circle cx="8" cy="8" r="6.5"/>
-        <path d="M8 5v3.5M8 11v.5"/>
-      </svg>
-      <div class="empty-state__title">${t('dash.error.title')}</div>
-      <p class="empty-state__desc">${err.message ?? t('ui.error.generic')}</p>
-      <button class="btn btn-secondary mt-4" onclick="location.reload()">${t('ui.tryAgain')}</button>
-    </div>`;
 }
+
+rerenderDashboard();
+window.addEventListener('localechange', () => rerenderDashboard());
 </script>
 
 </body>

@@ -7,6 +7,11 @@
 .app {
   display: flex;
   min-height: 100vh;
+  opacity: 0;
+}
+.app.is-ready {
+  opacity: 1;
+  transition: opacity 150ms ease;
 }
 
 /* ── Sidebar ─────────────────────────────────────────────── */
