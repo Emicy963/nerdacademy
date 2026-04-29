@@ -1,4 +1,4 @@
-# AcadémicoPro — API Reference
+# Matrika — API Reference
 
 Base URL: `http://localhost:8000/api`
 Authentication: `Authorization: Bearer <access_token>`
@@ -22,21 +22,42 @@ Authentication: `Authorization: Bearer <access_token>`
 | DELETE | `/auth/users/{id}/` | Admin | Deactivate user |
 
 ### Login request/response
+
+Login accepts **email** or a **student/trainer code** (e.g. `CIN20260001`).
+
 ```json
 // POST /api/auth/login/
 { "email": "admin@centro.ao", "password": "secret123" }
+// OR
+{ "email": "CIN20260001", "password": "pass123" }
 
 // 200 OK
 {
   "access": "<jwt>",
   "refresh": "<jwt>",
+  "must_change_password": false,
   "user": {
-    "id": "uuid", "email": "admin@centro.ao",
-    "role": "admin",
-    "institution_id": "uuid",
-    "institution_name": "Centro Angola"
-  }
+    "id": "uuid",
+    "email": "admin@centro.ao",
+    "full_name": "Admin Name"
+  },
+  "memberships": [
+    {
+      "id": "uuid",
+      "role": "admin",
+      "institution_id": "uuid",
+      "institution_name": "CINFOTEC Huambo"
+    }
+  ]
 }
+```
+
+The frontend stores `memberships[0]` as the active membership in
+`localStorage` under the key `active_membership`. Every subsequent
+authenticated request must include the header:
+
+```
+X-Institution-Id: <active_membership.institution_id>
 ```
 
 ---

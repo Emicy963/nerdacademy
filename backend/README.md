@@ -1,13 +1,13 @@
-# Backend — Acadêmico API
+# Backend — Matrika API
 
-Django REST Framework API for the Acadêmico academic management platform.
+Django REST Framework API for the Matrika academic management platform.
 
 ---
 
 ## Requirements
 
-- Python 3.12+
-- PostgreSQL 16+
+- Python 3.13+
+- PostgreSQL 16+ (SQLite works for local development)
 - pip
 
 ## Local development setup
@@ -54,8 +54,8 @@ docker compose exec django python manage.py create_institution
 |---------------------------|----------|-----------------------------|------------------------------------|
 | `SECRET_KEY`              | Yes      | —                           | Django secret key                  |
 | `DJANGO_SETTINGS_MODULE`  | No       | `core.settings.development` | Settings module                    |
-| `DB_NAME`                 | Yes      | `academico_db`              | PostgreSQL database name           |
-| `DB_USER`                 | Yes      | `academico_user`            | PostgreSQL user                    |
+| `DB_NAME`                 | Yes      | `matrika_db`                | PostgreSQL database name           |
+| `DB_USER`                 | Yes      | `matrika_user`              | PostgreSQL user                    |
 | `DB_PASSWORD`             | Yes      | —                           | PostgreSQL password                |
 | `DB_HOST`                 | No       | `localhost`                 | PostgreSQL host                    |
 | `DB_PORT`                 | No       | `5432`                      | PostgreSQL port                    |
@@ -147,5 +147,5 @@ endpoint reference.
 
 ## License
 
-Proprietary — Copyright (c) 2025 PyNerd Development. All rights reserved.
+Proprietary — Copyright (c) 2026 PyNerd. All rights reserved.
 See `LICENSE` for details.
