@@ -4,14 +4,17 @@
 
 | Version | Supported |
 |---------|-----------|
-| 0.2.x   | Yes       |
-| 0.1.x   | No        |
+| 0.5.x   | Yes       |
+| 0.4.x   | Yes       |
+| < 0.4   | No        |
 
 ## Reporting a vulnerability
 
 Do not open a public GitHub issue to report a security vulnerability.
 
-Send a detailed report to the project maintainers directly. Include:
+Send a detailed report to: **[pynerd.mvp@gmail.com](mailto:pynerd.mvp@gmail.com)**
+
+Include:
 
 - A description of the vulnerability
 - Steps to reproduce

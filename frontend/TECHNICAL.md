@@ -1,7 +1,7 @@
 # Frontend — Technical Reference
 
 This document explains the internal architecture, design decisions and code
-conventions of the Acadêmico frontend. It is intended for developers who
+conventions of the Matrika frontend. It is intended for developers who
 need to understand, extend or debug the codebase.
 
 ---
@@ -44,19 +44,30 @@ preprocessor.
 
 ### JavaScript module structure
 
-Three shared modules are used across all pages:
+Shared modules used across all pages:
 
 **`js/api.js`** — the API client. Exports named resource objects (`students`,
 `trainers`, `courses`, `classes`, `grades`, `institutions`, `auth`) and the
-`token` helper. All network communication goes through this file.
+`session`/`token` helpers. Every request goes through `fetchWithTimeout()`,
+which enforces a 15-second `AbortController` limit. All network communication
+goes through this file.
 
 **`js/api.mock.js`** — a drop-in replacement for `api.js` during development.
 Exports the same interface with identical function signatures. No changes to
 page code are needed beyond the import path.
 
+**`js/i18n.js`** — PT/EN translation dictionary. Exports `t(key)` for
+JavaScript string resolution and `applyTranslations()` for `data-i18n`
+HTML attributes. Language is persisted in `localStorage` as `academico_locale`.
+
 **`js/layout.js`** — the shared layout module. Exports functions for nav
-rendering, breadcrumb management, auth guard, and mobile sidebar. Called once
-per page via `initLayout(activeNavId)`.
+rendering, breadcrumb management, auth guard, offline banner, and mobile
+sidebar. Called once per page via `initLayout(activeNavId)`. Also registers
+the service worker on first load.
+
+**`js/onboarding.js`** — first-run wizard for new admin accounts. Renders a
+5-step modal overlay triggered by the `matrika_onboarding` localStorage flag
+set by `register.html` after successful registration.
 
 ---
 
@@ -67,9 +78,10 @@ per page via `initLayout(activeNavId)`.
 ```
 apiFetch(path, options)
     │
-    ├── attach Authorization header from localStorage
+    ├── attach Authorization + X-Institution-Id headers from localStorage
     │
-    ├── fetch(API_BASE + path, options)
+    ├── fetchWithTimeout(API_BASE + path, options)   ← 15s AbortController
+    │       if timeout → throw Error { isTimeout: true }
     │
     ├── if 401 and not already retrying:
     │       silentRefresh()           ← POST /auth/refresh/
@@ -135,8 +147,16 @@ This function:
 3. Calls `renderUser(user)` — fills the sidebar footer with the user's name,
    role and initials.
 4. Calls `initMobileToggle()` — wires the hamburger button to the sidebar
-   open/close state.
+   open/close state using `classList.add/remove('open')` and direct
+   `style.display` on the backdrop (not class-based, which would conflict
+   with inline `display:none`).
 5. Calls `initLogout()` — wires the logout button to clear tokens and redirect.
+6. Calls `initOfflineBanner()` — prepends a fixed amber banner to `<body>`;
+   listens to `window online/offline` events and toggles
+   `.offline-banner--visible` to slide it in/out.
+7. Registers `sw.js` via `navigator.serviceWorker.register('/sw.js')`.
+8. Adds `is-ready` class to `.app` via `requestAnimationFrame` — fades in the
+   shell after layout is complete, preventing flash of unformatted content.
 
 The function returns the `user` object so pages can read `user.role` without
 a separate call.

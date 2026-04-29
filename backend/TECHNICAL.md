@@ -1,7 +1,7 @@
 # Backend — Technical Reference
 
 This document explains the internal architecture, design decisions and code
-conventions of the Acadêmico Django backend. It is intended for developers
+conventions of the Matrika Django backend. It is intended for developers
 who need to understand, extend or audit the codebase.
 
 ---

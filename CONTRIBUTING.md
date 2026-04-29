@@ -1,7 +1,7 @@
 # Contributing
 
 This document describes the conventions and workflow for contributing to
-Acadêmico. Please read it before opening a pull request.
+Matrika. Please read it before opening a pull request.
 
 ---
 
@@ -78,6 +78,9 @@ with a version tag.
 - Every list view must handle three states: loading (skeleton), loaded (data),
   and error (message + retry).
 - Role checks must be applied at the UI level even when the API enforces them.
+- All user-facing strings must exist in both `pt` and `en` sections of `i18n.js`.
+  No hardcoded English or Portuguese in HTML/JS.
+- No `window.alert()` or `window.confirm()` — use inline confirmation UI.
 
 ---
 
@@ -90,7 +93,9 @@ Before requesting a review, confirm:
 - [ ] Backend: new service methods have docstrings
 - [ ] Frontend: new pages load correctly in all three role views (admin, trainer, student)
 - [ ] Frontend: mock API supports any new API calls added
+- [ ] Frontend: new strings added to both `pt` and `en` in `i18n.js`
 - [ ] `CHANGELOG.md` has been updated under `[Unreleased]`
+- [ ] `PLATFORM_OVERVIEW.md` updated if architecture or feature set changed
 - [ ] No secrets, tokens or `.env` values are committed
 
 ---

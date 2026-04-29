@@ -1,6 +1,6 @@
-# Frontend — Acadêmico
+# Frontend — Matrika
 
-Vanilla HTML/CSS/JavaScript client for the Acadêmico academic management platform.
+Vanilla HTML/CSS/JavaScript client for the Matrika academic management platform.
 No build tools, no frameworks, no transpilation. Files are served as-is.
 
 ---
@@ -8,7 +8,7 @@ No build tools, no frameworks, no transpilation. Files are served as-is.
 ## Requirements
 
 - A modern browser (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
-- A running instance of the Acadêmico backend API, OR the mock layer enabled
+- A running instance of the Matrika backend API, OR the mock layer enabled
 - For production: a Vercel account (static deployment)
 
 ## Running locally
@@ -19,13 +19,13 @@ Any static file server works:
 
 ```bash
 # Option 1: Python (no install required)
-cd academico
+cd matrika/frontend
 python -m http.server 3000
-# Open http://localhost:3000/frontend/pages/login.html
+# Open http://localhost:3000/pages/login.html
 
 # Option 2: Node http-server
 npx http-server . -p 3000
-# Open http://localhost:3000/frontend/pages/login.html
+# Open http://localhost:3000/pages/login.html
 ```
 
 The API base URL is configured in `js/api.js`:
@@ -61,25 +61,32 @@ state for the duration of the session. A page refresh resets all data.
 
 ```
 frontend/
+├── sw.js                 Service worker — offline asset cache
 ├── css/
-│   ├── global.css        Design tokens, reset, component styles
-│   └── layout.css        App shell: sidebar, topbar, content area
+│   ├── global.css        Design tokens, reset, component styles, onboarding overlay
+│   └── layout.css        App shell: sidebar, topbar, content area, offline banner
 ├── js/
-│   ├── api.js            API client (production)
+│   ├── config.js         API base URL
+│   ├── api.js            API client: fetch with 15s timeout, silent token refresh
 │   ├── api.mock.js       Mock API client (development without backend)
-│   └── layout.js         Shared layout module
+│   ├── i18n.js           PT/EN translations — t(key) + applyTranslations()
+│   ├── layout.js         Shell: nav, auth guard, offline banner, SW registration
+│   └── onboarding.js     First-run wizard for new admin accounts
 ├── components/
 │   ├── icons.html        SVG icon sprite
 │   └── shell.html        App shell HTML template
 ├── pages/
-│   ├── login.html        Authentication
-│   ├── dashboard.html    Role-based dashboard
+│   ├── login.html        Authentication (email or student/trainer code)
+│   ├── register.html     Self-service institution registration
+│   ├── dashboard.html    Role-based dashboard; triggers onboarding wizard
 │   ├── students.html     Student management
 │   ├── trainers.html     Trainer management
 │   ├── courses.html      Course catalogue
 │   ├── classes.html      Class and enrolment management
-│   └── grades.html       Grade assessment and reporting
-└── index.html            Design system preview / entry point
+│   ├── grades.html       Grade assessment and reporting
+│   ├── reports.html      Charts + CSV/PDF export
+│   └── profile.html      User profile — view and edit email
+└── index.html            Public landing page (PT/EN)
 ```
 
 ## Deployment to Vercel
@@ -117,5 +124,5 @@ versions are those that support ES2020 features natively.
 
 ## License
 
-Proprietary — Copyright (c) 2025 PyNerd Development. All rights reserved.
+Proprietary — Copyright (c) 2026 PyNerd. All rights reserved.
 See `LICENSE` for details.
