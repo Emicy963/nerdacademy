@@ -1,15 +1,17 @@
-# Acadêmico — Visão Técnica da Plataforma
+# Matrika — Visão Técnica da Plataforma
 
 > Documento de referência técnica. Actualizado a cada feature relevante adicionada à plataforma.
-> Última actualização: 2026-04-27 (v0.4.6)
+> Última actualização: 2026-04-29 (v0.5.0)
 
 ---
 
-## O que é o Acadêmico
+## O que é a Matrika
 
-Acadêmico é uma plataforma SaaS (Software as a Service) de gestão académica desenvolvida para centros de formação técnica em Angola. O sistema permite que uma instituição gira estudantes, formadores, cursos, turmas, inscrições e avaliações, tudo num único lugar.
+Matrika é uma plataforma SaaS (Software as a Service) de gestão académica desenvolvida para centros de formação técnica em Angola. O nome deriva de *matrícula* — o acto central de qualquer instituição de ensino. O sistema permite que uma instituição gira estudantes, formadores, cursos, turmas, inscrições e avaliações, tudo num único lugar.
 
 O modelo de negócio é multi-tenant: a mesma instalação do software serve várias instituições em paralelo, cada uma com os seus dados completamente isolados.
+
+**Marca e posicionamento:** ver `docs/branding/MATRIKA_BRAND.md`. Marca-mãe: PyNerd (aparece apenas no footer do produto).
 
 ---
 
@@ -96,7 +98,7 @@ Cada app segue a mesma estrutura interna: `models.py` → `serializers.py` → `
 | Campo | Tipo | Notas |
 | --- | --- | --- |
 | `id` | UUID | Chave primária |
-| `email` | EmailField único | Campo de login (USERNAME_FIELD). Utilizadores sem email real recebem placeholder `{code}@local.academico` |
+| `email` | EmailField único | Campo de login (USERNAME_FIELD). Utilizadores sem email real recebem placeholder `{code}@local.matrika` |
 | `full_name` | CharField | Gerido pelo admin |
 | `is_active` | Boolean | |
 | `must_change_password` | Boolean | Activado sempre na criação — obriga mudança no primeiro login |
@@ -183,7 +185,7 @@ A resposta devolve:
 
 ### Utilizadores sem email
 
-Comuns em Angola. O sistema cria um email placeholder `{codigo}@local.academico` internamente. A senha inicial é `pass123`. O placeholder nunca é exposto ao frontend (o serializer devolve `""` para esses casos).
+Comuns em Angola. O sistema cria um email placeholder `{codigo}@local.matrika` internamente. A senha inicial é `pass123`. O placeholder nunca é exposto ao frontend (o serializer devolve `""` para esses casos).
 
 ### Tokens JWT
 
@@ -318,18 +320,21 @@ O `InstitutionService` gera automaticamente os códigos de estudante e formador:
 ```
 frontend/
 ├── index.html               ← Landing page pública (PT/EN)
+├── sw.js                    ← Service worker: cache de assets estáticos (CSS/JS)
 ├── css/
-│   ├── global.css           ← Design system: tokens, reset, tipografia, componentes
-│   └── layout.css           ← Shell da app: sidebar, topbar, área de conteúdo
+│   ├── global.css           ← Design system: tokens, reset, tipografia, componentes, onboarding
+│   └── layout.css           ← Shell da app: sidebar, topbar, área de conteúdo, offline banner
 ├── js/
 │   ├── config.js            ← URL base da API
-│   ├── api.js               ← Todas as chamadas HTTP (injecção de tokens, refresh automático)
-│   ├── layout.js            ← Shell da app (sidebar, topbar, breadcrumb, auth guards)
-│   └── i18n.js              ← Sistema de traduções PT/EN (808 linhas de dicionário)
+│   ├── api.js               ← Todas as chamadas HTTP (timeout 15s, refresh automático, logout)
+│   ├── layout.js            ← Shell da app (sidebar, topbar, breadcrumb, auth guard, offline banner, SW)
+│   ├── i18n.js              ← Sistema de traduções PT/EN
+│   └── onboarding.js        ← Wizard de onboarding para novos admins (5 passos, modal overlay)
 └── pages/
     ├── login.html           ← Login por email ou código
+    ├── register.html        ← Auto-registo de nova instituição; define flag matrika_onboarding
     ├── change-password.html ← Mudança de senha obrigatória (primeiro login)
-    ├── dashboard.html       ← Dashboard adaptado por papel (admin/trainer/student)
+    ├── dashboard.html       ← Dashboard adaptado por papel; arranca initOnboarding()
     ├── students.html        ← Gestão de estudantes (admin)
     ├── trainers.html        ← Gestão de formadores (admin)
     ├── courses.html         ← Gestão de cursos (admin)
@@ -337,7 +342,6 @@ frontend/
     ├── grades.html          ← Gestão de notas (trainer/admin)
     ├── reports.html         ← Relatórios com gráficos (Chart.js) e impressão
     ├── profile.html         ← Perfil do utilizador (ver info + editar email)
-    ├── register.html        ← Auto-registo de nova instituição (público)
     ├── forgot-password.html ← Pedido de recuperação de senha (público)
     ├── reset-password.html  ← Definir nova senha via token (público)
     ├── about.html           ← Sobre (estática)
@@ -349,6 +353,7 @@ frontend/
 ### api.js — Camada de Comunicação
 
 Centraliza todas as chamadas à API. Gere automaticamente:
+- **Timeout de 15 segundos** em todos os pedidos via `AbortController` — pedidos lentos (rede instável) devolvem mensagem clara em vez de ficarem pendurados indefinidamente
 - Injecção do `Authorization: Bearer <token>` em todos os pedidos
 - Injecção do `X-Institution-Id` em pedidos que requerem contexto institucional
 - Refresh automático do access token quando expira (resposta 401)
@@ -360,24 +365,41 @@ Carrega a sidebar e topbar a partir de `components/shell.html`. Expõe:
 - `requireAuth()` — redireciona para login se não há sessão
 - `requireRole(role)` — redireciona se o papel activo não corresponde
 - `setBreadcrumb(items)` — actualiza o breadcrumb da topbar
-- `initLayout()` — chamado em todas as páginas autenticadas; aplica traduções automaticamente
+- `initLayout()` — chamado em todas as páginas autenticadas; aplica traduções, monta o banner offline e regista o service worker
+- `initOfflineBanner()` — injeta um banner fixo no topo que aparece quando `navigator.onLine === false` e desaparece ao reconectar
 
 ### i18n.js — Internacionalização
 
 Sistema de traduções PT/EN. Exporta `t(key)` para uso em JavaScript e `applyTranslations()` para atributos `data-i18n` no HTML. Persiste o idioma em `localStorage` (chave `academico_locale`). O idioma por defeito é Português.
 
+### onboarding.js — Wizard de Onboarding
+
+Overlay modal de 5 passos exibido automaticamente ao primeiro login após registo:
+
+1. **Bem-vindo** — apresentação
+2. **Criar Curso** → navega para `/pages/courses.html`
+3. **Criar Turma** → navega para `/pages/classes.html`
+4. **Adicionar Aluno** → navega para `/pages/students.html`
+5. **Concluído** — dismissão
+
+Trigger: `localStorage.setItem('matrika_onboarding', 'pending')` no `register.html` após registo com sucesso. Progresso guardado em `matrika_onboarding_step`. Descartável a qualquer passo.
+
+### sw.js — Service Worker
+
+Registado automaticamente por `layout.js`. No install, faz cache dos assets estáticos (CSS e JS principais). Em pedidos subsequentes serve esses ficheiros de cache sem esperar pela rede — o shell da app carrega mesmo sem internet. Pedidos à API (`/api/`) nunca são interceptados.
+
 ### Estado de Sessão (localStorage)
 
 | Chave | Conteúdo |
 | --- | --- |
-| `academico_token` | JWT access token |
-| `academico_refresh` | JWT refresh token |
-| `academico_institution` | UUID da instituição activa |
-| `academico_user` | JSON com dados do utilizador |
-| `academico_memberships` | JSON array de Memberships activas |
-| `academico_role` | Papel activo (`admin`/`trainer`/`student`) |
-| `academico_must_change_password` | `"true"` / `"false"` |
-| `academico_locale` | `"pt"` ou `"en"` |
+| `access` | JWT access token |
+| `refresh` | JWT refresh token |
+| `user` | JSON com dados do utilizador |
+| `memberships` | JSON array de Memberships activas |
+| `active_membership` | JSON com a Membership activa (`id`, `role`, `institution_id`, `institution_name`) |
+| `academico_locale` | `"pt"` ou `"en"` (idioma activo) |
+| `matrika_onboarding` | `"pending"` — presente apenas até o wizard ser concluído/descartado |
+| `matrika_onboarding_step` | Índice do passo actual do wizard (0–4) |
 
 ---
 
@@ -408,8 +430,7 @@ backend/
     └── notifications/tests/ ← 7 testes de serviço
 ```
 
-**Total:** 143+ testes de serviço + testes HTTP de todos os endpoints
-(94 adicionados na v0.3.0). Todos os testes passam a zero falhas.
+**Total:** 143+ testes de serviço + testes HTTP de todos os endpoints. Todos os testes passam a zero falhas.
 
 **Executar:**
 ```bash
@@ -447,7 +468,11 @@ python -m http.server 3000
 | Relatórios com gráficos + exportação CSV/PDF | Concluído (v0.4.5) |
 | Auto-registo de instituição (self-service) | Concluído (v0.4.6) |
 | Infra de deploy (Railway + Vercel + CI/CD) | Concluído (v0.4.6) |
+| Rename para Matrika + brand guide + pitch CINFOTEC | Concluído (v0.5.0) |
+| Resiliência de conectividade (timeout, offline banner, SW) | Concluído (v0.5.0) |
+| Wizard de onboarding para novos admins | Concluído (v0.5.0) |
 | Controlo de presenças (sessões de aula) | Arquivado (baixa prioridade) |
+| Pagamentos integrados (Multicaixa/Express) | Pendente (pós-piloto) |
 
 ---
 
@@ -467,7 +492,9 @@ Ver [CHANGELOG.md](CHANGELOG.md) para detalhes completos por versão.
 | v0.4.4 | 2026-04-27 | Notificações in-app (enrollment/grade triggers, painel no topbar) |
 | v0.4.5 | 2026-04-27 | Página de relatórios com Chart.js, stats, impressão e export CSV/PDF |
 | v0.4.6 | 2026-04-27 | Auto-registo de instituição, infra de deploy (Railway + Vercel + CI/CD) |
+| v0.4.7 | 2026-04-28 | Correcções de bugs: flash de conteúdo, menu mobile, locale switch, i18n detalhes |
+| v0.5.0 | 2026-04-29 | Rename para Matrika, brand guide, pitch CINFOTEC, resiliência de conectividade, wizard de onboarding |
 
 ---
 
-*Desenvolvido por PyNerd Development. Propriedade exclusiva — todos os direitos reservados.*
+*Matrika · by PyNerd · Luanda, Angola — todos os direitos reservados.*

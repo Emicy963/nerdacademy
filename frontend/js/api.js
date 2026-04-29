@@ -16,6 +16,23 @@
 
 import { API_BASE } from './config.js';
 
+const REQUEST_TIMEOUT_MS = 15_000;
+
+function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  return fetch(url, { ...options, signal: controller.signal })
+    .catch(err => {
+      if (err.name === 'AbortError') {
+        const timeout = new Error('Request timed out. Check your connection and try again.');
+        timeout.isTimeout = true;
+        throw timeout;
+      }
+      throw err;
+    })
+    .finally(() => clearTimeout(timer));
+}
+
 // ── Session helpers ───────────────────────────────────────────────
 export const session = {
   // Raw JWT tokens
@@ -120,7 +137,7 @@ async function silentRefresh() {
     const refresh = session.getRefresh();
     if (!refresh) throw new Error('No refresh token');
 
-    const res = await fetch(`${API_BASE}/auth/refresh/`, {
+    const res = await fetchWithTimeout(`${API_BASE}/auth/refresh/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh }),
@@ -150,7 +167,7 @@ export async function apiFetch(path, options = {}) {
   const institutionId = session.getInstitutionId();
   if (institutionId) headers['X-Institution-Id'] = institutionId;
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const res = await fetchWithTimeout(`${API_BASE}${path}`, { ...options, headers });
 
   // 401 → try silent refresh once
   if (res.status === 401 && !_retrying) {
@@ -182,7 +199,7 @@ export const auth = {
    * (login page handles this) and calling session.set().
    */
   async login(email, password) {
-    const res = await fetch(`${API_BASE}/auth/login/`, {
+    const res = await fetchWithTimeout(`${API_BASE}/auth/login/`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email, password }),
@@ -214,7 +231,7 @@ export const auth = {
   },
 
   async requestPasswordReset(email) {
-    const res = await fetch(`${API_BASE}/auth/password-reset/`, {
+    const res = await fetchWithTimeout(`${API_BASE}/auth/password-reset/`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email }),
@@ -224,7 +241,7 @@ export const auth = {
   },
 
   async confirmPasswordReset(uid, token, new_password) {
-    const res = await fetch(`${API_BASE}/auth/password-reset/confirm/`, {
+    const res = await fetchWithTimeout(`${API_BASE}/auth/password-reset/confirm/`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ uid, token, new_password }),
@@ -324,7 +341,7 @@ export const institutions = {
   update: (data) => apiFetch('/institutions/me/', { method: 'PATCH', body: JSON.stringify(data) }),
 
   register: (data) =>
-    fetch(`${API_BASE}/institutions/register/`, {
+    fetchWithTimeout(`${API_BASE}/institutions/register/`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(data),

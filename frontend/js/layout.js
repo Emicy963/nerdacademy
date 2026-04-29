@@ -1,6 +1,10 @@
 import { session, auth, notifications as notifApi } from './api.js';
 import { t, applyTranslations, getLocale, setLocale } from './i18n.js';
 
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
 // ── Nav items ─────────────────────────────────────────────────────
 const NAV_ITEMS = [
   {
@@ -452,6 +456,26 @@ export function initNotifications() {
 }
 
 // ── Init everything ───────────────────────────────────────────────
+// ── Offline banner ────────────────────────────────────────────────
+function initOfflineBanner() {
+  const banner = document.createElement('div');
+  banner.id = 'offline-banner';
+  banner.setAttribute('role', 'status');
+  banner.setAttribute('aria-live', 'polite');
+  document.body.prepend(banner);
+
+  const update = () => {
+    const offline = !navigator.onLine;
+    banner.textContent = t('ui.offline') || 'No internet connection — some actions may not work.';
+    banner.classList.toggle('offline-banner--visible', offline);
+  };
+
+  window.addEventListener('offline', update);
+  window.addEventListener('online',  update);
+  window.addEventListener('localechange', update);
+  update();
+}
+
 export function initLayout(activeNavId) {
   const user = requireAuth();
   if (!user) return null;
@@ -463,6 +487,7 @@ export function initLayout(activeNavId) {
   initLogout();
   injectLangSwitcher();
   initNotifications();
+  initOfflineBanner();
   applyTranslations();
 
   // Re-render nav + apply translations on language change
