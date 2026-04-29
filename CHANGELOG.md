@@ -10,6 +10,31 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.5.0] — 2026-04-28
+
+### Added
+
+- **Branding — Matrika**: product renamed from "Acadêmico" to **Matrika** across
+  all HTML pages, JS files, and i18n strings; brand identity codified in
+  `docs/branding/MATRIKA_BRAND.md`
+- **Marketing — CINFOTEC pilot**: detailed sales/pitch document added at
+  `docs/marketing/CINFOTEC_PILOT_PITCH.md`
+- **Connectivity resilience — request timeouts**: `api.js` now wraps every
+  `fetch()` in `fetchWithTimeout()` with a 15-second `AbortController` timeout;
+  network stalls surface a clear "timed out" error instead of hanging indefinitely
+- **Connectivity resilience — offline banner**: `layout.js` injects a fixed
+  amber banner at the top of all app pages when `navigator.onLine` is `false`;
+  banner dismisses automatically when connection restores; fully i18n'd
+- **Connectivity resilience — service worker**: `frontend/sw.js` registered from
+  `layout.js`; caches static CSS/JS assets on install and serves them
+  cache-first on repeat visits, so the app shell loads even when offline
+- **Onboarding wizard**: new `frontend/js/onboarding.js` module renders a
+  5-step overlay modal for new admin users after registration (Welcome → Course
+  → Class → Student → Done); progress persisted in `localStorage`; fully i18n'd
+  in PT and EN; auto-dismissed once complete or skipped
+
+---
+
 ## [0.4.7] — 2026-04-28
 
 ### Fixed

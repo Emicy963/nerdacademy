@@ -651,3 +651,89 @@ tbody tr:last-child td {
 .mt-4  { margin-top: var(--sp-4); }
 .mt-6  { margin-top: var(--sp-6); }
 .w-full { width: 100%; }
+
+/* ── Onboarding wizard ────────────────────────────────────────── */
+.onboard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(4px);
+}
+
+.onboard-card {
+  background: var(--bg-elevated, #1c1917);
+  border: 1px solid var(--border-subtle, #44403c);
+  border-radius: 14px;
+  max-width: 420px;
+  width: 100%;
+  padding: 32px;
+  position: relative;
+  text-align: center;
+}
+
+.onboard-skip {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--text-muted, #a8a29e);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.onboard-skip:hover { color: var(--text-secondary, #e7e5e4); }
+
+.onboard-progress {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.onboard-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-subtle, #44403c);
+  transition: background 200ms;
+}
+.onboard-dot.done { background: var(--color-primary, #d97706); }
+
+.onboard-icon {
+  font-size: 48px;
+  line-height: 1;
+  margin-bottom: 16px;
+}
+
+.onboard-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary, #e7e5e4);
+  margin: 0 0 10px;
+}
+
+.onboard-body {
+  font-size: 14px;
+  color: var(--text-secondary, #a8a29e);
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+
+.onboard-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.onboard-counter {
+  margin: 16px 0 0;
+  font-size: 11px;
+  color: var(--text-muted, #78716c);
+}

@@ -530,3 +530,26 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ── Offline banner ────────────────────────────────────────────── */
+#offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: #92400e;
+  color: #fef3c7;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  padding: 8px 16px;
+  transform: translateY(-100%);
+  transition: transform 200ms ease;
+  pointer-events: none;
+}
+
+#offline-banner.offline-banner--visible {
+  transform: translateY(0);
+  pointer-events: auto;
+}

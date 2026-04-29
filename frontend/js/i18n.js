@@ -32,6 +32,7 @@ const TRANSLATIONS = {
     'ui.search':          'Pesquisar…',
     'ui.loading':         'A carregar…',
     'ui.tryAgain':        'Tentar novamente',
+    'ui.offline':         'Sem ligação à internet — algumas acções podem não funcionar.',
     'ui.active':          'Activo',
     'ui.inactive':        'Inactivo',
     'ui.activeOnly':      'Apenas activos',
@@ -386,7 +387,7 @@ const TRANSLATIONS = {
     // ── Hero ────────────────────────────────────────────
     'hero.badge':     'Plataforma académica para Angola',
     'hero.title':     'Gerencie a sua instituição com <em>clareza</em>',
-    'hero.subtitle':  'O Acadêmico centraliza alunos, formadores, cursos, turmas e notas numa única plataforma — desenhada para centros de formação técnica angolanos.',
+    'hero.subtitle':  'O Matrika centraliza alunos, formadores, cursos, turmas e notas numa única plataforma — desenhada para centros de formação técnica angolanos.',
     'hero.cta':       'Começar agora',
     'hero.cta.demo':  'Ver demonstração',
     'hero.trusted':   'Utilizado por centros de formação técnica em Angola',
@@ -394,7 +395,7 @@ const TRANSLATIONS = {
     // ── Features ────────────────────────────────────────
     'features.badge':     'Funcionalidades',
     'features.title':     'Tudo o que precisa para gerir a sua instituição',
-    'features.subtitle':  'Da matrícula à avaliação final, o Acadêmico cobre todo o ciclo académico.',
+    'features.subtitle':  'Da matrícula à avaliação final, o Matrika cobre todo o ciclo académico.',
 
     'feat.students.title':  'Gestão de Alunos',
     'feat.students.desc':   'Registe e acompanhe todos os seus alunos, gere códigos automáticos, controle presenças e muito mais.',
@@ -432,19 +433,19 @@ const TRANSLATIONS = {
     // ── About page ──────────────────────────────────────
     'about.badge':         'Sobre nós',
     'about.title':         'Construindo o futuro da gestão académica em Angola',
-    'about.subtitle':      'O Acadêmico nasceu da necessidade real de centros de formação técnica angolanos que precisavam de uma ferramenta simples, fiável e feita para o contexto local.',
+    'about.subtitle':      'O Matrika nasceu da necessidade real de centros de formação técnica angolanos que precisavam de uma ferramenta simples, fiável e feita para o contexto local.',
     'about.mission.title': 'A Nossa Missão',
     'about.mission.text':  'Tornar a gestão académica acessível e eficiente para todas as instituições de ensino em Angola, independentemente da sua dimensão ou recursos.',
     'about.vision.title':  'A Nossa Visão',
     'about.vision.text':   'Ser a plataforma de referência para a gestão académica nos países lusófonos de África, promovendo a digitalização do ensino técnico e profissional.',
     'about.built.title':   'Feito por PyNerd Development',
-    'about.built.text':    'Somos uma equipa de desenvolvedores apaixonados por tecnologia e educação. O Acadêmico é o nosso produto principal e continuamos a desenvolvê-lo com base no feedback real dos nossos utilizadores.',
+    'about.built.text':    'Somos uma equipa de desenvolvedores apaixonados por tecnologia e educação. O Matrika é o nosso produto principal e continuamos a desenvolvê-lo com base no feedback real dos nossos utilizadores.',
     'about.cta':           'Experimente gratuitamente',
 
     // ── Contact page ────────────────────────────────────
     'contact.badge':       'Contacto',
     'contact.title':       'Fale connosco',
-    'contact.subtitle':    'Tem alguma questão, sugestão ou quer saber mais sobre o Acadêmico? Entre em contacto e respondemos com a maior brevidade.',
+    'contact.subtitle':    'Tem alguma questão, sugestão ou quer saber mais sobre o Matrika? Entre em contacto e respondemos com a maior brevidade.',
     'contact.email.label': 'Email',
     'contact.email.value': 'geral@pynerd.ao',
     'contact.note':        'Estamos disponíveis de segunda a sexta, das 8h às 18h (hora de Angola). O tempo médio de resposta é de 24 horas.',
@@ -462,16 +463,35 @@ const TRANSLATIONS = {
     // ── Privacy page ────────────────────────────────────
     'privacy.badge':       'Política de Privacidade',
     'privacy.title':       'A sua privacidade importa',
-    'privacy.subtitle':    'Esta página descreve como o Acadêmico recolhe, utiliza e protege os seus dados pessoais.',
+    'privacy.subtitle':    'Esta página descreve como o Matrika recolhe, utiliza e protege os seus dados pessoais.',
     'privacy.notice':      'A política de privacidade completa está a ser preparada e será publicada em breve. Entretanto, se tiver questões sobre como tratamos os seus dados, contacte-nos em',
     'privacy.updated':     'Última actualização',
 
     // ── Terms page ───────────────────────────────────────
     'terms.badge':         'Termos de Uso',
     'terms.title':         'Termos e Condições de Utilização',
-    'terms.subtitle':      'Ao utilizar o Acadêmico, aceita os nossos termos e condições de utilização.',
+    'terms.subtitle':      'Ao utilizar o Matrika, aceita os nossos termos e condições de utilização.',
     'terms.notice':        'Os termos e condições completos estão a ser preparados e serão publicados em breve. Para mais informações, contacte-nos em',
     'terms.updated':       'Última actualização',
+
+    // ── Onboarding wizard ────────────────────────────────
+    'onboard.skip':              'Ignorar configuração',
+    'onboard.next':              'Continuar',
+    'onboard.back':              'Anterior',
+    'onboard.welcome.title':     'Bem-vindo à Matrika!',
+    'onboard.welcome.body':      'A sua instituição foi criada com sucesso. Vamos configurar as informações essenciais em poucos passos.',
+    'onboard.course.title':      'Crie o seu primeiro Curso',
+    'onboard.course.body':       'Cursos são os programas de estudo que a sua instituição oferece — ex: Informática, Gestão, Inglês. Adicione pelo menos um para começar.',
+    'onboard.course.cta':        'Ir para Cursos',
+    'onboard.class.title':       'Crie uma Turma',
+    'onboard.class.body':        'Turmas agrupam alunos inscritos num mesmo curso e período. Ex: Turma A — Informática 2025.',
+    'onboard.class.cta':         'Ir para Turmas',
+    'onboard.student.title':     'Adicione o primeiro Aluno',
+    'onboard.student.body':      'Matricule alunos e gere os seus dados, estado e turma. Cada aluno recebe um código de acesso único.',
+    'onboard.student.cta':       'Ir para Alunos',
+    'onboard.done.title':        'A sua instituição está pronta!',
+    'onboard.done.body':         'Pode gerir tudo a partir do painel. Se precisar de ajuda, entre em contacto pelo WhatsApp.',
+    'onboard.done.cta':          'Ir para o Painel',
 
     // ── Footer ──────────────────────────────────────────
     'footer.tagline':    'Gestão académica simples e eficaz para Angola.',
@@ -509,6 +529,7 @@ const TRANSLATIONS = {
     'ui.search':          'Search…',
     'ui.loading':         'Loading…',
     'ui.tryAgain':        'Try again',
+    'ui.offline':         'No internet connection — some actions may not work.',
     'ui.active':          'Active',
     'ui.inactive':        'Inactive',
     'ui.activeOnly':      'Active only',
@@ -863,7 +884,7 @@ const TRANSLATIONS = {
     // ── Hero ────────────────────────────────────────────
     'hero.badge':     'Academic platform for Angola',
     'hero.title':     'Manage your institution with <em>clarity</em>',
-    'hero.subtitle':  'Acadêmico centralises students, trainers, courses, classes and grades in one platform — designed for Angolan technical training centres.',
+    'hero.subtitle':  'Matrika centralises students, trainers, courses, classes and grades in one platform — designed for Angolan technical training centres.',
     'hero.cta':       'Get started',
     'hero.cta.demo':  'See demo',
     'hero.trusted':   'Used by technical training centres in Angola',
@@ -871,7 +892,7 @@ const TRANSLATIONS = {
     // ── Features ────────────────────────────────────────
     'features.badge':     'Features',
     'features.title':     'Everything you need to manage your institution',
-    'features.subtitle':  'From enrolment to final assessment, Acadêmico covers the full academic cycle.',
+    'features.subtitle':  'From enrolment to final assessment, Matrika covers the full academic cycle.',
 
     'feat.students.title':  'Student Management',
     'feat.students.desc':   'Register and track all your students, auto-generate codes, manage attendance and more.',
@@ -909,19 +930,19 @@ const TRANSLATIONS = {
     // ── About page ──────────────────────────────────────
     'about.badge':         'About us',
     'about.title':         'Building the future of academic management in Angola',
-    'about.subtitle':      'Acadêmico was born from a real need felt by Angolan technical training centres that required a simple, reliable tool built for the local context.',
+    'about.subtitle':      'Matrika was born from a real need felt by Angolan technical training centres that required a simple, reliable tool built for the local context.',
     'about.mission.title': 'Our Mission',
     'about.mission.text':  'Make academic management accessible and efficient for every educational institution in Angola, regardless of their size or resources.',
     'about.vision.title':  'Our Vision',
     'about.vision.text':   'Become the reference platform for academic management in Portuguese-speaking African countries, driving the digitalisation of technical and vocational education.',
     'about.built.title':   'Built by PyNerd Development',
-    'about.built.text':    'We are a team of developers passionate about technology and education. Acadêmico is our flagship product and we keep improving it based on real feedback from our users.',
+    'about.built.text':    'We are a team of developers passionate about technology and education. Matrika is our flagship product and we keep improving it based on real feedback from our users.',
     'about.cta':           'Try it for free',
 
     // ── Contact page ────────────────────────────────────
     'contact.badge':       'Contact',
     'contact.title':       'Get in touch',
-    'contact.subtitle':    'Have a question, suggestion, or want to learn more about Acadêmico? Reach out and we\'ll get back to you as soon as possible.',
+    'contact.subtitle':    'Have a question, suggestion, or want to learn more about Matrika? Reach out and we\'ll get back to you as soon as possible.',
     'contact.email.label': 'Email',
     'contact.email.value': 'hello@pynerd.ao',
     'contact.note':        'We are available Monday to Friday, 8 am – 6 pm (Angola time). Average response time is 24 hours.',
@@ -939,16 +960,35 @@ const TRANSLATIONS = {
     // ── Privacy page ────────────────────────────────────
     'privacy.badge':       'Privacy Policy',
     'privacy.title':       'Your privacy matters',
-    'privacy.subtitle':    'This page describes how Acadêmico collects, uses, and protects your personal data.',
+    'privacy.subtitle':    'This page describes how Matrika collects, uses, and protects your personal data.',
     'privacy.notice':      'The full privacy policy is being prepared and will be published shortly. If you have questions about how we handle your data, contact us at',
     'privacy.updated':     'Last updated',
 
     // ── Terms page ───────────────────────────────────────
     'terms.badge':         'Terms of Use',
     'terms.title':         'Terms and Conditions of Use',
-    'terms.subtitle':      'By using Acadêmico, you agree to our terms and conditions of use.',
+    'terms.subtitle':      'By using Matrika, you agree to our terms and conditions of use.',
     'terms.notice':        'The full terms and conditions are being prepared and will be published shortly. For more information, contact us at',
     'terms.updated':       'Last updated',
+
+    // ── Onboarding wizard ────────────────────────────────
+    'onboard.skip':              'Skip setup',
+    'onboard.next':              'Continue',
+    'onboard.back':              'Back',
+    'onboard.welcome.title':     'Welcome to Matrika!',
+    'onboard.welcome.body':      'Your institution has been created successfully. Let\'s set up the essentials in a few steps.',
+    'onboard.course.title':      'Create your first Course',
+    'onboard.course.body':       'Courses are the programmes your institution offers — e.g. IT, Business, English. Add at least one to get started.',
+    'onboard.course.cta':        'Go to Courses',
+    'onboard.class.title':       'Create a Class',
+    'onboard.class.body':        'Classes group students enrolled in the same course and period. E.g. Class A — IT 2025.',
+    'onboard.class.cta':         'Go to Classes',
+    'onboard.student.title':     'Add your first Student',
+    'onboard.student.body':      'Enrol students and manage their details, status, and class. Each student gets a unique access code.',
+    'onboard.student.cta':       'Go to Students',
+    'onboard.done.title':        'Your institution is ready!',
+    'onboard.done.body':         'You can manage everything from the dashboard. If you need help, reach us on WhatsApp.',
+    'onboard.done.cta':          'Go to Dashboard',
 
     // ── Footer ──────────────────────────────────────────
     'footer.tagline':    'Simple and effective academic management for Angola.',
