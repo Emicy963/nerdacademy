@@ -1,9 +1,8 @@
 const CACHE = 'matrika-v1';
 
 const STATIC = [
+  '/css/global.css',
   '/css/layout.css',
-  '/css/components.css',
-  '/css/auth.css',
   '/js/api.js',
   '/js/i18n.js',
   '/js/layout.js',

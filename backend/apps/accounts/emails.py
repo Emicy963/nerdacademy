@@ -17,7 +17,7 @@ def send_welcome_student(student, temp_password: str):
     if not student.user_id or not student.user.email:
         return
     _send(
-        subject=f"Bem-vindo ao Acadêmico — {student.institution.name}",
+        subject=f"Bem-vindo ao Matrika — {student.institution.name}",
         message=(
             f"Olá {student.full_name},\n\n"
             f"A sua conta de estudante foi criada em {student.institution.name}.\n\n"
@@ -25,7 +25,7 @@ def send_welcome_student(student, temp_password: str):
             f"Código de estudante: {student.student_code}\n"
             f"Senha temporária: {temp_password}\n\n"
             "Por favor altere a sua senha no primeiro acesso.\n\n"
-            "Acadêmico"
+            "Matrika"
         ),
         to=student.user.email,
     )
@@ -36,7 +36,7 @@ def send_welcome_trainer(trainer, temp_password: str):
     if not trainer.user_id or not trainer.user.email:
         return
     _send(
-        subject=f"Bem-vindo ao Acadêmico — {trainer.institution.name}",
+        subject=f"Bem-vindo ao Matrika — {trainer.institution.name}",
         message=(
             f"Olá {trainer.full_name},\n\n"
             f"A sua conta de formador foi criada em {trainer.institution.name}.\n\n"
@@ -44,7 +44,7 @@ def send_welcome_trainer(trainer, temp_password: str):
             f"Código de formador: {trainer.trainer_code}\n"
             f"Senha temporária: {temp_password}\n\n"
             "Por favor altere a sua senha no primeiro acesso.\n\n"
-            "Acadêmico"
+            "Matrika"
         ),
         to=trainer.user.email,
     )
@@ -53,13 +53,13 @@ def send_welcome_trainer(trainer, temp_password: str):
 def send_password_reset_link(user, reset_url: str):
     """Sent when a user requests a self-service password reset link."""
     _send(
-        subject="Acadêmico — Redefinição de palavra-passe",
+        subject="Matrika — Redefinição de palavra-passe",
         message=(
             f"Olá {user.full_name or user.email},\n\n"
             "Recebemos um pedido para redefinir a palavra-passe da sua conta.\n\n"
             f"Clique no link abaixo para definir uma nova palavra-passe:\n{reset_url}\n\n"
             "Este link é válido por 24 horas. Se não fez este pedido, ignore este email.\n\n"
-            "Acadêmico"
+            "Matrika"
         ),
         to=user.email,
     )
@@ -70,13 +70,13 @@ def send_password_reset(user, temp_password: str):
     if not user.email:
         return
     _send(
-        subject="Acadêmico — Senha redefinida",
+        subject="Matrika — Senha redefinida",
         message=(
             f"Olá {user.full_name or user.email},\n\n"
             "A sua senha foi redefinida por um administrador.\n\n"
             f"Nova senha temporária: {temp_password}\n\n"
             "Por favor altere a sua senha no próximo acesso.\n\n"
-            "Acadêmico"
+            "Matrika"
         ),
         to=user.email,
     )
