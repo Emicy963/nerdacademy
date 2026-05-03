@@ -35,6 +35,11 @@ class MembershipJWTAuthentication(JWTAuthentication):
                 raise AuthenticationFailed(
                     "No active membership found for this user at the specified institution."
                 )
+            if not membership.institution.is_verified:
+                raise AuthenticationFailed(
+                    "INSTITUTION_NOT_VERIFIED: A sua instituição ainda não foi verificada. "
+                    "Consulte o email de registo para ativar a sua conta."
+                )
             request.membership = membership
         else:
             request.membership = None

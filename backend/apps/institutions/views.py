@@ -9,6 +9,7 @@ from .serializers import (
     InstitutionSerializer,
     InstitutionUpdateSerializer,
     InstitutionRegistrationSerializer,
+    InstitutionVerifySerializer,
 )
 from .services import InstitutionService
 
@@ -30,6 +31,21 @@ class InstitutionRegisterView(APIView):
             password=d["password"],
         )
         return Response(data, status=status.HTTP_201_CREATED)
+
+
+class InstitutionVerifyView(APIView):
+    """POST /api/institutions/verify/ — activate institution via email token."""
+
+    permission_classes = []
+
+    def post(self, request):
+        serializer = InstitutionVerifySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            InstitutionService.verify_institution(serializer.validated_data["token"])
+        except Exception as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "Instituição verificada com sucesso. Pode agora fazer login."})
 
 
 class InstitutionDetailView(APIView):

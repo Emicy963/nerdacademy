@@ -72,6 +72,23 @@ def send_password_reset_link(user, reset_url: str):
     )
 
 
+def send_institution_verification(user, institution, verify_url: str):
+    """Sent after self-service institution registration to verify the admin email."""
+    _send(
+        subject="Matrika — Verifique a sua conta",
+        message=(
+            f"Olá {user.full_name or user.email},\n\n"
+            f"Obrigado por registar a instituição «{institution.name}» na plataforma Matrika.\n\n"
+            "Para ativar a sua conta, clique no link abaixo:\n"
+            f"{verify_url}\n\n"
+            "Este link é válido enquanto a verificação não for concluída.\n"
+            "Se não criou esta conta, ignore este email.\n\n"
+            "Matrika"
+        ),
+        to=user.email,
+    )
+
+
 def send_password_reset(user, temp_password: str):
     """Sent when an admin resets a user's password."""
     if not user.email:

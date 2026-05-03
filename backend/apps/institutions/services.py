@@ -111,13 +111,15 @@ class InstitutionService:
     def register(institution_name: str, admin_name: str, email: str, password: str) -> dict:
         """
         Public self-service signup. Atomically creates:
-          Institution → User (admin) → Membership → JWT tokens.
+          Institution (unverified) → User (admin) → Membership.
+        Sends a verification email; the institution is only active after verification.
         """
+        import secrets
         from django.db import transaction
         from django.utils.text import slugify
-        from rest_framework_simplejwt.tokens import RefreshToken
+        from django.conf import settings
         from apps.accounts.services import UserService, MembershipService
-        from apps.accounts.serializers import UserMeSerializer, MembershipSerializer
+        from apps.accounts.emails import send_institution_verification
 
         with transaction.atomic():
             base_slug = slugify(institution_name) or "institution"
@@ -126,9 +128,12 @@ class InstitutionService:
                 slug = f"{base_slug}-{counter}"
                 counter += 1
 
+            verification_token = secrets.token_urlsafe(32)
             institution = InstitutionService.create_institution(
                 name=institution_name,
                 slug=slug,
+                is_verified=False,
+                verification_token=verification_token,
             )
             user = UserService.create_user(
                 email=email,
@@ -136,20 +141,38 @@ class InstitutionService:
                 full_name=admin_name,
                 must_change_password=False,
             )
-            membership = MembershipService.create_membership(
+            MembershipService.create_membership(
                 user=user,
                 institution=institution,
                 role="admin",
             )
 
-            refresh = RefreshToken.for_user(user)
-            return {
-                "access": str(refresh.access_token),
-                "refresh": str(refresh),
-                "user": UserMeSerializer(user).data,
-                "must_change_password": False,
-                "memberships": MembershipSerializer([membership], many=True).data,
-            }
+        verify_url = (
+            f"{settings.FRONTEND_URL}/pages/verify-institution.html"
+            f"#{verification_token}"
+        )
+        send_institution_verification(user, institution, verify_url)
+
+        return {
+            "detail": "Registo efetuado! Enviámos um email de verificação para ativar a sua instituição.",
+            "email": email,
+        }
+
+    @staticmethod
+    def verify_institution(token: str) -> "Institution":
+        """Activate an institution using its verification token."""
+        try:
+            institution = Institution.objects.get(
+                verification_token=token,
+                is_verified=False,
+            )
+        except Institution.DoesNotExist:
+            raise ValidationError({"token": "Token de verificação inválido ou já utilizado."})
+
+        institution.is_verified = True
+        institution.verification_token = None
+        institution.save(update_fields=["is_verified", "verification_token"])
+        return institution
 
     # ── Private helpers ────────────────────────────────────────────
 

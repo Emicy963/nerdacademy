@@ -37,3 +37,7 @@ class InstitutionRegistrationSerializer(serializers.Serializer):
     admin_name       = serializers.CharField(max_length=255)
     email            = serializers.EmailField()
     password         = serializers.CharField(min_length=8, write_only=True)
+
+
+class InstitutionVerifySerializer(serializers.Serializer):
+    token = serializers.CharField()
