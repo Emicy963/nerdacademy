@@ -132,6 +132,7 @@ class InstitutionService:
             institution = InstitutionService.create_institution(
                 name=institution_name,
                 slug=slug,
+                email=email,
                 is_verified=False,
                 verification_token=verification_token,
             )
