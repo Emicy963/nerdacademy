@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.permissions import IsAdminRole
+from core.throttles import RegisterInstitutionThrottle
 from .serializers import (
     InstitutionSerializer,
     InstitutionUpdateSerializer,
@@ -16,6 +17,7 @@ class InstitutionRegisterView(APIView):
     """POST /api/institutions/register/ — public self-service signup."""
 
     permission_classes = []
+    throttle_classes = [RegisterInstitutionThrottle]
 
     def post(self, request):
         serializer = InstitutionRegistrationSerializer(data=request.data)

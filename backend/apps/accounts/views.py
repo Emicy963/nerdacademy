@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from core.throttles import LoginRateThrottle, PasswordResetRateThrottle
 from .serializers import (
     UserMeSerializer, MembershipSerializer, ChangePasswordSerializer,
     UserUpdateMeSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
@@ -14,6 +15,7 @@ from .services import UserService
 
 class LoginView(TokenObtainPairView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
 
 class LogoutView(APIView):
@@ -82,6 +84,7 @@ class ChangePasswordView(APIView):
 
 class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetRateThrottle]
 
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
