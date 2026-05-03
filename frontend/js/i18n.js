@@ -318,6 +318,20 @@ const TRANSLATIONS = {
     'grades.toast.updated':   'Nota actualizada com sucesso.',
     'grades.toast.deleted':   'Nota eliminada.',
 
+    'grades.modal.launch':    'Lançar nota',
+    'grades.modal.save':      'Guardar nota',
+    'grades.modal.type':      'Tipo de avaliação',
+    'grades.modal.date':      'Data da avaliação',
+    'grades.modal.value':     'Nota',
+    'grades.modal.max':       'De',
+    'grades.modal.notes':     'Observações',
+    'grades.modal.notes_ph':  'Observações opcionais…',
+    'grades.type.continuous': 'Avaliação Contínua',
+    'grades.type.exam':       'Exame',
+    'grades.type.practical':  'Trabalho Prático',
+    'grades.type.project':    'Projeto',
+    'grades.type.other':      'Outro',
+
     // ── Dashboard ────────────────────────────────────────
     'dash.morning':           'Bom dia',
     'dash.afternoon':         'Boa tarde',
@@ -814,6 +828,20 @@ const TRANSLATIONS = {
     'grades.toast.created':   'Grade recorded successfully.',
     'grades.toast.updated':   'Grade updated successfully.',
     'grades.toast.deleted':   'Grade deleted.',
+
+    'grades.modal.launch':    'Launch grade',
+    'grades.modal.save':      'Save grade',
+    'grades.modal.type':      'Assessment type',
+    'grades.modal.date':      'Assessment date',
+    'grades.modal.value':     'Grade',
+    'grades.modal.max':       'Out of',
+    'grades.modal.notes':     'Notes',
+    'grades.modal.notes_ph':  'Optional remarks…',
+    'grades.type.continuous': 'Continuous Assessment',
+    'grades.type.exam':       'Exam',
+    'grades.type.practical':  'Practical Work',
+    'grades.type.project':    'Project',
+    'grades.type.other':      'Other',
 
     // ── Dashboard ────────────────────────────────────────
     'dash.morning':           'Good morning',
