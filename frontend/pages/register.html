@@ -326,7 +326,7 @@
         <span id="auth-alert-text"></span>
       </div>
 
-      <form class="auth-form" id="register-form" novalidate autocomplete="off">
+      <form class="auth-form" id="register-form" method="post" novalidate autocomplete="off">
 
         <div class="form-group">
           <label class="form-label" for="institution-name" data-i18n="register.institution_name">Nome da instituição</label>
@@ -425,7 +425,7 @@
 
 <script type="module">
 import { institutions, session } from '../js/api.js';
-import { t, applyTranslations, setLocale, getCurrentLocale } from '../js/i18n.js';
+import { t, applyTranslations, setLocale, getLocale } from '../js/i18n.js';
 
 // ── Language switcher ─────────────────────────────────
 function switchLang(lang) {
@@ -440,7 +440,7 @@ window.switchLang = switchLang;
 
 // Set initial active state
 document.querySelectorAll('[data-lang-btn]').forEach(btn => {
-  btn.classList.toggle('active', btn.dataset.langBtn === getCurrentLocale());
+  btn.classList.toggle('active', btn.dataset.langBtn === getLocale());
 });
 applyTranslations();
 
