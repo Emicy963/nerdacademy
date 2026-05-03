@@ -4,9 +4,9 @@
 
 | Version | Supported |
 |---------|-----------|
+| 0.6.x   | Yes       |
 | 0.5.x   | Yes       |
-| 0.4.x   | Yes       |
-| < 0.4   | No        |
+| < 0.5   | No        |
 
 ## Reporting a vulnerability
 
@@ -33,8 +33,8 @@ within 14 days of a confirmed vulnerability, depending on severity.
 - Use strong, randomly generated database passwords.
 - Restrict `ALLOWED_HOSTS` to your actual domain names.
 - Configure `CORS_ALLOWED_ORIGINS` to your frontend origin only.
-- The JWT access token lifetime defaults to 60 minutes. Adjust via
-  `JWT_ACCESS_TOKEN_MINUTES` based on your security requirements.
+- The JWT access token lifetime defaults to **15 minutes**. Adjust via
+  `JWT_ACCESS_TOKEN_MINUTES` if needed; do not increase beyond 30 minutes.
 - Token blacklisting is enabled. The blacklist table (`outstanding_token`,
   `blacklisted_token`) will grow over time. Schedule periodic cleanup using
   the simplejwt management command:
@@ -47,10 +47,12 @@ within 14 days of a confirmed vulnerability, depending on severity.
 
 - JWT tokens are stored in `localStorage`. This is accessible to JavaScript
   running on the same origin. If your threat model requires stronger isolation,
-  consider migrating to `httpOnly` cookies served by the backend.
-- The production Vercel configuration sets `X-Frame-Options: DENY` and
-  `X-Content-Type-Options: nosniff` on all HTML responses.
-- Ensure `API_BASE` in `js/api.js` uses HTTPS in production.
+  consider migrating to `httpOnly` cookies served by the backend (planned).
+- The production Vercel configuration sets `X-Frame-Options: DENY`,
+  `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `X-Robots-Tag: noindex`,
+  and a `Content-Security-Policy` header on all HTML responses.
+- Ensure `API_BASE` in `js/config.js` uses HTTPS in production.
+- The admin panel is served at `/mgmt-matrika/` (non-default path).
 
 **Infrastructure:**
 

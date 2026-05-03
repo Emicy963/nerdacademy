@@ -10,6 +10,58 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.6.0] — 2026-05-03
+
+### Security
+
+- **CRIT-1 — SECRET_KEY**: `SECRET_KEY` agora levanta `ImproperlyConfigured` na inicialização
+  se a variável de ambiente não estiver definida, em vez de usar um fallback público
+- **CRIT-2 — Hardcoded password**: alunos e formadores criados sem email recebem agora
+  uma password aleatória gerada com `secrets.token_urlsafe(8)`, eliminando o `pass123`
+  universal; testes atualizados para refletir o comportamento correto
+- **HIGH-2 — Rate limiting**: throttling adicionado globalmente via `DEFAULT_THROTTLE_CLASSES`
+  e por endpoint: `LoginView` (10/min), `PasswordResetRequestView` (5/hour),
+  `InstitutionRegisterView` (5/hour); novo módulo `core/throttles.py`
+- **HIGH-3 — Stored XSS**: `innerHTML` substituído por DOM APIs (`textContent`,
+  `createElement`) em `layout.js` nas notificações, institution switcher e breadcrumb;
+  elimina vetores de XSS via campos de texto livre do admin
+- **HIGH-4 — Nginx security headers**: adicionados `X-Frame-Options`, `X-Content-Type-Options`,
+  `Referrer-Policy`, `X-XSS-Protection`, `Strict-Transport-Security` ao `nginx.conf`
+- **HIGH-5 — .dockerignore**: criado `backend/.dockerignore` para excluir `.env`,
+  `db.sqlite3`, e `__pycache__` das imagens Docker
+- **HIGH-6 — Content-Security-Policy**: adicionado header CSP ao `frontend/vercel.json`
+  para todas as páginas HTML
+- **MED-1 — JWT lifetime**: access token reduzido de 60 para 15 minutos (default);
+  configurável via `JWT_ACCESS_TOKEN_MINUTES`
+- **MED-3 — Gmail em dev**: `development.py` passa a usar `smtp.EmailBackend` real
+  em vez de `console.EmailBackend`; token de reset de password movido para URL
+  fragment (`#uid:token`) em vez de query string para evitar exposição em logs
+- **MED-4 — CSRF_TRUSTED_ORIGINS**: adicionado a `production.py` via variável de ambiente
+- **MED-5 — Password validation**: `django_validate_password()` chamado explicitamente
+  em `change_password()` e `confirm_password_reset()` em `UserService`
+- **MED-6 — CLI password arg**: argumento `--admin-password` removido do management
+  command `create_institution`; password solicitada sempre via `getpass`
+- **MED-8 — IDOR enrollment**: `EnrollmentDetailView` valida agora que o `enrollment_id`
+  pertence ao `class_id` especificado na URL
+- **MED-9 — Reset token URL**: token de reset movido de query string para fragment
+  (`#uid:token`); atualizado em `services.py` e `reset-password.html`
+- **LOW-2 — Admin URL**: URL do Django Admin movida de `/admin/` para `/mgmt-matrika/`
+- **LOW-3 — Email fail_silently**: `fail_silently=True` removido; falhas de email
+  agora registadas com `logger.error()`
+- **LOW-6 — Pillow**: versão atualizada de `==10.4.0` para `>=11.0.0`
+- **LOW-8 — getpass**: `create_institution.py` usa agora `getpass.getpass()` em vez
+  de `input()` para solicitar a password
+
+### Added
+
+- `backend/core/throttles.py` — throttle classes customizadas para login, reset de
+  password e registo de instituição
+- `backend/.dockerignore` — exclui ficheiros sensíveis das imagens Docker
+- `backend/.env.example` — atualizado com `JWT_ACCESS_TOKEN_MINUTES=15` e
+  `FRONTEND_URL=http://localhost:3000`
+
+---
+
 ## [0.5.0] — 2026-04-28
 
 ### Added
