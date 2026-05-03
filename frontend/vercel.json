@@ -11,7 +11,8 @@
     { "source": "/trainers",    "destination": "/pages/trainers.html" },
     { "source": "/courses",     "destination": "/pages/courses.html" },
     { "source": "/classes",     "destination": "/pages/classes.html" },
-    { "source": "/grades",      "destination": "/pages/grades.html" }
+    { "source": "/grades",               "destination": "/pages/grades.html" },
+    { "source": "/verify-institution",   "destination": "/pages/verify-institution.html" }
   ],
   "headers": [
     {

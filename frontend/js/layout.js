@@ -216,6 +216,10 @@ export function requireAuth() {
     window.location.href = '/pages/login.html';
     return null;
   }
+  if (!user.institution_is_verified && !window.location.pathname.includes('verify-institution')) {
+    window.location.href = '/pages/verify-institution.html';
+    return null;
+  }
   if (user.must_change_password && !window.location.pathname.includes('change-password')) {
     window.location.href = '/pages/change-password.html';
     return null;

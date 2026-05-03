@@ -504,28 +504,16 @@ form.addEventListener('submit', async (e) => {
   btnLbl.textContent = t('register.submitting');
 
   try {
-    const data = await institutions.register({
+    await institutions.register({
       institution_name: instName,
       admin_name:       adminName,
       email,
       password: pw,
     });
 
-    const membership = data.memberships[0];
-    session.set(
-      data.access,
-      data.refresh,
-      data.user,
-      data.memberships,
-      {
-        id:               membership.id,
-        role:             membership.role,
-        institution_id:   membership.institution_id,
-        institution_name: membership.institution_name,
-      }
-    );
-    localStorage.setItem('matrika_onboarding', 'pending');
-    window.location.href = '/pages/dashboard.html';
+    // Registration succeeded — show email verification message
+    localStorage.setItem('matrika_verify_email', email);
+    window.location.href = '/pages/verify-institution.html';
 
   } catch (err) {
     showAlert(err.detail || t('register.err.generic'));

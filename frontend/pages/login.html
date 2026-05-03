@@ -645,11 +645,17 @@
 
       if (memberships.length === 1) {
         // Single membership — skip picker, go straight in
+        const m = memberships[0];
+        if (!m.institution_is_verified) {
+          localStorage.setItem('matrika_verify_email', data.user.email);
+          window.location.href = '../pages/verify-institution.html';
+          return;
+        }
         const userWithFlag = {
           ...data.user,
           must_change_password: data.must_change_password ?? false,
         };
-        session.set(data.access, data.refresh, userWithFlag, memberships, memberships[0]);
+        session.set(data.access, data.refresh, userWithFlag, memberships, m);
         window.location.href = data.must_change_password
           ? '../pages/change-password.html'
           : '../pages/dashboard.html';
