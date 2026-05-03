@@ -10,6 +10,48 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.7.0] — 2026-05-03
+
+### Security
+
+- **MED-2 — Refresh token HttpOnly cookie (Option B)**: o refresh token deixa de ser
+  armazenado no `localStorage` e passa a ser emitido como cookie `HttpOnly; SameSite=Lax`,
+  inacessível a JavaScript. O access token (15 min) continua no `localStorage`.
+  - `LoginView` e `InstitutionRegisterView` emitem o cookie na resposta
+  - Novo `CookieTokenRefreshView` lê o token do cookie em vez do body
+  - `LogoutView` limpa o cookie no servidor
+  - `api.js` usa `credentials: 'include'` nos endpoints de auth; `silentRefresh`
+    deixa de enviar o token no body
+  - `CORS_ALLOW_CREDENTIALS = True` adicionado às settings
+  - `REFRESH_TOKEN_COOKIE` configurável por ambiente (`secure: True` em produção)
+
+- **MED-7 — Verificação de email na ativação de instituição**: instituições criadas
+  via self-service ficam inativas (`is_verified=False`) até o admin verificar o email
+  - Campo `is_verified` e `verification_token` adicionados ao modelo `Institution`
+  - Migração `0003_institution_verification` criada
+  - `InstitutionService.register()` envia email de verificação em vez de auto-login
+  - Novo endpoint `POST /api/institutions/verify/` para ativar a instituição
+  - `MembershipJWTAuthentication` bloqueia requests de instituições não verificadas
+    com erro `INSTITUTION_NOT_VERIFIED`
+  - `MembershipSerializer` expõe `institution_is_verified` ao frontend
+  - Frontend redireciona para `/pages/verify-institution.html` quando não verificado
+  - Nova página `verify-institution.html`: processa token do URL fragment, mostra
+    estados (pendente / a verificar / sucesso / erro)
+  - `register.html` redireciona para verificação em vez de auto-login
+  - `login.html` deteta instituição não verificada e redireciona
+
+### Added
+
+- `backend/apps/accounts/views.py`: `CookieTokenRefreshView`, helpers `_set_refresh_cookie`,
+  `_clear_refresh_cookie`
+- `backend/apps/institutions/migrations/0003_institution_verification.py`
+- `backend/apps/institutions/serializers.py`: `InstitutionVerifySerializer`
+- `backend/apps/institutions/views.py`: `InstitutionVerifyView`
+- `backend/apps/accounts/emails.py`: `send_institution_verification()`
+- `frontend/pages/verify-institution.html`
+
+---
+
 ## [0.6.0] — 2026-05-03
 
 ### Security
