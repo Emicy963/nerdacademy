@@ -35,9 +35,8 @@ function fetchWithTimeout(url, options = {}) {
 
 // ── Session helpers ───────────────────────────────────────────────
 export const session = {
-  // Raw JWT tokens
-  getAccess:  () => localStorage.getItem('access'),
-  getRefresh: () => localStorage.getItem('refresh'),
+  // Access token (short-lived, stored in localStorage)
+  getAccess: () => localStorage.getItem('access'),
 
   // The authenticated User object (global identity — no role/institution)
   getUser: () => {
@@ -62,23 +61,22 @@ export const session = {
   getInstitutionId:   () => session.getActiveMembership()?.institution_id ?? null,
   getInstitutionName: () => session.getActiveMembership()?.institution_name ?? null,
 
-  // Convenience — kept for backward compat with pages that call token.getUser()
-  // Merges role + institution into the user object so existing code still works
   getUserWithRole: () => {
     const user       = session.getUser();
     const membership = session.getActiveMembership();
     if (!user) return null;
     return {
       ...user,
-      role:             membership?.role            ?? null,
-      institution_id:   membership?.institution_id  ?? null,
-      institution_name: membership?.institution_name ?? null,
+      role:                   membership?.role                    ?? null,
+      institution_id:         membership?.institution_id          ?? null,
+      institution_name:       membership?.institution_name        ?? null,
+      institution_is_verified: membership?.institution_is_verified ?? true,
     };
   },
 
-  set(access, refresh, user, memberships, activeMembership) {
+  // refresh token is stored in an HttpOnly cookie — never touched by JS
+  set(access, _refresh, user, memberships, activeMembership) {
     localStorage.setItem('access',            access);
-    localStorage.setItem('refresh',           refresh);
     localStorage.setItem('user',              JSON.stringify(user));
     localStorage.setItem('memberships',       JSON.stringify(memberships));
     localStorage.setItem('active_membership', JSON.stringify(activeMembership));
@@ -89,7 +87,7 @@ export const session = {
   },
 
   clear() {
-    ['access', 'refresh', 'user', 'memberships', 'active_membership']
+    ['access', 'user', 'memberships', 'active_membership']
       .forEach(k => localStorage.removeItem(k));
   },
 
@@ -99,8 +97,7 @@ export const session = {
 // Keep legacy `token` export so existing page code doesn't break
 export const token = {
   getAccess:  session.getAccess,
-  getRefresh: session.getRefresh,
-  getUser:    session.getUserWithRole,  // returns user merged with role/institution
+  getUser:    session.getUserWithRole,
   set:        (...args) => session.set(...args),
   clear:      session.clear,
   isLoggedIn: session.isLoggedIn,
@@ -134,13 +131,11 @@ let _refreshing = null;
 async function silentRefresh() {
   if (_refreshing) return _refreshing;
   _refreshing = (async () => {
-    const refresh = session.getRefresh();
-    if (!refresh) throw new Error('No refresh token');
-
+    // Refresh token is in the HttpOnly cookie — send it via credentials: 'include'
     const res = await fetchWithTimeout(`${API_BASE}/auth/refresh/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh }),
+      credentials: 'include',
     });
 
     if (!res.ok) throw await parseError(res);
@@ -200,24 +195,26 @@ export const auth = {
    */
   async login(email, password) {
     const res = await fetchWithTimeout(`${API_BASE}/auth/login/`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email, password }),
+      method:      'POST',
+      headers:     { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body:        JSON.stringify({ email, password }),
     });
     if (!res.ok) throw await parseError(res);
     return res.json();
   },
 
   async logout() {
-    const refresh = session.getRefresh();
-    if (refresh) {
-      try {
-        await apiFetch('/auth/logout/', {
-          method: 'POST',
-          body:   JSON.stringify({ refresh }),
-        });
-      } catch { /* clear locally regardless */ }
-    }
+    try {
+      await fetchWithTimeout(`${API_BASE}/auth/logout/`, {
+        method:      'POST',
+        headers:     {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${session.getAccess() ?? ''}`,
+        },
+        credentials: 'include',
+      });
+    } catch { /* clear locally regardless */ }
     session.clear();
     window.location.href = '/pages/login.html';
   },
@@ -342,9 +339,20 @@ export const institutions = {
 
   register: (data) =>
     fetchWithTimeout(`${API_BASE}/institutions/register/`, {
+      method:      'POST',
+      headers:     { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body:        JSON.stringify(data),
+    }).then(async res => {
+      if (!res.ok) throw await parseError(res);
+      return res.json();
+    }),
+
+  verify: (verificationToken) =>
+    fetchWithTimeout(`${API_BASE}/institutions/verify/`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(data),
+      body:    JSON.stringify({ token: verificationToken }),
     }).then(async res => {
       if (!res.ok) throw await parseError(res);
       return res.json();
