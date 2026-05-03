@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password as django_validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError, NotFound
 
 from .models import Membership
@@ -45,7 +47,7 @@ class UserService:
             password = secrets.token_urlsafe(8)
             user_email = email
         else:
-            password = "pass123"
+            password = secrets.token_urlsafe(8)
             user_email = f"{code.lower()}@local.academico"
 
         user = UserService.create_user(
@@ -93,6 +95,10 @@ class UserService:
     def change_password(user: User, old_password: str, new_password: str) -> User:
         if not user.check_password(old_password):
             raise ValidationError({"old_password": "Incorrect password."})
+        try:
+            django_validate_password(new_password, user)
+        except DjangoValidationError as e:
+            raise ValidationError({"new_password": list(e.messages)})
         user.set_password(new_password)
         user.save()
         return user
@@ -129,7 +135,7 @@ class UserService:
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         reset_url = (
             f"{settings.FRONTEND_URL}/pages/reset-password.html"
-            f"?uid={uid}&token={token}"
+            f"#{uid}:{token}"
         )
 
         from apps.accounts.emails import send_password_reset_link
@@ -150,6 +156,10 @@ class UserService:
         if not PasswordResetTokenGenerator().check_token(user, token):
             raise ValidationError({"token": "Link inválido ou expirado."})
 
+        try:
+            django_validate_password(new_password, user)
+        except DjangoValidationError as e:
+            raise ValidationError({"new_password": list(e.messages)})
         user.set_password(new_password)
         user.must_change_password = False
         user.save(update_fields=["password", "must_change_password"])
