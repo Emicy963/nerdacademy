@@ -1,15 +1,22 @@
+import logging
+
 from django.conf import settings
 from django.core.mail import send_mail
 
+logger = logging.getLogger(__name__)
+
 
 def _send(subject: str, message: str, to: str):
-    send_mail(
-        subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[to],
-        fail_silently=True,
-    )
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[to],
+            fail_silently=False,
+        )
+    except Exception as exc:
+        logger.error("Failed to send email to %s — subject: %s — error: %s", to, subject, exc)
 
 
 def send_welcome_student(student, temp_password: str):
