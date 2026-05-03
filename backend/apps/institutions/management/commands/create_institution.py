@@ -11,7 +11,6 @@ class Command(BaseCommand):
         parser.add_argument("--slug", type=str, help="Institution slug")
         parser.add_argument("--province", type=str, help="Province (e.g. Huambo)")
         parser.add_argument("--admin-email", type=str, help="Admin email")
-        parser.add_argument("--admin-password", type=str, help="Admin password")
 
     def _prompt(self, label, default=None, secret=False):
         if default:
@@ -33,9 +32,7 @@ class Command(BaseCommand):
         )
         province = options["province"] or self._prompt("Province (e.g. Huambo, Luanda)")
         email = options["admin_email"] or self._prompt("Admin email")
-        password = options["admin_password"] or self._prompt(
-            "Admin password", secret=True
-        )
+        password = self._prompt("Admin password", secret=True)
 
         if not all([name, slug, email, password]):
             raise CommandError("Name, slug, admin email and password are all required.")
