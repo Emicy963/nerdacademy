@@ -37,3 +37,5 @@ if _db_url:
     )
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+REFRESH_TOKEN_COOKIE = {**REFRESH_TOKEN_COOKIE, "secure": True}

@@ -133,6 +133,16 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://127.0.0.1:3000")
 
+CORS_ALLOW_CREDENTIALS = True
+
+REFRESH_TOKEN_COOKIE = {
+    "name": "refresh_token",
+    "max_age": int(os.environ.get("JWT_REFRESH_TOKEN_DAYS", 7)) * 24 * 60 * 60,
+    "samesite": "Lax",
+    "path": "/api/auth/",
+    "secure": False,
+}
+
 LANGUAGE_CODE = "pt-pt"
 TIME_ZONE = "Africa/Luanda"
 USE_I18N = True
