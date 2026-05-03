@@ -146,7 +146,7 @@
   <div class="state" id="state-success">
     <div class="icon icon--success">✅</div>
     <h1>Conta verificada!</h1>
-    <p>A sua instituição foi ativada com sucesso. Pode agora fazer login e começar a usar o Matrika.</p>
+    <p>A sua instituição foi ativada com sucesso. A redirecionar para o login…</p>
     <a href="/pages/login.html" class="btn btn--primary">Ir para o login</a>
   </div>
 
@@ -161,7 +161,7 @@
 
 <script type="module">
 import { API_BASE } from '../js/config.js';
-import { institutions } from '../js/api.js';
+import { institutions, session } from '../js/api.js';
 
 function showState(id) {
   document.querySelectorAll('.state').forEach(el => el.classList.remove('active'));
@@ -183,14 +183,25 @@ if (token) {
     .then(() => {
       localStorage.removeItem('matrika_verify_email');
       showState('state-success');
+      setTimeout(() => { window.location.href = '/pages/login.html'; }, 2500);
     })
     .catch(err => {
-      document.getElementById('error-msg').textContent =
-        err.detail || 'Este link de verificação é inválido ou já foi utilizado.';
+      // custom_exception_handler wraps errors: {error, status_code, detail}
+      // err.detail may be a string or an object — normalise to string
+      const raw = err.detail;
+      const msg = raw && typeof raw === 'object'
+        ? (raw.token?.[0] ?? raw.token ?? JSON.stringify(raw))
+        : (raw || 'Este link de verificação é inválido ou já foi utilizado.');
+      document.getElementById('error-msg').textContent = msg;
       showState('state-error');
     });
 } else {
-  // No token — show pending state
+  // No token — pending state. Clear any stale session so the user is forced
+  // to re-login after verification and gets fresh institution_is_verified data.
+  // This also breaks the verify-institution → dashboard → verify-institution loop.
+  if (session.isLoggedIn() && session.getActiveMembership()?.institution_is_verified === false) {
+    session.clear();
+  }
   showState('state-pending');
 }
 

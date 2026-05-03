@@ -416,18 +416,19 @@
     <div class="modal-body">
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label" for="f-type">Assessment type</label>
-          <select class="form-select" id="f-type" disabled>
-            <option value="continuous">Continuous Assessment</option>
-            <option value="exam">Exam</option>
-            <option value="practical">Practical Work</option>
-            <option value="project">Project</option>
-            <option value="other">Other</option>
+          <label class="form-label" for="f-type" data-i18n="grades.modal.type">Assessment type</label>
+          <select class="form-select" id="f-type">
+            <option value="continuous" data-i18n="grades.type.continuous">Continuous Assessment</option>
+            <option value="exam"       data-i18n="grades.type.exam">Exam</option>
+            <option value="practical"  data-i18n="grades.type.practical">Practical Work</option>
+            <option value="project"    data-i18n="grades.type.project">Project</option>
+            <option value="other"      data-i18n="grades.type.other">Other</option>
           </select>
         </div>
         <div class="form-group">
           <label class="form-label" for="f-date">
-            Assessment date <span style="color:var(--color-red)">*</span>
+            <span data-i18n="grades.modal.date">Assessment date</span>
+            <span style="color:var(--color-red)">*</span>
           </label>
           <input class="form-input" type="date" id="f-date"/>
           <span class="form-error" id="e-date"></span>
@@ -436,7 +437,8 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label" for="f-value">
-            Grade <span style="color:var(--color-red)">*</span>
+            <span data-i18n="grades.modal.value">Grade</span>
+            <span style="color:var(--color-red)">*</span>
           </label>
           <input class="form-input" type="number" id="f-value"
                  placeholder="14" min="0" step="0.01"/>
@@ -444,7 +446,8 @@
         </div>
         <div class="form-group">
           <label class="form-label" for="f-max">
-            Out of <span style="color:var(--color-red)">*</span>
+            <span data-i18n="grades.modal.max">Out of</span>
+            <span style="color:var(--color-red)">*</span>
           </label>
           <input class="form-input" type="number" id="f-max"
                  placeholder="20" min="0.01" step="0.01" value="20"/>
@@ -452,16 +455,17 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label" for="f-notes">Notes</label>
+        <label class="form-label" for="f-notes" data-i18n="grades.modal.notes">Notes</label>
         <textarea class="form-textarea" id="f-notes" rows="2"
+                  data-i18n-placeholder="grades.modal.notes_ph"
                   placeholder="Optional remarks…" style="min-height:64px"></textarea>
       </div>
       <div class="alert alert-error" id="modal-error" style="display:none"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+      <button class="btn btn-secondary" id="modal-cancel" data-i18n="ui.cancel">Cancel</button>
       <button class="btn btn-primary"   id="modal-save">
-        <span id="modal-save-label">Launch grade</span>
+        <span id="modal-save-label" data-i18n="grades.modal.launch">Launch grade</span>
       </button>
     </div>
   </div>
@@ -497,12 +501,14 @@
 <script type="module">
 import { initLayout, setBreadcrumb } from '../js/layout.js';
 import { grades, classes } from '../js/api.js';
+import { t, applyTranslations } from '../js/i18n.js';
 
 // ── Bootstrap ──────────────────────────────────────
 const user = initLayout('grades');
 if (!user) throw new Error('unauthenticated');
 
-setBreadcrumb([{ label: 'Grades', current: true }]);
+applyTranslations();
+setBreadcrumb([{ label: t('grades.title'), current: true }]);
 
 fetch('../components/icons.html')
   .then(r => r.text())
@@ -524,10 +530,18 @@ const canWrite  = isAdmin || isTrainer;
 
 // ── State ──────────────────────────────────────────
 const ASSESSMENT_TYPES = ['continuous','exam','practical','project','other'];
-const TYPE_LABELS = {
-  continuous: 'Continuous', exam: 'Exam',
-  practical: 'Practical', project: 'Project', other: 'Other',
-};
+const typeLabels = () => ({
+  continuous: t('grades.type.continuous'),
+  exam:       t('grades.type.exam'),
+  practical:  t('grades.type.practical'),
+  project:    t('grades.type.project'),
+  other:      t('grades.type.other'),
+});
+// Re-apply translations when locale changes (static data-i18n elements + breadcrumb)
+window.addEventListener('localechange', () => {
+  applyTranslations();
+  setBreadcrumb([{ label: t('grades.title'), current: true }]);
+});
 
 let selectedClassId   = null;
 let currentReport     = [];   // [{enrollment_id, student, grades, average}]
@@ -652,7 +666,7 @@ async function renderStudentView() {
               const cls  = gradeColor(pct);
               return `
                 <div class="assessment-row">
-                  <div class="assessment-row__type">${TYPE_LABELS[type]}</div>
+                  <div class="assessment-row__type">${typeLabels()[type]}</div>
                   <div class="grade-bar-wrap">
                     <div class="grade-bar-track">
                       <div class="grade-bar-fill ${cls}" style="width:${pct}%"></div>
@@ -874,10 +888,10 @@ function renderReport(report) {
             <tr>
               <th class="student-cell">Student</th>
               ${activeTypes.map(t =>
-                `<th class="grade-col" style="width:${colWidth}px">${TYPE_LABELS[t]}</th>`
+                `<th class="grade-col" style="width:${colWidth}px">${typeLabels()[t]}</th>`
               ).join('')}
               ${canWrite ? ASSESSMENT_TYPES.filter(t => !presentTypes.has(t)).map(t =>
-                `<th class="grade-col" style="width:${colWidth}px;opacity:0.5">${TYPE_LABELS[t]}</th>`
+                `<th class="grade-col" style="width:${colWidth}px;opacity:0.5">${typeLabels()[t]}</th>`
               ).join('') : ''}
               <th style="text-align:right;padding-right:var(--sp-5)">Average</th>
             </tr>
@@ -922,7 +936,7 @@ function renderReport(report) {
                         data-grade-id="${g.id}"
                         data-enrollment="${row.enrollment_id}"
                         data-type="${type}"
-                        title="${TYPE_LABELS[type]}: ${val}/${max}">
+                        title="${typeLabels()[type]}: ${val}/${max}">
                   ${val.toFixed(1)}/${max.toFixed(0)}
                 </button>
               </td>`;
@@ -935,7 +949,7 @@ function renderReport(report) {
                         data-enrollment="${row.enrollment_id}"
                         data-student="${row.student?.full_name ?? ''}"
                         data-type="${type}"
-                        title="Click to launch ${TYPE_LABELS[type]} grade">
+                        title="Click to launch ${typeLabels()[type]} grade">
                   + grade
                 </button>
               </td>`;
@@ -994,7 +1008,7 @@ function openPopover(btn) {
 }
 
 function fillPopover(g) {
-  document.getElementById('pop-type').textContent  = TYPE_LABELS[g.assessment_type] ?? g.assessment_type;
+  document.getElementById('pop-type').textContent  = typeLabels()[g.assessment_type] ?? g.assessment_type;
   document.getElementById('pop-score').textContent = parseFloat(g.value).toFixed(1);
   document.getElementById('pop-max').textContent   = `/${parseFloat(g.max_value).toFixed(0)}`;
   const notesEl = document.getElementById('pop-notes');
@@ -1042,14 +1056,14 @@ function openLaunchModal({ enrollmentId, studentName, assessmentType }) {
   pendingEnrollment = { id: enrollmentId, studentName };
   pendingType       = assessmentType;
 
-  modalTitle.textContent = 'Launch grade';
+  modalTitle.textContent = t('grades.modal.launch');
   document.getElementById('modal-subtitle').textContent =
-    `${studentName} · ${TYPE_LABELS[assessmentType]}`;
-  saveLabel.textContent = 'Launch grade';
+    `${studentName} · ${typeLabels()[assessmentType]}`;
+  saveLabel.textContent = t('grades.modal.launch');
 
   const typeSelect = document.getElementById('f-type');
-  typeSelect.value   = assessmentType;
-  typeSelect.disabled = true; // fixed — type determined by cell clicked
+  typeSelect.value    = assessmentType;
+  typeSelect.disabled = false;
 
   document.getElementById('f-date').value  = new Date().toISOString().split('T')[0];
   document.getElementById('f-value').value = '';
@@ -1067,13 +1081,13 @@ function openEditModal(gradeId) {
   pendingEnrollment = null;
   pendingType       = null;
 
-  modalTitle.textContent = 'Edit grade';
+  modalTitle.textContent = t('grades.modal.save');
   document.getElementById('modal-subtitle').textContent = '';
-  saveLabel.textContent = 'Save changes';
+  saveLabel.textContent = t('grades.modal.save');
 
   grades.get(gradeId).then(g => {
-    document.getElementById('f-type').value  = g.assessment_type;
-    document.getElementById('f-type').disabled = true;
+    document.getElementById('f-type').value    = g.assessment_type;
+    document.getElementById('f-type').disabled = false;
     document.getElementById('f-date').value  = g.assessed_at  ?? '';
     document.getElementById('f-value').value = parseFloat(g.value).toFixed(2);
     document.getElementById('f-max').value   = parseFloat(g.max_value).toFixed(2);
@@ -1111,10 +1125,11 @@ saveBtn.addEventListener('click', async () => {
   clearModalErrors();
   modalError.style.display = 'none';
 
-  const date  = document.getElementById('f-date').value;
-  const val   = parseFloat(document.getElementById('f-value').value);
-  const max   = parseFloat(document.getElementById('f-max').value);
-  const notes = document.getElementById('f-notes').value.trim();
+  const date       = document.getElementById('f-date').value;
+  const val        = parseFloat(document.getElementById('f-value').value);
+  const max        = parseFloat(document.getElementById('f-max').value);
+  const notes      = document.getElementById('f-notes').value.trim();
+  const chosenType = document.getElementById('f-type').value || pendingType;
 
   let valid = true;
   if (!date)      { showFieldErr('f-date','e-date','Date is required.'); valid = false; }
@@ -1127,7 +1142,7 @@ saveBtn.addEventListener('click', async () => {
   if (!valid) return;
 
   saveBtn.disabled = true;
-  saveLabel.textContent = editingGradeId ? 'Saving…' : 'Launching…';
+  saveLabel.textContent = editingGradeId ? t('ui.saving') : t('grades.modal.launch') + '…';
 
   try {
     if (editingGradeId) {
@@ -1141,7 +1156,7 @@ saveBtn.addEventListener('click', async () => {
     } else {
       await grades.launch({
         enrollment_id:   pendingEnrollment.id,
-        assessment_type: pendingType,
+        assessment_type: chosenType,
         value:           val.toFixed(2),
         max_value:       max.toFixed(2),
         assessed_at:     date,
@@ -1156,7 +1171,7 @@ saveBtn.addEventListener('click', async () => {
     modalError.style.display = 'flex';
   } finally {
     saveBtn.disabled = false;
-    saveLabel.textContent = editingGradeId ? 'Save changes' : 'Launch grade';
+    saveLabel.textContent = editingGradeId ? t('grades.modal.save') : t('grades.modal.launch');
   }
 });
 

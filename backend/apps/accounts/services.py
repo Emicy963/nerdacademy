@@ -100,7 +100,8 @@ class UserService:
         except DjangoValidationError as e:
             raise ValidationError({"new_password": list(e.messages)})
         user.set_password(new_password)
-        user.save()
+        user.must_change_password = False
+        user.save(update_fields=["password", "must_change_password"])
         return user
 
     @staticmethod

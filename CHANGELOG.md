@@ -10,6 +10,38 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.7.1] — 2026-05-03
+
+### Fixed
+
+- **register.html — import incorreto**: `getCurrentLocale` renomeado para `getLocale`
+  (nome correto exportado por `i18n.js`); falha silenciosa fazia o formulário submeter
+  via GET, expondo a password no URL
+- **Loop verify-institution ↔ dashboard**: sessão não verificada armazenada no
+  `localStorage` causava ciclo infinito de redirecionamentos; `login.html` passou a
+  verificar `institution_is_verified` no auto-redirect e no confirmação de multi-membership;
+  `verify-institution.html` limpa a sessão não verificada no estado pendente
+- **Email da instituição não guardado**: `InstitutionService.register()` não passava
+  `email=email` ao `create_institution()`, deixando o campo vazio no admin
+- **Admin instituição sem coluna `is_verified`**: `InstitutionAdmin.list_display`
+  passou a incluir `is_verified` e `email`; `is_verified` adicionado ao `list_filter`
+- **`must_change_password` bloqueava todos os logins**: `change_password()` em
+  `accounts/services.py` não limpava o flag `must_change_password`; adicionado
+  `user.must_change_password = False` com `save(update_fields=["password", "must_change_password"])`
+- **Modal de notas não traduzia ao mudar idioma**: modal de `grades.html` agora usa
+  `t()` via `typeLabels()` e ouve `localechange` para re-renderizar; select de tipo de
+  nota deixou de ter `disabled` hardcoded
+- **Página de perfil não traduzia ao mudar idioma**: `profile.html` ouve `localechange`
+  e re-renderiza todo o conteúdo; `roleLabels` movido para dentro de `render()` para
+  ser recalculado a cada chamada
+
+### Added
+
+- `TESTING_GUIDE.md`: guia de testes local cobrindo todos os fluxos, verificações de
+  segurança, lista de regressões e tabela de melhorias planeadas
+
+---
+
 ## [0.7.0] — 2026-05-03
 
 ### Security

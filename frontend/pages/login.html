@@ -484,7 +484,11 @@
   import { t } from '../js/i18n.js';
 
   // ── Already logged in → go to dashboard ──────────────
-  if (session.isLoggedIn() && session.getInstitutionId()) {
+  // Only auto-redirect if the stored session is for a verified institution.
+  // If institution_is_verified is false, fall through to the login form so
+  // the user can re-authenticate and get fresh session data.
+  const _storedMembership = session.getActiveMembership();
+  if (session.isLoggedIn() && session.getInstitutionId() && _storedMembership?.institution_is_verified !== false) {
     window.location.href = '../pages/dashboard.html';
   }
 
@@ -602,6 +606,12 @@
   // ── Confirm membership and enter dashboard ────────────
   confirmBtn.addEventListener('click', () => {
     if (!selectedMembership || !pendingData) return;
+
+    if (!selectedMembership.institution_is_verified) {
+      localStorage.setItem('matrika_verify_email', pendingData.user.email);
+      window.location.href = '../pages/verify-institution.html';
+      return;
+    }
 
     const userWithFlag = {
       ...pendingData.user,

@@ -245,11 +245,7 @@ if (!user) throw new Error('unauthenticated');
 
 setBreadcrumb([{ label: t('profile.title'), current: true }]);
 
-const roleLabels = {
-  admin:   t('ui.role.admin'),
-  trainer: t('ui.role.trainer'),
-  student: t('ui.role.student'),
-};
+let _me = null, _code = null;
 
 function formatDate(iso) {
   if (!iso) return '—';
@@ -280,10 +276,17 @@ async function loadProfile() {
   const profile = profileResult.status === 'fulfilled' ? profileResult.value : null;
   const code    = profile?.student_code ?? profile?.trainer_code ?? null;
 
+  _me = me;
+  _code = code;
   render(me, code);
 }
 
 function render(me, code) {
+  const roleLabels = {
+    admin:   t('ui.role.admin'),
+    trainer: t('ui.role.trainer'),
+    student: t('ui.role.student'),
+  };
   const displayName  = me.full_name?.trim() || me.email?.split('@')[0] || '—';
   const displayEmail = me.email || '';
   const membership   = session.getActiveMembership();
@@ -423,6 +426,11 @@ function showError(msg) {
       <p>${msg}</p>
     </div>`;
 }
+
+window.addEventListener('localechange', () => {
+  setBreadcrumb([{ label: t('profile.title'), current: true }]);
+  if (_me !== null) render(_me, _code);
+});
 
 loadProfile();
 </script>
