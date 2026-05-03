@@ -1,15 +1,22 @@
+import logging
+
 from django.conf import settings
 from django.core.mail import send_mail
 
+logger = logging.getLogger(__name__)
+
 
 def _send(subject: str, message: str, to: str):
-    send_mail(
-        subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[to],
-        fail_silently=True,
-    )
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[to],
+            fail_silently=False,
+        )
+    except Exception as exc:
+        logger.error("Failed to send email to %s — subject: %s — error: %s", to, subject, exc)
 
 
 def send_welcome_student(student, temp_password: str):
@@ -59,6 +66,23 @@ def send_password_reset_link(user, reset_url: str):
             "Recebemos um pedido para redefinir a palavra-passe da sua conta.\n\n"
             f"Clique no link abaixo para definir uma nova palavra-passe:\n{reset_url}\n\n"
             "Este link é válido por 24 horas. Se não fez este pedido, ignore este email.\n\n"
+            "Matrika"
+        ),
+        to=user.email,
+    )
+
+
+def send_institution_verification(user, institution, verify_url: str):
+    """Sent after self-service institution registration to verify the admin email."""
+    _send(
+        subject="Matrika — Verifique a sua conta",
+        message=(
+            f"Olá {user.full_name or user.email},\n\n"
+            f"Obrigado por registar a instituição «{institution.name}» na plataforma Matrika.\n\n"
+            "Para ativar a sua conta, clique no link abaixo:\n"
+            f"{verify_url}\n\n"
+            "Este link é válido enquanto a verificação não for concluída.\n"
+            "Se não criou esta conta, ignore este email.\n\n"
             "Matrika"
         ),
         to=user.email,

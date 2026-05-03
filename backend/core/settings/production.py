@@ -6,6 +6,7 @@ from .base import *
 DEBUG = False
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
 
 CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
 CORS_ALLOW_HEADERS = list(default_headers) + ["X-Institution-Id"]
@@ -36,3 +37,5 @@ if _db_url:
     )
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+REFRESH_TOKEN_COOKIE = {**REFRESH_TOKEN_COOKIE, "secure": True}

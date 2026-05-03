@@ -4,6 +4,7 @@ Management helper: creates an institution and its first admin user.
 Usage: python create_institution.py
 """
 
+import getpass
 import os
 import django
 
@@ -21,7 +22,7 @@ def main():
     slug     = input("Institution slug (e.g. centro-angola): ").strip()
     country  = input("Country [Angola]: ").strip() or "Angola"
     email    = input("Admin email: ").strip()
-    password = input("Admin password: ").strip()
+    password = getpass.getpass("Admin password: ").strip()
 
     institution = InstitutionService.create_institution(
         name=name, slug=slug, country=country

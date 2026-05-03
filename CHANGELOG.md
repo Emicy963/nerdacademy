@@ -10,6 +10,100 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.7.0] — 2026-05-03
+
+### Security
+
+- **MED-2 — Refresh token HttpOnly cookie (Option B)**: o refresh token deixa de ser
+  armazenado no `localStorage` e passa a ser emitido como cookie `HttpOnly; SameSite=Lax`,
+  inacessível a JavaScript. O access token (15 min) continua no `localStorage`.
+  - `LoginView` e `InstitutionRegisterView` emitem o cookie na resposta
+  - Novo `CookieTokenRefreshView` lê o token do cookie em vez do body
+  - `LogoutView` limpa o cookie no servidor
+  - `api.js` usa `credentials: 'include'` nos endpoints de auth; `silentRefresh`
+    deixa de enviar o token no body
+  - `CORS_ALLOW_CREDENTIALS = True` adicionado às settings
+  - `REFRESH_TOKEN_COOKIE` configurável por ambiente (`secure: True` em produção)
+
+- **MED-7 — Verificação de email na ativação de instituição**: instituições criadas
+  via self-service ficam inativas (`is_verified=False`) até o admin verificar o email
+  - Campo `is_verified` e `verification_token` adicionados ao modelo `Institution`
+  - Migração `0003_institution_verification` criada
+  - `InstitutionService.register()` envia email de verificação em vez de auto-login
+  - Novo endpoint `POST /api/institutions/verify/` para ativar a instituição
+  - `MembershipJWTAuthentication` bloqueia requests de instituições não verificadas
+    com erro `INSTITUTION_NOT_VERIFIED`
+  - `MembershipSerializer` expõe `institution_is_verified` ao frontend
+  - Frontend redireciona para `/pages/verify-institution.html` quando não verificado
+  - Nova página `verify-institution.html`: processa token do URL fragment, mostra
+    estados (pendente / a verificar / sucesso / erro)
+  - `register.html` redireciona para verificação em vez de auto-login
+  - `login.html` deteta instituição não verificada e redireciona
+
+### Added
+
+- `backend/apps/accounts/views.py`: `CookieTokenRefreshView`, helpers `_set_refresh_cookie`,
+  `_clear_refresh_cookie`
+- `backend/apps/institutions/migrations/0003_institution_verification.py`
+- `backend/apps/institutions/serializers.py`: `InstitutionVerifySerializer`
+- `backend/apps/institutions/views.py`: `InstitutionVerifyView`
+- `backend/apps/accounts/emails.py`: `send_institution_verification()`
+- `frontend/pages/verify-institution.html`
+
+---
+
+## [0.6.0] — 2026-05-03
+
+### Security
+
+- **CRIT-1 — SECRET_KEY**: `SECRET_KEY` agora levanta `ImproperlyConfigured` na inicialização
+  se a variável de ambiente não estiver definida, em vez de usar um fallback público
+- **CRIT-2 — Hardcoded password**: alunos e formadores criados sem email recebem agora
+  uma password aleatória gerada com `secrets.token_urlsafe(8)`, eliminando o `pass123`
+  universal; testes atualizados para refletir o comportamento correto
+- **HIGH-2 — Rate limiting**: throttling adicionado globalmente via `DEFAULT_THROTTLE_CLASSES`
+  e por endpoint: `LoginView` (10/min), `PasswordResetRequestView` (5/hour),
+  `InstitutionRegisterView` (5/hour); novo módulo `core/throttles.py`
+- **HIGH-3 — Stored XSS**: `innerHTML` substituído por DOM APIs (`textContent`,
+  `createElement`) em `layout.js` nas notificações, institution switcher e breadcrumb;
+  elimina vetores de XSS via campos de texto livre do admin
+- **HIGH-4 — Nginx security headers**: adicionados `X-Frame-Options`, `X-Content-Type-Options`,
+  `Referrer-Policy`, `X-XSS-Protection`, `Strict-Transport-Security` ao `nginx.conf`
+- **HIGH-5 — .dockerignore**: criado `backend/.dockerignore` para excluir `.env`,
+  `db.sqlite3`, e `__pycache__` das imagens Docker
+- **HIGH-6 — Content-Security-Policy**: adicionado header CSP ao `frontend/vercel.json`
+  para todas as páginas HTML
+- **MED-1 — JWT lifetime**: access token reduzido de 60 para 15 minutos (default);
+  configurável via `JWT_ACCESS_TOKEN_MINUTES`
+- **MED-3 — Gmail em dev**: `development.py` passa a usar `smtp.EmailBackend` real
+  em vez de `console.EmailBackend`; token de reset de password movido para URL
+  fragment (`#uid:token`) em vez de query string para evitar exposição em logs
+- **MED-4 — CSRF_TRUSTED_ORIGINS**: adicionado a `production.py` via variável de ambiente
+- **MED-5 — Password validation**: `django_validate_password()` chamado explicitamente
+  em `change_password()` e `confirm_password_reset()` em `UserService`
+- **MED-6 — CLI password arg**: argumento `--admin-password` removido do management
+  command `create_institution`; password solicitada sempre via `getpass`
+- **MED-8 — IDOR enrollment**: `EnrollmentDetailView` valida agora que o `enrollment_id`
+  pertence ao `class_id` especificado na URL
+- **MED-9 — Reset token URL**: token de reset movido de query string para fragment
+  (`#uid:token`); atualizado em `services.py` e `reset-password.html`
+- **LOW-2 — Admin URL**: URL do Django Admin movida de `/admin/` para `/mgmt-matrika/`
+- **LOW-3 — Email fail_silently**: `fail_silently=True` removido; falhas de email
+  agora registadas com `logger.error()`
+- **LOW-6 — Pillow**: versão atualizada de `==10.4.0` para `>=11.0.0`
+- **LOW-8 — getpass**: `create_institution.py` usa agora `getpass.getpass()` em vez
+  de `input()` para solicitar a password
+
+### Added
+
+- `backend/core/throttles.py` — throttle classes customizadas para login, reset de
+  password e registo de instituição
+- `backend/.dockerignore` — exclui ficheiros sensíveis das imagens Docker
+- `backend/.env.example` — atualizado com `JWT_ACCESS_TOKEN_MINUTES=15` e
+  `FRONTEND_URL=http://localhost:3000`
+
+---
+
 ## [0.5.0] — 2026-04-28
 
 ### Added

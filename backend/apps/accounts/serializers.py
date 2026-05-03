@@ -63,12 +63,16 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class MembershipSerializer(serializers.ModelSerializer):
-    institution_id   = serializers.UUIDField(source="institution.id",   read_only=True)
-    institution_name = serializers.CharField(source="institution.name", read_only=True)
+    institution_id          = serializers.UUIDField(source="institution.id",          read_only=True)
+    institution_name        = serializers.CharField(source="institution.name",         read_only=True)
+    institution_is_verified = serializers.BooleanField(source="institution.is_verified", read_only=True)
 
     class Meta:
         model = Membership
-        fields = ["id", "role", "institution_id", "institution_name", "is_active", "joined_at"]
+        fields = [
+            "id", "role", "institution_id", "institution_name",
+            "institution_is_verified", "is_active", "joined_at",
+        ]
         read_only_fields = fields
 
 

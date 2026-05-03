@@ -263,18 +263,22 @@ class EnrollmentDetailView(APIView):
             return [IsAuthenticated(), IsAdminRole()]
         return [IsAuthenticated(), IsTrainerRole()]
 
-    def get(self, request, class_id, enrollment_id):
+    def _get_enrollment(self, request, class_id, enrollment_id):
+        from rest_framework.exceptions import NotFound as DRFNotFound
         enrollment = EnrollmentService.get_enrollment(
             enrollment_id=enrollment_id,
             institution=request.membership.institution,
         )
+        if str(enrollment.class_instance_id) != str(class_id):
+            raise DRFNotFound()
+        return enrollment
+
+    def get(self, request, class_id, enrollment_id):
+        enrollment = self._get_enrollment(request, class_id, enrollment_id)
         return Response(EnrollmentDetailSerializer(enrollment).data)
 
     def delete(self, request, class_id, enrollment_id):
-        enrollment = EnrollmentService.get_enrollment(
-            enrollment_id=enrollment_id,
-            institution=request.membership.institution,
-        )
+        enrollment = self._get_enrollment(request, class_id, enrollment_id)
         EnrollmentService.drop_enrollment(enrollment)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

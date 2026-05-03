@@ -1,10 +1,13 @@
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 
+from core.throttles import LoginRateThrottle, PasswordResetRateThrottle
 from .serializers import (
     UserMeSerializer, MembershipSerializer, ChangePasswordSerializer,
     UserUpdateMeSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
@@ -12,24 +15,82 @@ from .serializers import (
 from .services import UserService
 
 
+def _set_refresh_cookie(response, refresh_token: str) -> None:
+    cfg = settings.REFRESH_TOKEN_COOKIE
+    response.set_cookie(
+        key=cfg["name"],
+        value=refresh_token,
+        max_age=cfg["max_age"],
+        httponly=True,
+        secure=cfg["secure"],
+        samesite=cfg["samesite"],
+        path=cfg["path"],
+    )
+
+
+def _clear_refresh_cookie(response) -> None:
+    cfg = settings.REFRESH_TOKEN_COOKIE
+    response.delete_cookie(cfg["name"], path=cfg["path"])
+
+
 class LoginView(TokenObtainPairView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            refresh = response.data.pop("refresh", None)
+            if refresh:
+                _set_refresh_cookie(response, refresh)
+        return response
+
+
+class CookieTokenRefreshView(APIView):
+    """Reads the refresh token from the HttpOnly cookie instead of the request body."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_token = request.COOKIES.get(settings.REFRESH_TOKEN_COOKIE["name"])
+        if not refresh_token:
+            return Response(
+                {"detail": "Sessão expirada. Faça login novamente."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        serializer = TokenRefreshSerializer(data={"refresh": refresh_token})
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception:
+            response = Response(
+                {"detail": "Sessão expirada. Faça login novamente."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+            _clear_refresh_cookie(response)
+            return response
+
+        data = serializer.validated_data
+        response = Response({"access": data["access"]})
+        if "refresh" in data:
+            _set_refresh_cookie(response, data["refresh"])
+        return response
 
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        refresh_token = (
+            request.COOKIES.get(settings.REFRESH_TOKEN_COOKIE["name"])
+            or request.data.get("refresh")
+        )
         try:
-            refresh_token = request.data["refresh"]
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            if refresh_token:
+                RefreshToken(refresh_token).blacklist()
         except Exception:
-            return Response(
-                {"detail": "Invalid token."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            pass
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        _clear_refresh_cookie(response)
+        return response
 
 
 class MeView(APIView):
@@ -82,6 +143,7 @@ class ChangePasswordView(APIView):
 
 class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetRateThrottle]
 
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)

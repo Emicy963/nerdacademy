@@ -71,12 +71,13 @@ class TestTrainerServiceCreate:
         assert trainer.user.must_change_password is True
         assert temp_password is not None and len(temp_password) > 0
 
-    def test_create_trainer_without_email_uses_generic_password(self, institution):
+    def test_create_trainer_without_email_generates_random_password(self, institution):
         trainer, temp_password = TrainerService.create_trainer(
             institution=institution, full_name="Sem Email"
         )
         assert trainer.user is not None
-        assert temp_password == "pass123"
+        assert temp_password is not None and len(temp_password) >= 8
+        assert temp_password != "pass123"
         assert trainer.user.email.endswith("@local.academico")
 
 

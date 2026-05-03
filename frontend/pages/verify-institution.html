@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Verificar Conta — Matrika</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-canvas:      #F7F6F3;
+      --bg-surface:     #FFFFFF;
+      --text-primary:   #181714;
+      --text-secondary: #6B6860;
+      --text-tertiary:  #9C9A93;
+      --border-default: #E4E2DC;
+      --color-amber:    #E8A838;
+      --color-green:    #27AE60;
+      --color-green-bg: #EAF7EE;
+      --color-red:      #C0392B;
+      --color-red-bg:   #FDECEA;
+      --font-ui: 'DM Sans', system-ui, sans-serif;
+      --radius-md: 6px;
+      --radius-lg: 10px;
+    }
+
+    body {
+      font-family: var(--font-ui);
+      background: var(--bg-canvas);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+    }
+
+    .icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 24px;
+    }
+    .icon--pending  { background: #FEF3DC; }
+    .icon--success  { background: var(--color-green-bg); }
+    .icon--error    { background: var(--color-red-bg); }
+
+    .logo {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      color: var(--text-primary);
+      margin-bottom: 28px;
+    }
+
+    h1 { font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; }
+    p  { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px; }
+    .email-highlight { font-weight: 500; color: var(--text-primary); }
+
+    .btn {
+      display: inline-block;
+      width: 100%;
+      padding: 11px 20px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      border: none;
+      text-align: center;
+      text-decoration: none;
+      margin-top: 20px;
+    }
+    .btn--primary { background: #181714; color: #F5F3EE; }
+    .btn--primary:hover { background: #2A2927; }
+    .btn--secondary { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-default); margin-top: 10px; }
+    .btn--secondary:hover { background: var(--bg-canvas); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .alert {
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      text-align: left;
+      margin-top: 16px;
+      display: none;
+    }
+    .alert--error   { background: var(--color-red-bg);   color: var(--color-red); }
+    .alert--success { background: var(--color-green-bg); color: var(--color-green); }
+
+    .back-link {
+      display: block;
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--text-tertiary);
+      text-decoration: none;
+    }
+    .back-link:hover { color: var(--text-secondary); }
+
+    /* States */
+    .state { display: none; }
+    .state.active { display: block; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">Matrika</div>
+
+  <!-- State: pending verification (no token in URL) -->
+  <div class="state active" id="state-pending">
+    <div class="icon icon--pending">✉️</div>
+    <h1>Verifique o seu email</h1>
+    <p>Enviámos um link de ativação para</p>
+    <p><span class="email-highlight" id="pending-email">o seu endereço de email</span></p>
+    <p style="margin-top:12px">Clique no link no email para ativar a sua instituição e começar a usar o Matrika.</p>
+    <div class="alert alert--error" id="resend-error"></div>
+    <button class="btn btn--primary" id="resend-btn">Reenviar email de verificação</button>
+    <a href="/pages/login.html" class="back-link">Já verifiquei — ir para o login</a>
+  </div>
+
+  <!-- State: verifying (processing token) -->
+  <div class="state" id="state-verifying">
+    <div class="icon icon--pending">⏳</div>
+    <h1>A verificar...</h1>
+    <p>Por favor aguarde.</p>
+  </div>
+
+  <!-- State: success -->
+  <div class="state" id="state-success">
+    <div class="icon icon--success">✅</div>
+    <h1>Conta verificada!</h1>
+    <p>A sua instituição foi ativada com sucesso. Pode agora fazer login e começar a usar o Matrika.</p>
+    <a href="/pages/login.html" class="btn btn--primary">Ir para o login</a>
+  </div>
+
+  <!-- State: error -->
+  <div class="state" id="state-error">
+    <div class="icon icon--error">❌</div>
+    <h1>Link inválido</h1>
+    <p id="error-msg">Este link de verificação é inválido ou já foi utilizado.</p>
+    <a href="/pages/login.html" class="btn btn--secondary">Ir para o login</a>
+  </div>
+</div>
+
+<script type="module">
+import { API_BASE } from '../js/config.js';
+import { institutions } from '../js/api.js';
+
+function showState(id) {
+  document.querySelectorAll('.state').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// Populate stored email on the pending state
+const storedEmail = localStorage.getItem('matrika_verify_email');
+if (storedEmail) {
+  document.getElementById('pending-email').textContent = storedEmail;
+}
+
+const token = window.location.hash.slice(1);
+
+if (token) {
+  // Token present in URL fragment — attempt verification
+  showState('state-verifying');
+  institutions.verify(token)
+    .then(() => {
+      localStorage.removeItem('matrika_verify_email');
+      showState('state-success');
+    })
+    .catch(err => {
+      document.getElementById('error-msg').textContent =
+        err.detail || 'Este link de verificação é inválido ou já foi utilizado.';
+      showState('state-error');
+    });
+} else {
+  // No token — show pending state
+  showState('state-pending');
+}
+
+// Resend button — placeholder (requires authenticated endpoint or stored token)
+document.getElementById('resend-btn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('resend-btn');
+  const alertEl = document.getElementById('resend-error');
+  btn.disabled = true;
+  btn.textContent = 'A reenviar...';
+  alertEl.style.display = 'none';
+
+  // Redirect to login so the user can re-trigger the flow if needed
+  // A proper resend endpoint can be added in a future iteration
+  setTimeout(() => {
+    alertEl.textContent = 'Para reenviar o email, faça login — caso a sua instituição não esteja verificada, o sistema mostrará esta página automaticamente.';
+    alertEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Reenviar email de verificação';
+  }, 800);
+});
+</script>
+</body>
+</html>

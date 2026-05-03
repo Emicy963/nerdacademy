@@ -7,7 +7,10 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-default-key-change-in-production")
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured("SECRET_KEY environment variable is required")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -95,11 +98,22 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
     "EXCEPTION_HANDLER": "core.exceptions.custom_exception_handler",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "120/hour",
+        "user": "600/hour",
+        "login": "10/minute",
+        "password_reset": "5/hour",
+        "register_institution": "5/hour",
+    },
 }
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
-        minutes=int(os.environ.get("JWT_ACCESS_TOKEN_MINUTES", 60))
+        minutes=int(os.environ.get("JWT_ACCESS_TOKEN_MINUTES", 15))
     ),
     "REFRESH_TOKEN_LIFETIME": timedelta(
         days=int(os.environ.get("JWT_REFRESH_TOKEN_DAYS", 7))
@@ -118,6 +132,16 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://127.0.0.1:3000")
+
+CORS_ALLOW_CREDENTIALS = True
+
+REFRESH_TOKEN_COOKIE = {
+    "name": "refresh_token",
+    "max_age": int(os.environ.get("JWT_REFRESH_TOKEN_DAYS", 7)) * 24 * 60 * 60,
+    "samesite": "Lax",
+    "path": "/api/auth/",
+    "secure": False,
+}
 
 LANGUAGE_CODE = "pt-pt"
 TIME_ZONE = "Africa/Luanda"
