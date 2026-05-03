@@ -156,18 +156,19 @@ export function setBreadcrumb(items) {
   const el = document.getElementById('topbar-breadcrumb');
   if (!el) return;
 
-  el.innerHTML = items.map((item, i) => {
-    const sep = i > 0
-      ? `<span class="topbar__breadcrumb-sep">
-           <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
-             <path d="M1 1l4 4-4 4" stroke="currentColor" stroke-width="1.5"
-                   stroke-linecap="round" stroke-linejoin="round"/>
-           </svg>
-         </span>`
-      : '';
-    const cls = i === items.length - 1 ? 'current' : '';
-    return `${sep}<span class="topbar__breadcrumb-item ${cls}">${item.label}</span>`;
-  }).join('');
+  el.innerHTML = '';
+  items.forEach((item, i) => {
+    if (i > 0) {
+      const sep = document.createElement('span');
+      sep.className = 'topbar__breadcrumb-sep';
+      sep.innerHTML = '<svg width="6" height="10" viewBox="0 0 6 10" fill="none"><path d="M1 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      el.appendChild(sep);
+    }
+    const span = document.createElement('span');
+    span.className = `topbar__breadcrumb-item${i === items.length - 1 ? ' current' : ''}`;
+    span.textContent = item.label;
+    el.appendChild(span);
+  });
 }
 
 // ── Mobile sidebar toggle ─────────────────────────────────────────
@@ -231,29 +232,42 @@ export function renderInstitutionSwitcher(containerId) {
   if (memberships.length <= 1) { container.style.display = 'none'; return; }
 
   const active = session.getActiveMembership();
-  container.innerHTML = `
-    <div style="padding:var(--sp-3) var(--sp-4);border-bottom:1px solid rgba(255,255,255,0.06)">
-      <div style="font-size:10px;font-weight:600;letter-spacing:0.07em;
-                  text-transform:uppercase;color:#4A4842;margin-bottom:var(--sp-2)">
-        Institution
-      </div>
-      ${memberships.map(m => `
-        <button onclick="switchMembership('${m.id}')"
-          style="width:100%;text-align:left;padding:6px 8px;border:none;
-                 border-radius:4px;cursor:pointer;font-size:12px;
-                 background:${m.id === active?.id ? 'rgba(255,255,255,0.08)' : 'transparent'};
-                 color:${m.id === active?.id ? '#F5F3EE' : '#8C8A83'};
-                 margin-bottom:2px;display:flex;align-items:center;gap:6px">
-          <span style="width:6px;height:6px;border-radius:50%;flex-shrink:0;
-                       background:${m.id === active?.id ? 'var(--color-amber)' : 'transparent'};
-                       border:1px solid ${m.id === active?.id ? 'var(--color-amber)' : '#4A4842'}">
-          </span>
-          <div>
-            <div>${m.institution_name}</div>
-            <div style="font-size:10px;opacity:0.6">${m.role}</div>
-          </div>
-        </button>`).join('')}
-    </div>`;
+  container.innerHTML = '';
+
+  const switcherWrapper = document.createElement('div');
+  switcherWrapper.style.cssText = 'padding:var(--sp-3) var(--sp-4);border-bottom:1px solid rgba(255,255,255,0.06)';
+
+  const label = document.createElement('div');
+  label.style.cssText = 'font-size:10px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:#4A4842;margin-bottom:var(--sp-2)';
+  label.textContent = 'Institution';
+  switcherWrapper.appendChild(label);
+
+  memberships.forEach(m => {
+    const isActive = m.id === active?.id;
+    const btn = document.createElement('button');
+    btn.style.cssText = `width:100%;text-align:left;padding:6px 8px;border:none;border-radius:4px;cursor:pointer;font-size:12px;background:${isActive ? 'rgba(255,255,255,0.08)' : 'transparent'};color:${isActive ? '#F5F3EE' : '#8C8A83'};margin-bottom:2px;display:flex;align-items:center;gap:6px`;
+    btn.addEventListener('click', () => window.switchMembership(m.id));
+
+    const dot = document.createElement('span');
+    dot.style.cssText = `width:6px;height:6px;border-radius:50%;flex-shrink:0;background:${isActive ? 'var(--color-amber)' : 'transparent'};border:1px solid ${isActive ? 'var(--color-amber)' : '#4A4842'}`;
+
+    const info = document.createElement('div');
+
+    const nameEl = document.createElement('div');
+    nameEl.textContent = m.institution_name;
+
+    const roleEl = document.createElement('div');
+    roleEl.style.cssText = 'font-size:10px;opacity:0.6';
+    roleEl.textContent = m.role;
+
+    info.appendChild(nameEl);
+    info.appendChild(roleEl);
+    btn.appendChild(dot);
+    btn.appendChild(info);
+    switcherWrapper.appendChild(btn);
+  });
+
+  container.appendChild(switcherWrapper);
 
   window.switchMembership = (membershipId) => {
     const m = memberships.find(m => m.id === membershipId);
@@ -294,31 +308,79 @@ function renderNotifPanel(data) {
     return;
   }
 
-  const items = results.map(n => `
-    <div class="notif-item ${n.is_read ? '' : 'notif-item--unread'}"
-         data-notif-id="${n.id}" role="button" tabindex="0">
-      <div class="notif-item__dot"></div>
-      <div class="notif-item__body">
-        <div class="notif-item__title">${n.title}</div>
-        ${n.message ? `<div class="notif-item__msg">${n.message}</div>` : ''}
-        <div class="notif-item__time">${timeAgo(n.created_at)}</div>
-      </div>
-    </div>`).join('');
+  const items = results.map(n => {
+    const wrapper = document.createElement('div');
+    wrapper.className = `notif-item${n.is_read ? '' : ' notif-item--unread'}`;
+    wrapper.dataset.notifId = n.id;
+    wrapper.setAttribute('role', 'button');
+    wrapper.setAttribute('tabindex', '0');
 
-  panel.innerHTML = `
-    <div class="notif-panel__header">
-      <span>${t('ui.notifications')}${unread_count > 0 ? ` <span class="notif-count-inline">${unread_count}</span>` : ''}</span>
-      ${unread_count > 0 ? `<button class="notif-mark-all">${t('notif.mark_all')}</button>` : ''}
-    </div>
-    <div class="notif-panel__list">${items}</div>`;
+    const dot = document.createElement('div');
+    dot.className = 'notif-item__dot';
 
-  panel.querySelector('.notif-mark-all')?.addEventListener('click', async () => {
+    const body = document.createElement('div');
+    body.className = 'notif-item__body';
+
+    const title = document.createElement('div');
+    title.className = 'notif-item__title';
+    title.textContent = n.title;
+
+    body.appendChild(title);
+
+    if (n.message) {
+      const msg = document.createElement('div');
+      msg.className = 'notif-item__msg';
+      msg.textContent = n.message;
+      body.appendChild(msg);
+    }
+
+    const time = document.createElement('div');
+    time.className = 'notif-item__time';
+    time.textContent = timeAgo(n.created_at);
+    body.appendChild(time);
+
+    wrapper.appendChild(dot);
+    wrapper.appendChild(body);
+    return wrapper;
+  });
+
+  panel.innerHTML = '';
+
+  const header = document.createElement('div');
+  header.className = 'notif-panel__header';
+
+  const headerSpan = document.createElement('span');
+  headerSpan.textContent = t('ui.notifications');
+  if (unread_count > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'notif-count-inline';
+    badge.textContent = unread_count;
+    headerSpan.appendChild(document.createTextNode(' '));
+    headerSpan.appendChild(badge);
+  }
+  header.appendChild(headerSpan);
+
+  if (unread_count > 0) {
+    const markAllBtn = document.createElement('button');
+    markAllBtn.className = 'notif-mark-all';
+    markAllBtn.textContent = t('notif.mark_all');
+    header.appendChild(markAllBtn);
+  }
+
+  const list = document.createElement('div');
+  list.className = 'notif-panel__list';
+  items.forEach(el => list.appendChild(el));
+
+  panel.appendChild(header);
+  panel.appendChild(list);
+
+  header.querySelector('.notif-mark-all')?.addEventListener('click', async () => {
     await notifApi.markAllRead().catch(() => {});
     const fresh = await notifApi.list().catch(() => null);
     if (fresh) { renderNotifPanel(fresh); updateBadge(0); }
   });
 
-  panel.querySelectorAll('.notif-item').forEach(el => {
+  items.forEach(el => {
     el.addEventListener('click', async () => {
       const id = el.dataset.notifId;
       if (!el.classList.contains('notif-item--unread')) return;
