@@ -161,7 +161,7 @@
 
 <script type="module">
 import { API_BASE } from '../js/config.js';
-import { institutions } from '../js/api.js';
+import { institutions, session } from '../js/api.js';
 
 function showState(id) {
   document.querySelectorAll('.state').forEach(el => el.classList.remove('active'));
@@ -190,7 +190,12 @@ if (token) {
       showState('state-error');
     });
 } else {
-  // No token — show pending state
+  // No token — pending state. Clear any stale session so the user is forced
+  // to re-login after verification and gets fresh institution_is_verified data.
+  // This also breaks the verify-institution → dashboard → verify-institution loop.
+  if (session.isLoggedIn() && session.getActiveMembership()?.institution_is_verified === false) {
+    session.clear();
+  }
   showState('state-pending');
 }
 
